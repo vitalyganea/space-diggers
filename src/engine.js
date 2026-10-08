@@ -19,6 +19,9 @@ export function createEngine(opts = {}) {
     dragCameraOutsidePointerLock: true,
     texturePath: '',
   }, opts))
+  // noa draws a round shadow under the player; in first person it is a dark
+  // disc at your feet, so it goes
+  noa.entities.removeComponent(noa.playerEntity, noa.entities.names.shadow)
   // a brisk walk and a jump that clears one block, Bloxd-like
   const move = noa.entities.getMovement(noa.playerEntity)
   move.maxSpeed = 6.5

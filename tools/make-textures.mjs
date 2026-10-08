@@ -59,6 +59,8 @@ class Tex {
     const i = (y * N + x) * 4, [r, g, b] = typeof c === 'string' ? hex(c) : c
     this.px[i] = r; this.px[i + 1] = g; this.px[i + 2] = b; this.px[i + 3] = 255
   }
+  /* a pixel with its own alpha, for the transparent crack overlays */
+  setA(x, y, c, a) { this.set(x, y, c); if (x >= 0 && y >= 0 && x < N && y < N) this.px[(y * N + x) * 4 + 3] = a }
   get(x, y) { const i = (y * N + x) * 4; return [this.px[i], this.px[i + 1], this.px[i + 2]] }
   /* every pixel a pick from the palette, weighted towards the first */
   noise(pal, bias = 1.6) {
@@ -146,7 +148,27 @@ T.core = () => {
   return t.specks(6, ['#fef3c7'], 1)
 }
 
+/* Cracks for the block being dug, stage 1 (a hairline) to 5 (shattered):
+   transparent but for thin dark lines that run out from the middle, more
+   and longer at each stage, each stage drawn over the last. */
+const CRACKS = []
+{
+  const t = new Tex(11); t.px.fill(0)
+  const rays = [0.3, 2.2, 4.1, 1.2, 5.3, 3.0, 0.8, 4.7].map(a => ({ a, x: 7.5, y: 7.5 }))
+  for (let stage = 1; stage <= 5; stage++) {
+    for (const ray of rays.slice(0, Math.min(rays.length, stage + 2))) {
+      for (let k = 0; k < 2; k++) {                  // two more pixels per ray per stage
+        ray.a += (t.r() - 0.5) * 0.7
+        ray.x += Math.cos(ray.a) * 1.1; ray.y += Math.sin(ray.a) * 1.1
+        t.setA(Math.round(ray.x), Math.round(ray.y), '#1a1410', 225)
+      }
+    }
+    CRACKS.push(new Uint8Array(t.px))
+  }
+}
+
 mkdirSync(OUT, { recursive: true })
+CRACKS.forEach((px, i) => { writeFileSync(new URL(`crack_${i + 1}.png`, OUT), png(px)); console.log(`public/tex/crack_${i + 1}.png`) })
 for (const [name, make] of Object.entries(T)) {
   writeFileSync(new URL(name + '.png', OUT), png(make().px))
   console.log('public/tex/' + name + '.png')
