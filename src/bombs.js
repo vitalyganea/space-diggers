@@ -9,7 +9,8 @@ import { blast, knocked, FUSE } from './blast.js'
 
 export class Bombs {
   /* onBlast({ center, broken, coins, thrower }) after every explosion */
-  constructor(noa, world, { onBlast = () => {} } = {}) {
+  constructor(noa, world, { onBlast = () => {}, onFuse = () => {} } = {}) {
+    this.onFuse = onFuse
     this.noa = noa
     this.world = world
     this.onBlast = onBlast
@@ -48,7 +49,7 @@ export class Bombs {
     body.velocity = [dir[0] * 11, dir[1] * 11 + 3, dir[2] * 11]
     body.restitution = 0.35
     body.friction = 4
-    this.live.push({ id, root, spark, t: FUSE, thrower })
+    this.live.push({ id, root, spark, t: FUSE, thrower, hiss: 0 })
     return id
   }
 
@@ -56,6 +57,8 @@ export class Bombs {
     for (let i = this.live.length - 1; i >= 0; i--) {
       const b = this.live[i]
       b.t -= dt
+      b.hiss -= dt
+      if (b.hiss <= 0 && b.t > 0) { b.hiss = 0.35; this.onFuse(b) }   // the fuse hisses as it burns
       if (b.t > 0) continue
       const p = this.noa.entities.getPosition(b.id)
       const c = [p[0], p[1] + 0.2, p[2]]

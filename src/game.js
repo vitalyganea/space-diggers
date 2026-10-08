@@ -20,6 +20,7 @@ import { DAZE } from './blast.js'
 import { Hud, showResults, showAnimals, clickToPlay } from './ui/hud.js'
 import { portrait } from './ui/portrait.js'
 import * as meta from './meta.js'
+import { Sound } from './audio.js'
 import { addCrosshair } from './ui/crosshair.js'
 
 const NAMES = ['Mo', 'Bev', 'Hami', 'Digby', 'Chomp', 'Nibbles', 'Rocky', 'Pip', 'Gizmo', 'Burrow', 'Dusty', 'Nugget']
@@ -34,7 +35,12 @@ export function start() {
   const noa = createEngine({ playerStart: [laneX(0), 1, 0.5] })
   registerBlocks(noa)
   const world = new World(seed).attach(noa)
-  const digger = new Digger(noa, { world })
+  const sound = new Sound()
+  const digger = new Digger(noa, {
+    world,
+    onCrack: (stage, b) => sound.play('crack', b.hard),
+    onBreak: e => { sound.play('break', e.block.hard); if (e.coins) sound.play('coin', e.coins) },
+  })
   digger.enabled = false
   // the chosen animal's perk
   const perk = meta.perk(save.chosen)
@@ -58,16 +64,23 @@ export function start() {
   let dazed = 0
   const playerBody = noa.entities.getPhysics(noa.playerEntity).body
   const bombs = new Bombs(noa, world, {
+    onFuse: () => sound.play('fuse'),
     onBlast: e => {
-      if (e.thrower === 'you') digger.coins += e.coins
+      if (e.thrower === 'you') { digger.coins += e.coins; if (e.coins) sound.play('coin', e.coins) }
       const p = noa.entities.getPosition(noa.playerEntity)
+      sound.play('boom', Math.max(0.15, 1 - Math.hypot(p[0] - e.center[0], p[1] - e.center[1], p[2] - e.center[2]) / 40))
       for (const r of bombs.reach(e.center, [{ pos: p, you: true }, ...bots])) {
         if (r.you) { playerBody.applyImpulse([0, 9, 0]); dazed = DAZE; hud.toast('BOOM! Dazed') }
         else if (r !== e.bot) r.knock()
       }
     },
   })
-  for (const b of bots) b.onBlast = e => bombs.show(e.center, e.broken)
+  for (const b of bots) b.onBlast = e => {
+    bombs.show(e.center, e.broken)
+    const p = noa.entities.getPosition(noa.playerEntity)
+    const near = 1 - Math.hypot(p[0] - e.center[0], p[1] - e.center[1], p[2] - e.center[2]) / 40
+    if (near > 0) sound.play('boom', near)
+  }
 
   const me = {
     name: 'You', isPlayer: true,
@@ -83,11 +96,12 @@ export function start() {
   clickToPlay(() => round.phase !== 'over', noa.container.element)
 
   round.onPhase = phase => {
-    if (phase === 'race') digger.enabled = true
+    if (phase === 'race') { digger.enabled = true; sound.play('go') }
     if (phase === 'over') {
       digger.enabled = false
       if (document.pointerLockElement) document.exitPointerLock()
       const mine = round.standings().find(x => x.isPlayer)
+      sound.play(mine.place === 1 && mine.finishedAt !== null ? 'win' : 'lose')
       const pay = meta.afterRound(save, mine, digger.coins)
       meta.store(localStorage, save)
       const again = () => {
@@ -115,20 +129,29 @@ export function start() {
   // Q throws a bomb where you look; the right button places a block of rubble
   noa.inputs.down.on('mid-fire', () => {
     if (round.phase !== 'race' || dazed > 0) return
-    if (digger.bombs <= 0) { hud.toast('No bombs: press 2 to buy one'); return }
+    if (digger.bombs <= 0) { hud.toast('No bombs: press 2 to buy one'); sound.play('denied'); return }
     digger.bombs--
+    sound.play('thrown')
     const p = noa.entities.getPosition(noa.playerEntity), d = noa.camera.getDirection()
     bombs.throw([p[0] + d[0] * 0.6, p[1] + 1.3, p[2] + d[2] * 0.6], d)
   })
   noa.inputs.down.on('alt-fire', () => {
     const t = noa.targetedBlock
     if (round.phase !== 'race' || !t) return
-    if (digger.stock <= 0) { hud.toast('No blocks: dig some rock first'); return }
+    if (digger.stock <= 0) { hud.toast('No blocks: dig some rock first'); sound.play('denied'); return }
     const [x, y, z] = t.adjacent
     const inIt = r => Math.floor(r[0]) === x && Math.floor(r[2]) === z && y >= Math.floor(r[1]) && y <= Math.floor(r[1]) + 1
     if (inIt(noa.entities.getPosition(noa.playerEntity)) || bots.some(b => inIt(b.pos))) return
     world.set(x, y, z, ID.rubble)
     digger.stock--
+    sound.play('place')
+  })
+
+  // M: sound on and off, any time
+  window.addEventListener('keydown', e => {
+    if (e.code !== 'KeyM') return
+    sound.setMuted(!sound.muted)
+    hud.toast(sound.muted ? 'Sound off' : 'Sound on')
   })
 
   // the shop: 1 for the next drill, 2 for a bomb, any time in the race
@@ -136,17 +159,19 @@ export function start() {
     if (round.phase !== 'race') return
     if (e.code === 'Digit1') {
       const next = nextDrill(digger)
-      if (buyDrill(digger)) hud.toast(`Drill Lv${digger.drillLevel}!`)
-      else hud.toast(next ? `Need ${next.cost} coins` : 'Drill is maxed')
+      if (buyDrill(digger)) { hud.toast(`Drill Lv${digger.drillLevel}!`); sound.play('buy') }
+      else { hud.toast(next ? `Need ${next.cost} coins` : 'Drill is maxed'); sound.play('denied') }
     }
     if (e.code === 'Digit2') {
-      if (buyBomb(digger)) hud.toast(`Bomb ${digger.bombs}/${MAX_BOMBS}`)
-      else hud.toast(digger.bombs >= MAX_BOMBS ? 'Bombs full' : `Need ${BOMB_COST} coins`)
+      if (buyBomb(digger)) { hud.toast(`Bomb ${digger.bombs}/${MAX_BOMBS}`); sound.play('buy') }
+      else { hud.toast(digger.bombs >= MAX_BOMBS ? 'Bombs full' : `Need ${BOMB_COST} coins`); sound.play('denied') }
     }
   })
 
+  let lastCount = 0
   noa.on('tick', dt => {
     round.tick(dt / 1000)
+    if (round.phase === 'countdown' && round.countdown !== lastCount) { lastCount = round.countdown; sound.play('beep') }
     if (dazed > 0) dazed -= dt / 1000
     digger.enabled = round.phase === 'race' && dazed <= 0
     hud.shop(digger, nextDrill(digger), BOMB_COST, MAX_BOMBS)
@@ -156,7 +181,7 @@ export function start() {
   noa.on('beforeRender', dt => views.forEach(v => v.update(dt)))
 
   if (import.meta.env.DEV) {
-    window.__game = { noa, world, bots, round, digger, me, bombs, save, dazed: () => dazed,
+    window.__game = { noa, world, bots, round, digger, me, bombs, save, sound, dazed: () => dazed,
       // stand the player on the Core in their own lane (for tests)
       toCore() {
         const x = Math.floor(laneX(0))

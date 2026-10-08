@@ -13,8 +13,9 @@ const STAGES = 5
 const UNBREAKABLE = 50          // a `hard` this high cannot be dug
 
 export class Digger {
-  constructor(noa, { onBreak = () => {}, world = null } = {}) {
+  constructor(noa, { onBreak = () => {}, onCrack = () => {}, world = null } = {}) {
     this.noa = noa
+    this.onCrack = onCrack       // (stage, block) each time the cracks grow
     this.world = world           // a World (src/world.js); without one, noa's blocks are the truth
     this.onBreak = onBreak
     this.speed = 1
@@ -73,10 +74,13 @@ export class Digger {
       this.reset()
       return
     }
-    this.showShell(t.pos, Math.min(STAGES - 1, Math.floor(this.progress * STAGES)))
+    const stage = Math.min(STAGES - 1, Math.floor(this.progress * STAGES))
+    if (stage !== this.stage) { this.stage = stage; this.onCrack(stage, t.block) }
+    this.showShell(t.pos, stage)
   }
 
   reset() {
+    this.stage = -1
     this.key = null
     this.progress = 0
     this.shell.setEnabled(false)
