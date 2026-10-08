@@ -5,7 +5,7 @@ note it inline if you do.
 
 | #  | System | Status | Test notes |
 |----|--------|--------|------------|
-| 1  | Engine & controls: Vite + noa, first-person camera, pointer lock, WASD, jump, collisions with blocks | pending | Spike (pre-row): noa 0.33 + Babylon 6.49 ran in headless Chrome on WebGL2 and drew voxel terrain with AO. |
+| 1  | Engine & controls: Vite + noa, first-person camera, pointer lock, WASD, jump, collisions with blocks | done | `src/engine.js` (one noa engine: first person, sticky pointer lock, reach 6, walk 6.5, a jump that clears one block), boot in `src/main.js` (`?dev`, `?dev=<name>`, else the game). `tests/controls.js` in headless Chrome with real keys and mouse on `?dev=controls`, 13/13: on the floor at start, a click locks the mouse, a mouse move turns the view, W walks the way he looks, the wall stops him at its face (z -6.7 against -7), A and D strafe, a jump peaks at 1.62 (one block, not two) and lands, W+Space climbs a one-block step while a two-block one stops him, he falls into a pit and lands. Found on the way: in noa, heading 0 looks down +z (the test had assumed -z), and the first step test held W too long and walked off the far side; it now checks the path. Console clean once a favicon was added. `tools/cdp.js` comes from brainrot-merge with key and mouse-hold events added. |
 | 2  | Block textures: a 16×16 pixel atlas made by a script (grass, dirt, stone, deep stone, lava rock, crystal, ores, Core) | pending | |
 | 3  | World generation: a race column per player, layers by depth, ore veins, small caves, a lava band, the Core at the bottom | pending | |
 | 4  | Digging: hold to break, hardness by layer, crack overlay, break particles, the block's ore paid in coins | pending | |
@@ -27,12 +27,14 @@ move or drop if the user wants.
 
 ## Dev level
 
-To be added in row 1: `?dev=<name>` opens a sandbox per system (a flat
-test world, one ore of each kind, a bot in a pit), and `?dev` lists them.
+`?dev` lists every sandbox in `src/dev/`; `?dev=<name>` opens one. Each
+system adds a file there (`controls.js` so far); `src/dev/hud.js` is the
+corner readout they share, and each sandbox puts its state on
+`window.__dev` for the tests in `tests/`.
 
 ## Testing
 
-Headless Chrome over the DevTools protocol (the same approach as
+`npm run dev -- --port 5181`, then `node tests/<system>.js`. Headless Chrome over the DevTools protocol (the same approach as
 brainrot-merge's `tools/cdp.js`), with real keyboard and mouse events and
 screenshots, plus whatever the engine state exposes on `window` in dev
 builds.
