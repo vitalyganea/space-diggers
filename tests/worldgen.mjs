@@ -54,4 +54,16 @@ ok(new Set(Array.from({ length: LANES }, (_, i) => laneX(i) - laneX(0))).size ==
 const firstStone = (() => { for (let y = 0; y > -20; y--) if (w(3, y, 3) !== ID.dirt && w(3, y, 3) !== ID.grass) return y })()
 ok(firstStone <= LAYERS.dirt + 2 && firstStone >= LAYERS.dirt - 2, `stone starts near y ${LAYERS.dirt} (here ${firstStone})`)
 ok(makeWorld(42)(5, -40, 7) === w(5, -40, 7) && makeWorld(43)(5, -40, 7) !== undefined, 'same seed, same world')
+// the surface: a flat arena, hills and trees outside it
+import { ARENA, surfaceHeight } from '../src/worldgen.js'
+let flat = true, trees = 0, treesIn = 0, maxH = 0
+for (let x = -90; x <= 90; x++) for (let z = -60; z <= 60; z++) {
+  const inArena = Math.abs(x) <= ARENA.x && Math.abs(z) <= ARENA.z
+  const h = surfaceHeight(42, x, z); maxH = Math.max(maxH, h)
+  if (inArena && (h !== 0 || w(x, 1, z) !== 0)) flat = false
+  if (w(x, h + 1, z) === ID.log) { trees++; if (inArena) treesIn++ }
+}
+ok(flat, 'the arena is flat open grass')
+ok(trees > 40 && treesIn === 0, `trees outside the arena (${trees}), none in it`)
+ok(maxH >= 3 && maxH <= 7, `hills outside, up to ${maxH} blocks`)
 console.log(fails ? fails + ' failed' : 'all ok'); process.exit(fails ? 1 : 0)

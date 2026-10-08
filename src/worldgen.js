@@ -21,6 +21,9 @@ export const LANES = 6
 export const CORE_Y = -100
 export const LAYERS = { dirt: -4, stone: -35, deep: -65, basalt: -85, crystal: -99 }
 export const SHAFT_R = 3
+/* The race arena: flat grass, no trees. Outside it the land rolls into low
+   hills with trees, so the start looks like a place and not a test grid. */
+export const ARENA = { x: 34, z: 10 }
 /* The designed lava pockets under every lane: centre (relative to the lane
    centre), and radii. */
 const POCKETS = [
@@ -58,18 +61,53 @@ function value3(seed, x, y, z, cell) {
     lerp(lerp(h(0, 0, 1), h(1, 0, 1), ux), lerp(h(0, 1, 1), h(1, 1, 1), ux), uy), uz)
 }
 
+/* Height of the ground at (x, z): 0 in the arena, rising gently into
+   hills of up to 5 blocks past its edge. */
+export function surfaceHeight(seed, x, z) {
+  const out = Math.max(Math.abs(x) - ARENA.x, Math.abs(z) - ARENA.z, 0)
+  if (out === 0) return 0
+  const ramp = Math.min(1, out / 12)
+  return Math.round(ramp * (value3(seed + 9, x, 0, z, 9) * 6 + value3(seed + 19, x, 0, z, 4) * 2 - 1.2))
+}
+
+/* A tree stands at (x, z) if the dice say so, outside the arena on level-ish
+   ground. Trunk 4 or 5 logs, a leafy cap two blocks wide each side. */
+function treeAt(seed, x, z) {
+  if (Math.abs(x) <= ARENA.x + 2 && Math.abs(z) <= ARENA.z + 2) return 0
+  if (hash(seed + 31, x, 0, z) > 0.009) return 0
+  return 4 + Math.floor(hash(seed + 37, x, 1, z) * 2)
+}
+
 /* Two scales together, so shapes come out rounded instead of boxy. */
 function noise3(seed, x, y, z, cell) {
   return 0.65 * value3(seed, x, y, z, cell) + 0.35 * value3(seed + 101, x + 17, y, z - 9, cell / 2.3)
 }
 
 export function makeWorld(seed = 1) {
+  function above(x, y, z) {
+    const h = surfaceHeight(seed, x, z)
+    if (y < h) return ID.dirt
+    if (y === h) return ID.grass
+    // trees: a trunk here, or leaves from a trunk within two blocks
+    const trunk = treeAt(seed, x, z)
+    if (trunk && y > h && y <= h + trunk) return ID.log
+    if (y > h + 6 + 3) return 0
+    for (let dx = -2; dx <= 2; dx++) for (let dz = -2; dz <= 2; dz++) {
+      const t = treeAt(seed, x + dx, z + dz)
+      if (!t) continue
+      const top = surfaceHeight(seed, x + dx, z + dz) + t
+      const r = y > top ? 1 : 2                       // the cap narrows at the top
+      if (y >= top - 1 && y <= top + 1 && Math.abs(dx) <= r && Math.abs(dz) <= r &&
+          !(Math.abs(dx) === 2 && Math.abs(dz) === 2) && !(dx === 0 && dz === 0 && y <= top)) return ID.leaves
+    }
+    return 0
+  }
+
   return function voxel(x, y, z) {
-    if (y > 0) return 0
     if (y <= CORE_Y) return ID.core
-    // the surface itself, and a gently wobbling dirt/stone line
+    if (y >= 0) return above(x, y, z)
+    // a gently wobbling dirt/stone line
     const wob = Math.floor(noise3(seed + 1, x, 0, z, 5) * 3) - 1   // -1..1
-    if (y === 0) return ID.grass
     const r = hash(seed + 7, x, y, z)                              // per-block dice
     const lane = nearLane(x, z), inShaft = lane.dist <= SHAFT_R
 

@@ -141,6 +141,20 @@ T.coal_ore = () => T.stone().ore(4, '#2b2b2e', '#4a4a4f', '#18181a')
 T.iron_ore = () => T.stone().ore(4, '#d8a77a', '#efc9a3', '#a8724a')
 T.gold_ore = () => T.deepstone().ore(4, '#f5c518', '#fff1a1', '#b8860b')
 T.gem_ore = () => T.deepstone().ore(4, '#2dd4bf', '#a7f3eb', '#0f766e')
+T.log_side = () => {
+  const t = new Tex(12).noise(['#6b4a2b', '#5e4026', '#7a5533', '#523720'])
+  for (let x = 1; x < N; x += 3) for (let y = 0; y < N; y++) if (t.r() < 0.75) t.set(x, y, '#4a311c')
+  return t
+}
+T.log_top = () => {
+  const t = new Tex(13).noise(['#b08a5a', '#a37d4f', '#bb9665'])
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const d = Math.hypot(x - 7.5, y - 7.5)
+    if (d > 7) t.set(x, y, '#5e4026'); else if (Math.round(d) % 3 === 0) t.set(x, y, '#8a6a40')
+  }
+  return t
+}
+T.leaves = () => new Tex(14).noise(['#3f8f2f', '#357d28', '#4aa236', '#2c6a22', '#5bb544'], 1.3).specks(6, ['#245a1c'], 2)
 T.core = () => {
   const t = new Tex(9).noise(['#fbbf24', '#f59e0b', '#fcd34d'], 1.3)
   for (let i = 0; i < N; i++) { t.set(i, i, '#ec4899'); t.set(N - 1 - i, i, '#ec4899') }

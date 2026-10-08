@@ -14,6 +14,8 @@ export const BLOCKS = [
   { id: 10, name: 'gold_ore', tex: 'gold_ore', hard: 1.3, coins: 12 },
   { id: 11, name: 'gem_ore', tex: 'gem_ore', hard: 1.5, coins: 25 },
   { id: 12, name: 'core', tex: 'core', hard: 99, coins: 0 },
+  { id: 13, name: 'log', tex: ['log_top', 'log_top', 'log_side'], hard: 0.6, coins: 0 },
+  { id: 14, name: 'leaves', tex: 'leaves', hard: 0.15, coins: 0 },
 ]
 export const ID = Object.fromEntries(BLOCKS.map(b => [b.name, b.id]))
 export const byId = Object.fromEntries(BLOCKS.map(b => [b.id, b]))
