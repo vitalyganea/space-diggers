@@ -1,6 +1,6 @@
 /* System 8 check, the real game in Chrome: countdown, race, a win, a time-out.
-   node tests/round-view.js */
-const { launch, sleep } = require('../tools/cdp.js')
+   node tests/round-view.cjs */
+const { launch, sleep } = require('../tools/cdp.cjs')
 const OUT = process.env.OUT || '/tmp/boom-tests'
 let fails = 0
 const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fails++ }
@@ -20,6 +20,10 @@ const text = (p, sel) => p.eval(`(document.querySelector('${sel}') || {}).textCo
   ok(ctp === 'flex', 'with the mouse not locked, "Click to dig" shows')
   await p.tap(640, 360); await sleep(500)
   ok(await p.eval(`getComputedStyle(document.querySelector('.click-to-play')).display`) === 'none', 'a click locks the mouse and it goes')
+  ok(await p.eval('__game.noa.container.hasPointerLock'), 'and noa counts it as locked, so the mouse turns the view')
+  const h0 = await p.eval('__game.noa.camera.heading')
+  await p.pointer('move', 640, 360); await p.pointer('move', 760, 360); await sleep(400)
+  ok(Math.abs((await p.eval('__game.noa.camera.heading')) - h0) > 0.05, 'moving the mouse after "Click to dig" turns the view')
   await sleep(4000)
   const rows = await p.eval(`[...document.querySelectorAll('.hud .board .row')].map(r => r.textContent.replace(/\\s+/g, ' ').trim())`)
   ok(rows.length === 6 && rows.some(r => r.includes('You')), `six on the leaderboard (${rows.join(' | ')})`)

@@ -18,11 +18,18 @@ export const BLOCKS = [
   { id: 14, name: 'leaves', tex: 'leaves', hard: 0.15, coins: 0 },
 ]
 export const ID = Object.fromEntries(BLOCKS.map(b => [b.name, b.id]))
+
+/* Every block texture in one vertical strip, public/tex/atlas.png, in this
+   order (tools/make-textures.mjs writes it from this same list). One atlas
+   means one terrain material, so noa draws each chunk in one call instead
+   of one per texture: meshes in the scene went from 226 to 54. (Headless
+   Chrome's software GPU stayed at ~9 fps either way; it is bound by
+   pixels, not draw calls. See SYSTEMS.md row 9.) */
+export const ATLAS = [...new Set(BLOCKS.flatMap(b => [].concat(b.tex)))]
 export const byId = Object.fromEntries(BLOCKS.map(b => [b.id, b]))
 
 /* Register every texture as a material and every block with noa. */
 export function registerBlocks(noa) {
-  const mats = new Set(BLOCKS.flatMap(b => [].concat(b.tex)))
-  for (const m of mats) noa.registry.registerMaterial(m, { textureURL: `tex/${m}.png` })
+  ATLAS.forEach((m, i) => noa.registry.registerMaterial(m, { textureURL: 'tex/atlas.png', atlasIndex: i }))
   for (const b of BLOCKS) noa.registry.registerBlock(b.id, { material: b.tex })
 }

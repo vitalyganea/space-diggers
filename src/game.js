@@ -14,6 +14,7 @@ import { applyLook } from './look.js'
 import { makeAnimal, ANIMALS } from './animals.js'
 import { Bot, BotView } from './bots.js'
 import { Round } from './round.js'
+import { nextDrill, buyDrill, buyBomb, BOMB_COST, MAX_BOMBS } from './shop.js'
 import { Hud, showResults, clickToPlay } from './ui/hud.js'
 import { addCrosshair } from './ui/crosshair.js'
 
@@ -53,7 +54,7 @@ export function start() {
   }
   const round = new Round([me, ...bots.map(b => ({ name: b.name, depth: () => b.depth(), finished: () => b.finished }))], { limit })
   const hud = new Hud()
-  clickToPlay(() => round.phase !== 'over')
+  clickToPlay(() => round.phase !== 'over', noa.container.element)
 
   round.onPhase = phase => {
     if (phase === 'race') digger.enabled = true
@@ -67,8 +68,23 @@ export function start() {
     }
   }
 
+  // the shop: 1 for the next drill, 2 for a bomb, any time in the race
+  window.addEventListener('keydown', e => {
+    if (round.phase !== 'race') return
+    if (e.code === 'Digit1') {
+      const next = nextDrill(digger)
+      if (buyDrill(digger)) hud.toast(`Drill Lv${digger.drillLevel}!`)
+      else hud.toast(next ? `Need ${next.cost} coins` : 'Drill is maxed')
+    }
+    if (e.code === 'Digit2') {
+      if (buyBomb(digger)) hud.toast(`Bomb ${digger.bombs}/${MAX_BOMBS}`)
+      else hud.toast(digger.bombs >= MAX_BOMBS ? 'Bombs full' : `Need ${BOMB_COST} coins`)
+    }
+  })
+
   noa.on('tick', dt => {
     round.tick(dt / 1000)
+    hud.shop(digger, nextDrill(digger), BOMB_COST, MAX_BOMBS)
     if (round.phase === 'race') for (let k = 0; k < speed; k++) for (const b of bots) b.tick(dt / 1000)
     hud.update(round, { coins: digger.coins, depth: me.depth() })
   })

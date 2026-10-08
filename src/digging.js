@@ -17,6 +17,8 @@ export class Digger {
     this.world = world           // a World (src/world.js); without one, noa's blocks are the truth
     this.onBreak = onBreak
     this.speed = 1
+    this.drillLevel = 1
+    this.bombs = 0
     this.coins = 0
     this.broken = 0
     this.key = null              // the block being dug, as 'x,y,z'

@@ -10,6 +10,8 @@ export class Hud {
       <div class="timer panel"></div>
       <div class="board panel"></div>
       <div class="me-box panel"><span class="coins"><i class="coin"></i><b>0</b></span><span class="depth">↓ 0 m</span></div>
+      <div class="shop panel"><div class="item drill"></div><div class="item bomb"></div></div>
+      <div class="toast"></div>
       <div class="count"></div>
       <div class="msg"></div>`
     document.body.appendChild(this.el)
@@ -33,6 +35,25 @@ export class Hud {
   }
 
   message(text) { this.$('.msg').textContent = text || '' }
+
+  /* The shop strip: what the next drill and a bomb cost, lit when affordable. */
+  shop(h, nextDrill, bombCost, maxBombs) {
+    const d = this.$('.shop .drill'), b = this.$('.shop .bomb')
+    if (nextDrill) {
+      d.innerHTML = `<kbd>1</kbd> Drill Lv${nextDrill.level} <i class="coin"></i>${nextDrill.cost}`
+      d.className = 'item drill ' + (h.coins >= nextDrill.cost ? 'can' : 'no')
+    } else { d.innerHTML = `Drill Lv${h.drillLevel} MAX`; d.className = 'item drill' }
+    b.innerHTML = `<kbd>2</kbd> Bomb <i class="coin"></i>${bombCost} <span>(${h.bombs}/${maxBombs})</span>`
+    b.className = 'item bomb ' + (h.coins >= bombCost && h.bombs < maxBombs ? 'can' : 'no')
+  }
+
+  toast(text) {
+    const t = this.$('.toast')
+    t.textContent = text
+    t.style.opacity = 1
+    clearTimeout(this._toastT)
+    this._toastT = setTimeout(() => { t.style.opacity = 0 }, 1300)
+  }
 }
 
 /* The results card. `onAgain` runs when Play again is pressed. */
@@ -53,8 +74,11 @@ export function showResults(round, onAgain) {
   return el
 }
 
-/* "Click to play" whenever the mouse is not locked to the game mid-round. */
-export function clickToPlay(isRacing) {
+/* "Click to play" whenever the mouse is not locked to the game mid-round.
+   The lock is asked for on `lockEl`, noa's own container: noa counts the
+   mouse as locked only when that element holds it, and otherwise ignores
+   mouse movement (asking for it on the canvas left the view frozen). */
+export function clickToPlay(isRacing, lockEl) {
   const el = document.createElement('div')
   el.className = 'overlay click-to-play'
   el.innerHTML = '<div class="card panel"><h1>Click to dig</h1><h2>WASD move · Space jump · hold left mouse to dig</h2></div>'
@@ -62,7 +86,7 @@ export function clickToPlay(isRacing) {
   document.body.appendChild(el)
   const refresh = () => { el.style.display = !document.pointerLockElement && isRacing() ? 'flex' : 'none' }
   document.addEventListener('pointerlockchange', refresh)
-  el.addEventListener('click', () => document.querySelector('canvas').requestPointerLock())
+  el.addEventListener('click', () => lockEl.requestPointerLock())
   setInterval(refresh, 300)
   return el
 }

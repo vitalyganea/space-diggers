@@ -17,6 +17,7 @@
    It stops when it stands on the Core. */
 import { byId, ID } from './blocks.js'
 import { laneX } from './worldgen.js'
+import { buyDrill } from './shop.js'
 
 const DIRS = [[1, 0], [0, 1], [-1, 0], [0, -1]]
 const UNBREAKABLE = 50
@@ -30,6 +31,8 @@ export class Bot {
     this.skill = skill           // fraction of the player's base dig speed
     this.pause = pause           // seconds between blocks
     this.speed = 1               // drill multiplier (upgrades)
+    this.drillLevel = 1
+    this.bombs = 0
     this.onBreak = onBreak
     this.pos = [laneX(lane), 1, 0.5]
     this.vy = 0
@@ -115,6 +118,7 @@ export class Bot {
       this.progress = 0
       this.wait = this.pause * (0.6 + Math.random() * 0.8)
       this.onBreak({ bot: this, block: b, pos: [x, y, z] })
+      buyDrill(this)             // a bot spends on its drill as soon as it can
     }
   }
 

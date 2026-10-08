@@ -1,5 +1,5 @@
-/* System 6 check: the animal models in ?dev=animals.   node tests/animals.js */
-const { launch, sleep } = require('../tools/cdp.js')
+/* System 6 check: the animal models in ?dev=animals.   node tests/animals.cjs */
+const { launch, sleep } = require('../tools/cdp.cjs')
 let fails = 0
 const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fails++ }
 ;(async () => {

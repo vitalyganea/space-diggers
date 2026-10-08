@@ -28,14 +28,15 @@ function chunk(type, data) {
   const crc = Buffer.alloc(4); crc.writeUInt32BE(crc32(td))
   return Buffer.concat([len, td, crc])
 }
-function png(px) {               // px: Uint8Array of N*N*4 RGBA
+function png(px) { return pngWH(px, N, N) }   // px: Uint8Array of N*N*4 RGBA
+function pngWH(px, W, H) {
   const ihdr = Buffer.alloc(13)
-  ihdr.writeUInt32BE(N, 0); ihdr.writeUInt32BE(N, 4)
+  ihdr.writeUInt32BE(W, 0); ihdr.writeUInt32BE(H, 4)
   ihdr[8] = 8; ihdr[9] = 6       // 8-bit RGBA
-  const raw = Buffer.alloc(N * (N * 4 + 1))
-  for (let y = 0; y < N; y++) {
-    raw[y * (N * 4 + 1)] = 0
-    Buffer.from(px.buffer, y * N * 4, N * 4).copy(raw, y * (N * 4 + 1) + 1)
+  const raw = Buffer.alloc(H * (W * 4 + 1))
+  for (let y = 0; y < H; y++) {
+    raw[y * (W * 4 + 1)] = 0
+    Buffer.from(px.buffer, px.byteOffset + y * W * 4, W * 4).copy(raw, y * (W * 4 + 1) + 1)
   }
   return Buffer.concat([Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
     chunk('IHDR', ihdr), chunk('IDAT', deflateSync(raw)), chunk('IEND', Buffer.alloc(0))])
@@ -182,6 +183,15 @@ const CRACKS = []
 }
 
 mkdirSync(OUT, { recursive: true })
+// the atlas: every block texture stacked top to bottom, in src/blocks.js's order
+{
+  const { ATLAS } = await import('../src/blocks.js')
+  const made = Object.fromEntries(ATLAS.map(n => [n, T[n]().px]))
+  const strip = new Uint8Array(N * N * 4 * ATLAS.length)
+  ATLAS.forEach((n, i) => strip.set(made[n], i * N * N * 4))
+  writeFileSync(new URL('atlas.png', OUT), pngWH(strip, N, N * ATLAS.length))
+  console.log(`public/tex/atlas.png (${ATLAS.length} textures)`)
+}
 CRACKS.forEach((px, i) => { writeFileSync(new URL(`crack_${i + 1}.png`, OUT), png(px)); console.log(`public/tex/crack_${i + 1}.png`) })
 for (const [name, make] of Object.entries(T)) {
   writeFileSync(new URL(name + '.png', OUT), png(make().px))

@@ -1,6 +1,6 @@
 /* System 4 check: digging in ?dev=dig, real mouse in headless Chrome.
-   node tests/dig.js  (vite dev on :5181) */
-const { launch, sleep } = require('../tools/cdp.js')
+   node tests/dig.cjs  (vite dev on :5181) */
+const { launch, sleep } = require('../tools/cdp.cjs')
 const OUT = process.env.OUT || '/tmp/boom-tests'
 let fails = 0
 const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fails++ }

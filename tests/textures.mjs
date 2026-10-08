@@ -15,4 +15,7 @@ for (const [i, n] of names.entries()) {
 execFileSync('node', [new URL('../tools/make-textures.mjs', import.meta.url).pathname])
 ok(names.every((n, i) => readFileSync(new URL(n + '.png', dir)).equals(before[i])), 'regenerating gives the same files')
 ok(new Set(BLOCKS.map(b => b.id)).size === BLOCKS.length, 'block ids are unique')
+import { ATLAS } from '../src/blocks.js'
+const atlas = readFileSync(new URL('atlas.png', dir))
+ok(atlas.readUInt32BE(16) === 16 && atlas.readUInt32BE(20) === 16 * ATLAS.length, `the atlas is a 16 x ${16 * ATLAS.length} strip of all ${ATLAS.length} textures`)
 console.log(fails ? fails + ' failed' : 'all ok'); process.exit(fails ? 1 : 0)

@@ -1,5 +1,5 @@
-/* System 5 check: the look in ?dev=look.   node tests/look.js */
-const { launch, sleep } = require('../tools/cdp.js')
+/* System 5 check: the look in ?dev=look.   node tests/look.cjs */
+const { launch, sleep } = require('../tools/cdp.cjs')
 const OUT = process.env.OUT || '/tmp/boom-tests'
 let fails = 0
 const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fails++ }
