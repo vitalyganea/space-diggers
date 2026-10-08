@@ -16,7 +16,7 @@
 .hud .board .row.done .bar i { background: #6ee7b7; }
 .hud .me-box { position: absolute; left: 14px; bottom: 14px; padding: 8px 14px; display: flex; gap: 18px;
   font-size: 22px; font-weight: 800; align-items: center; }
-.hud .coin { display: inline-block; width: 18px; height: 18px; border-radius: 50%; margin-right: 6px; vertical-align: -2px;
+.coin { display: inline-block; width: 18px; height: 18px; border-radius: 50%; margin-right: 6px; vertical-align: -2px;
   background: radial-gradient(circle at 35% 35%, #fff3a6, #f5c518 55%, #b8860b); box-shadow: 0 0 0 2px rgba(0,0,0,.35); }
 .hud .count { position: absolute; top: 38%; left: 50%; transform: translate(-50%, -50%); font-size: 120px; font-weight: 900;
   color: #f5c518; }
@@ -43,3 +43,16 @@
   text-shadow: none; font: 800 15px inherit; text-align: center; box-shadow: 0 2px 0 #999; }
 .hud .toast { position: absolute; bottom: 86px; left: 50%; transform: translateX(-50%); font-size: 24px; font-weight: 900; color: #f5c518;
   transition: opacity .3s; }
+.overlay .pay { margin: -4px 0 16px; font-size: 22px; font-weight: 800; }
+.overlay .pay span { font-size: 14px; opacity: .8; font-weight: 700; }
+.overlay .pay .bank { font-size: 16px; margin-top: 4px; opacity: .9; }
+.overlay .buttons { display: flex; gap: 12px; justify-content: center; }
+.btn.alt { background: linear-gradient(#e8edf5, #b9c3d3); color: #1d2433; box-shadow: 0 5px 0 #7a8599; }
+.btn.small { padding: 8px 18px; font-size: 17px; }
+.btn:disabled { filter: grayscale(.8) brightness(.8); cursor: default; }
+.animals-shop .cards { display: flex; gap: 14px; margin-bottom: 18px; }
+.animals-shop .animal { width: 190px; padding: 12px; border-radius: 12px; background: rgba(255,255,255,.07); border: 2px solid transparent; }
+.animals-shop .animal.chosen { border-color: #f5c518; background: rgba(245,197,24,.15); }
+.animals-shop .animal h3 { margin: 6px 0 4px; font-size: 22px; }
+.animals-shop .animal p { margin: 0 0 10px; font-size: 14px; min-height: 36px; opacity: .9; }
+.animals-shop .pic canvas { image-rendering: pixelated; }

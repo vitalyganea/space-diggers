@@ -17,7 +17,9 @@ import { Round } from './round.js'
 import { nextDrill, buyDrill, buyBomb, BOMB_COST, MAX_BOMBS } from './shop.js'
 import { Bombs } from './bombs.js'
 import { DAZE } from './blast.js'
-import { Hud, showResults, clickToPlay } from './ui/hud.js'
+import { Hud, showResults, showAnimals, clickToPlay } from './ui/hud.js'
+import { portrait } from './ui/portrait.js'
+import * as meta from './meta.js'
 import { addCrosshair } from './ui/crosshair.js'
 
 const NAMES = ['Mo', 'Bev', 'Hami', 'Digby', 'Chomp', 'Nibbles', 'Rocky', 'Pip', 'Gizmo', 'Burrow', 'Dusty', 'Nugget']
@@ -28,11 +30,18 @@ export function start() {
   const speed = +q.get('speed') || 1
   const limit = +q.get('limit') || 300
 
+  const save = meta.load(localStorage)
   const noa = createEngine({ playerStart: [laneX(0), 1, 0.5] })
   registerBlocks(noa)
   const world = new World(seed).attach(noa)
   const digger = new Digger(noa, { world })
   digger.enabled = false
+  // the chosen animal's perk
+  const perk = meta.perk(save.chosen)
+  digger.digSpeed = perk.digSpeed
+  digger.coinMult = perk.coinMult
+  digger.bombs = perk.startBombs
+  digger.stock = perk.startStock
   applyLook(noa)
   addCrosshair()
 
@@ -78,10 +87,28 @@ export function start() {
     if (phase === 'over') {
       digger.enabled = false
       if (document.pointerLockElement) document.exitPointerLock()
-      showResults(round, () => {
+      const mine = round.standings().find(x => x.isPlayer)
+      const pay = meta.afterRound(save, mine, digger.coins)
+      meta.store(localStorage, save)
+      const again = () => {
         q.set('seed', Math.floor(Math.random() * 1e6))
         location.search = q.toString()
-      })
+      }
+      // the results card, and the animal shop from it; back from the shop
+      // redraws the card with the coins left after buying
+      const openResults = () => {
+        const results = showResults(round, again, pay, save.coins, () => {
+          results.remove()
+          showAnimals(save, meta.SHOP, {
+            portrait,
+            onBuy: k => { if (meta.buy(save, k)) { meta.choose(save, k); meta.store(localStorage, save) } },
+            onChoose: k => { meta.choose(save, k); meta.store(localStorage, save) },
+            onClose: openResults,
+          })
+        })
+      }
+      openResults()
+
     }
   }
 
@@ -129,7 +156,7 @@ export function start() {
   noa.on('beforeRender', dt => views.forEach(v => v.update(dt)))
 
   if (import.meta.env.DEV) {
-    window.__game = { noa, world, bots, round, digger, me, bombs, dazed: () => dazed,
+    window.__game = { noa, world, bots, round, digger, me, bombs, save, dazed: () => dazed,
       // stand the player on the Core in their own lane (for tests)
       toCore() {
         const x = Math.floor(laneX(0))

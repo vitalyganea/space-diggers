@@ -21,6 +21,8 @@ export class Digger {
     this.drillLevel = 1
     this.bombs = 0
     this.stock = 0               // blocks of rubble to place (src/blast.js)
+    this.digSpeed = () => 1      // per-block multiplier from the animal's perk (src/meta.js)
+    this.coinMult = 1
     this.coins = 0
     this.broken = 0
     this.key = null              // the block being dug, as 'x,y,z'
@@ -65,7 +67,7 @@ export class Digger {
     if (!t) { this.reset(); return }
     const key = t.pos.join(',')
     if (key !== this.key) { this.key = key; this.progress = 0 }
-    this.progress += dt / 1000 / (t.block.hard / this.speed)
+    this.progress += dt / 1000 / (t.block.hard / (this.speed * this.digSpeed(t.block.id)))
     if (this.progress >= 1) {
       this.break(t)
       this.reset()
@@ -90,7 +92,7 @@ export class Digger {
   break(t) {
     if (this.world) this.world.set(t.pos[0], t.pos[1], t.pos[2], 0)
     else this.noa.setBlock(0, t.pos[0], t.pos[1], t.pos[2])
-    this.coins += t.block.coins
+    this.coins += Math.round(t.block.coins * this.coinMult)
     this.broken++
     if (stocks(t.block.id)) this.stock = Math.min(MAX_STOCK, this.stock + 1)
     this.burst(t.pos, t.block)

@@ -62,8 +62,9 @@ export class Hud {
   }
 }
 
-/* The results card. `onAgain` runs when Play again is pressed. */
-export function showResults(round, onAgain) {
+/* The results card: the standings, what the round paid, Play again and
+   Animals. `pay` is meta.payout()'s result, `bank` the coins saved. */
+export function showResults(round, onAgain, pay = null, bank = 0, onAnimals = null) {
   const s = round.standings()
   const me = s.find(x => x.isPlayer)
   const won = me && me.place === 1 && me.finishedAt !== null
@@ -74,9 +75,37 @@ export function showResults(round, onAgain) {
     <h2>${round.winner() ? `${round.winner().name} reached the Core first` : 'Time up: the deepest digger leads'}</h2>
     <table>${s.map(x => `<tr class="${x.isPlayer ? 'me' : ''}"><td>${ord(x.place)}</td><td>${x.name}</td>
       <td>${x.finishedAt !== null ? 'Core in ' + fmt(x.finishedAt) : x.depth + ' m'}</td></tr>`).join('')}</table>
-    <button class="btn again">Play again</button></div>`
+    ${pay ? `<div class="pay"><i class="coin"></i><b>+${pay.total}</b> <span>(${pay.purse} kept, ${pay.bonus} for your place, ${pay.depth} for depth)</span>
+      <div class="bank">You have <i class="coin"></i><b>${bank}</b></div></div>` : ''}
+    <div class="buttons"><button class="btn again">Play again</button>${onAnimals ? '<button class="btn alt animals">Animals</button>' : ''}</div></div>`
   document.body.appendChild(el)
   el.querySelector('.again').addEventListener('click', () => onAgain())
+  if (onAnimals) el.querySelector('.animals').addEventListener('click', () => onAnimals())
+  return el
+}
+
+/* The animal shop: a card each, Buy or Choose. Calls back to change the
+   save, then redraws. */
+export function showAnimals(save, shop, { portrait, onBuy, onChoose, onClose }) {
+  const el = document.createElement('div')
+  el.className = 'overlay animals-shop'
+  const draw = () => {
+    el.innerHTML = `<div class="card panel"><h1>Animals</h1><h2>You have <i class="coin"></i><b>${save.coins}</b></h2>
+      <div class="cards">${shop.map(s => {
+        const owned = save.owned.includes(s.kind), chosen = save.chosen === s.kind
+        const btn = chosen ? '<button class="btn small" disabled>Digging</button>'
+          : owned ? `<button class="btn small choose" data-k="${s.kind}">Choose</button>`
+          : `<button class="btn small buy" data-k="${s.kind}" ${save.coins < s.price ? 'disabled' : ''}><i class="coin"></i>${s.price}</button>`
+        return `<div class="animal${chosen ? ' chosen' : ''}" data-k="${s.kind}"><div class="pic"></div><h3>${s.kind[0].toUpperCase() + s.kind.slice(1)}</h3>
+          <p>${s.perk}</p>${btn}</div>`
+      }).join('')}</div><button class="btn alt close">Back</button></div>`
+    el.querySelectorAll('.animal').forEach(a => a.querySelector('.pic').appendChild(portrait(a.dataset.k)))
+    el.querySelectorAll('.buy').forEach(b => b.addEventListener('click', () => { onBuy(b.dataset.k); draw() }))
+    el.querySelectorAll('.choose').forEach(b => b.addEventListener('click', () => { onChoose(b.dataset.k); draw() }))
+    el.querySelector('.close').addEventListener('click', () => { el.remove(); onClose() })
+  }
+  draw()
+  document.body.appendChild(el)
   return el
 }
 
