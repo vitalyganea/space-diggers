@@ -1,0 +1,36 @@
+/* The game's overlay: white bold text with a dark edge over the world,
+   panels of smoked glass, one yellow accent (the crew's helmets). */
+.hud, .hud * { box-sizing: border-box; font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif; }
+.hud { position: fixed; inset: 0; pointer-events: none; z-index: 20; color: #fff;
+  text-shadow: 0 2px 0 rgba(0,0,0,.55), 0 0 6px rgba(0,0,0,.35); user-select: none; }
+.panel { background: rgba(14, 18, 28, .55); border: 2px solid rgba(255,255,255,.12); border-radius: 12px; }
+.hud .timer { position: absolute; top: 14px; left: 50%; transform: translateX(-50%); padding: 6px 18px;
+  font-size: 30px; font-weight: 800; letter-spacing: 1px; }
+.hud .timer.low { color: #ff6b6b; }
+.hud .board { position: absolute; top: 14px; right: 14px; width: 230px; padding: 8px 10px; }
+.hud .board .row { display: grid; grid-template-columns: 22px 1fr 44px; align-items: center; gap: 6px;
+  font-size: 15px; font-weight: 700; padding: 3px 4px; border-radius: 6px; }
+.hud .board .row.me { background: rgba(245, 197, 24, .28); }
+.hud .board .row .bar { grid-column: 2 / 4; height: 5px; border-radius: 3px; background: rgba(255,255,255,.18); overflow: hidden; margin-top: -2px; }
+.hud .board .row .bar i { display: block; height: 100%; background: #f5c518; }
+.hud .board .row.done .bar i { background: #6ee7b7; }
+.hud .me-box { position: absolute; left: 14px; bottom: 14px; padding: 8px 14px; display: flex; gap: 18px;
+  font-size: 22px; font-weight: 800; align-items: center; }
+.hud .coin { display: inline-block; width: 18px; height: 18px; border-radius: 50%; margin-right: 6px; vertical-align: -2px;
+  background: radial-gradient(circle at 35% 35%, #fff3a6, #f5c518 55%, #b8860b); box-shadow: 0 0 0 2px rgba(0,0,0,.35); }
+.hud .count { position: absolute; top: 38%; left: 50%; transform: translate(-50%, -50%); font-size: 120px; font-weight: 900;
+  color: #f5c518; }
+.hud .count.go { color: #6ee7b7; }
+.hud .msg { position: absolute; top: 60%; left: 50%; transform: translateX(-50%); font-size: 22px; font-weight: 800; }
+.overlay { position: fixed; inset: 0; z-index: 30; display: flex; align-items: center; justify-content: center;
+  background: rgba(8, 10, 18, .55); color: #fff; font-family: "Trebuchet MS", "Segoe UI", system-ui, sans-serif; }
+.overlay .card { min-width: 380px; padding: 22px 26px; text-align: center; }
+.overlay h1 { margin: 0 0 6px; font-size: 44px; font-weight: 900; color: #f5c518; text-shadow: 0 3px 0 rgba(0,0,0,.5); }
+.overlay h2 { margin: 0 0 16px; font-size: 18px; font-weight: 700; opacity: .85; }
+.overlay table { width: 100%; border-collapse: collapse; margin-bottom: 18px; font-size: 17px; font-weight: 700; }
+.overlay td { padding: 5px 6px; text-align: left; }
+.overlay td:last-child { text-align: right; opacity: .9; }
+.overlay tr.me { background: rgba(245, 197, 24, .25); }
+.btn { pointer-events: auto; cursor: pointer; border: 0; border-radius: 12px; padding: 14px 34px; font-size: 22px; font-weight: 900;
+  color: #2a2000; background: linear-gradient(#ffe066, #f5c518); box-shadow: 0 5px 0 #a8840c; font-family: inherit; }
+.btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #a8840c; }
