@@ -7,6 +7,7 @@
    coins are paid. Lava and the Core cannot be dug. */
 import { MeshBuilder, StandardMaterial, Texture, Color3 } from '@babylonjs/core'
 import { byId } from './blocks.js'
+import { stocks, MAX_STOCK } from './blast.js'
 
 const STAGES = 5
 const UNBREAKABLE = 50          // a `hard` this high cannot be dug
@@ -19,6 +20,7 @@ export class Digger {
     this.speed = 1
     this.drillLevel = 1
     this.bombs = 0
+    this.stock = 0               // blocks of rubble to place (src/blast.js)
     this.coins = 0
     this.broken = 0
     this.key = null              // the block being dug, as 'x,y,z'
@@ -90,6 +92,7 @@ export class Digger {
     else this.noa.setBlock(0, t.pos[0], t.pos[1], t.pos[2])
     this.coins += t.block.coins
     this.broken++
+    if (stocks(t.block.id)) this.stock = Math.min(MAX_STOCK, this.stock + 1)
     this.burst(t.pos, t.block)
     this.onBreak({ block: t.block, pos: t.pos, coins: t.block.coins })
   }

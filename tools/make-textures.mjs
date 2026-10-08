@@ -156,6 +156,14 @@ T.log_top = () => {
   return t
 }
 T.leaves = () => new Tex(14).noise(['#3f8f2f', '#357d28', '#4aa236', '#2c6a22', '#5bb544'], 1.3).specks(6, ['#245a1c'], 2)
+T.rubble = () => {
+  const t = new Tex(15).noise(['#7d7468', '#6f665b', '#8a8174', '#5f574d'])
+  for (let k = 0; k < 7; k++) {                    // cobbles with dark joints between
+    const x = Math.floor(t.r() * 13), y = Math.floor(t.r() * 13)
+    for (let i = 0; i < 4; i++) { t.set(x + i, y, '#4a433b'); t.set(x, y + i, '#4a433b') }
+  }
+  return t
+}
 T.core = () => {
   const t = new Tex(9).noise(['#fbbf24', '#f59e0b', '#fcd34d'], 1.3)
   for (let i = 0; i < N; i++) { t.set(i, i, '#ec4899'); t.set(N - 1 - i, i, '#ec4899') }

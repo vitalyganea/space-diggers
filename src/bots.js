@@ -17,13 +17,14 @@
    It stops when it stands on the Core. */
 import { byId, ID } from './blocks.js'
 import { laneX } from './worldgen.js'
-import { buyDrill } from './shop.js'
+import { buyDrill, buyBomb } from './shop.js'
+import { blast, DAZE } from './blast.js'
 
 const DIRS = [[1, 0], [0, 1], [-1, 0], [0, -1]]
 const UNBREAKABLE = 50
 
 export class Bot {
-  constructor(world, lane, { kind = 'mole', name = 'Bot', skill = 0.85, pause = 0.2, onBreak = () => {} } = {}) {
+  constructor(world, lane, { kind = 'mole', name = 'Bot', skill = 0.85, pause = 0.2, onBreak = () => {}, onBlast = () => {} } = {}) {
     this.world = world
     this.lane = lane
     this.kind = kind
@@ -34,6 +35,7 @@ export class Bot {
     this.drillLevel = 1
     this.bombs = 0
     this.onBreak = onBreak
+    this.onBlast = onBlast
     this.pos = [laneX(lane), 1, 0.5]
     this.vy = 0
     this.state = 'down'
@@ -46,6 +48,7 @@ export class Bot {
     this.coins = 0
     this.broken = 0
     this.finished = false
+    this.dazed = 0               // seconds left knocked silly by a bomb
     this.digging = false
     this.moving = 0
   }
@@ -57,6 +60,7 @@ export class Bot {
     this.digging = false
     this.moving = 0
     if (this.finished) return
+    if (this.dazed > 0) { this.dazed -= dt; if (this.vy === 0) return }
     const [cx, cy, cz] = this.cell()
 
     // falling, or starting to
@@ -64,6 +68,8 @@ export class Bot {
       let land = cy - 1
       while (!this.solid(cx, land, cz) && land > cy - 200) land--
       this.vy -= 20 * dt
+      // thrown up by a bomb: the roof stops it
+      if (this.vy > 0 && this.solid(cx, Math.floor(this.pos[1] + 1.6 + this.vy * dt), cz)) this.vy = 0
       this.pos[1] += this.vy * dt
       if (this.pos[1] <= land + 1) { this.pos[1] = land + 1; this.vy = 0 }
       return
@@ -74,6 +80,15 @@ export class Bot {
 
     if (this.state === 'down') {
       if (below === ID.lava) { this.state = 'side'; this.sideSteps = 0; return }
+      // a bomb at its feet when the rock ahead is hard and no lava is near
+      if (this.bombs > 0 && byId[below] && byId[below].hard >= 1.2 && this.lavaFree(cx, cy - 3, cz)) {
+        this.bombs--
+        const res = blast(this.world, [cx + 0.5, cy - 2, cz + 0.5])
+        this.coins += res.coins
+        this.wait = this.pause
+        this.onBlast({ bot: this, center: [cx + 0.5, cy - 2, cz + 0.5], ...res })
+        return
+      }
       this.dig(cx, cy - 1, cz, dt)
       return
     }
@@ -118,11 +133,23 @@ export class Bot {
       this.progress = 0
       this.wait = this.pause * (0.6 + Math.random() * 0.8)
       this.onBreak({ bot: this, block: b, pos: [x, y, z] })
-      buyDrill(this)             // a bot spends on its drill as soon as it can
+      // a bot spends on its drill as soon as it can, then on bombs
+      if (!buyDrill(this) && this.drillLevel >= 3) buyBomb(this)
     }
   }
 
   depth() { return Math.max(0, -Math.floor(this.pos[1])) }
+
+  /* no lava within a blast's reach of (x, y, z): a bomb there would not
+     open the way */
+  lavaFree(x, y, z) {
+    for (let i = -3; i <= 3; i++) for (let j = -3; j <= 3; j++) for (let k = -3; k <= 3; k++)
+      if (this.world.get(x + i, y + j, z + k) === ID.lava) return false
+    return true
+  }
+
+  /* thrown up and dazed by someone's bomb */
+  knock() { this.dazed = DAZE; this.vy = 7; this.target = null; this.progress = 0 }
 }
 
 /* A bot on screen: its animal as a noa entity, following the bot, facing

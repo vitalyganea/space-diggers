@@ -10,7 +10,8 @@ export class Hud {
       <div class="timer panel"></div>
       <div class="board panel"></div>
       <div class="me-box panel"><span class="coins"><i class="coin"></i><b>0</b></span><span class="depth">↓ 0 m</span></div>
-      <div class="shop panel"><div class="item drill"></div><div class="item bomb"></div></div>
+      <div class="shop panel"><div class="item drill"></div><div class="item bomb"></div>
+        <div class="item throw"></div><div class="item place"></div></div>
       <div class="toast"></div>
       <div class="count"></div>
       <div class="msg"></div>`
@@ -40,11 +41,16 @@ export class Hud {
   shop(h, nextDrill, bombCost, maxBombs) {
     const d = this.$('.shop .drill'), b = this.$('.shop .bomb')
     if (nextDrill) {
-      d.innerHTML = `<kbd>1</kbd> Drill Lv${nextDrill.level} <i class="coin"></i>${nextDrill.cost}`
+      d.innerHTML = `<kbd>1</kbd> Drill ${nextDrill.level} <i class="coin"></i>${nextDrill.cost}`
       d.className = 'item drill ' + (h.coins >= nextDrill.cost ? 'can' : 'no')
-    } else { d.innerHTML = `Drill Lv${h.drillLevel} MAX`; d.className = 'item drill' }
-    b.innerHTML = `<kbd>2</kbd> Bomb <i class="coin"></i>${bombCost} <span>(${h.bombs}/${maxBombs})</span>`
+    } else { d.innerHTML = `Drill ${h.drillLevel} MAX`; d.className = 'item drill' }
+    b.innerHTML = `<kbd>2</kbd> Bomb <i class="coin"></i>${bombCost}`
     b.className = 'item bomb ' + (h.coins >= bombCost && h.bombs < maxBombs ? 'can' : 'no')
+    const th = this.$('.shop .throw'), pl = this.$('.shop .place')
+    th.innerHTML = `<kbd>Q</kbd> Throw ×${h.bombs}/${maxBombs}`
+    th.className = 'item throw ' + (h.bombs > 0 ? 'can' : 'no')
+    pl.innerHTML = `<kbd>R-click</kbd> Block ×${h.stock}`
+    pl.className = 'item place ' + (h.stock > 0 ? 'can' : 'no')
   }
 
   toast(text) {
