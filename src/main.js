@@ -4,7 +4,11 @@ const dev = new URLSearchParams(location.search).get('dev')
 const sandboxes = import.meta.glob('./dev/*.js')
 
 if (dev === null) {
-  import('./game.js').then(m => m.start())
+  import('./platform.js').then(async P => {
+    const platform = await P.initPlatform()
+    const m = await import('./game.js')
+    m.start(platform)
+  })
 } else if (sandboxes[`./dev/${dev}.js`]) {
   sandboxes[`./dev/${dev}.js`]().then(m => m.start())
 } else {

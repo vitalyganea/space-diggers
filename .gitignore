@@ -1,2 +1,4 @@
 node_modules/
 dist/
+crazygames/game/
+crazygames/*.zip

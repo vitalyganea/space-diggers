@@ -25,17 +25,24 @@ import { addCrosshair } from './ui/crosshair.js'
 
 const NAMES = ['Mo', 'Bev', 'Hami', 'Digby', 'Chomp', 'Nibbles', 'Rocky', 'Pip', 'Gizmo', 'Burrow', 'Dusty', 'Nugget']
 
-export function start() {
+export function start(platform = null) {
+  platform = platform || { name: 'web', loadingStart() {}, loadingStop() {}, gameplayStart() {}, gameplayStop() {},
+    happytime() {}, midgameAd: () => Promise.resolve('none'), storage: localStorage, onMute() {} }
+  platform.loadingStart()
   const q = new URLSearchParams(location.search)
   const seed = +q.get('seed') || Math.floor(Math.random() * 1e6)
   const speed = +q.get('speed') || 1
   const limit = +q.get('limit') || 300
 
-  const save = meta.load(localStorage)
+  const save = meta.load(platform.storage)
   const noa = createEngine({ playerStart: [laneX(0), 1, 0.5] })
   registerBlocks(noa)
   const world = new World(seed).attach(noa)
   const sound = new Sound()
+  // the site's sound switch and the M key both mute; either one is enough
+  let siteMuted = false, userMuted = false
+  const applyMute = () => sound.setMuted(siteMuted || userMuted)
+  platform.onMute(m => { siteMuted = m; applyMute() })
   const digger = new Digger(noa, {
     world,
     onCrack: (stage, b) => sound.play('crack', b.hard),
@@ -101,10 +108,17 @@ export function start() {
       digger.enabled = false
       if (document.pointerLockElement) document.exitPointerLock()
       const mine = round.standings().find(x => x.isPlayer)
-      sound.play(mine.place === 1 && mine.finishedAt !== null ? 'win' : 'lose')
+      const won = mine.place === 1 && mine.finishedAt !== null
+      sound.play(won ? 'win' : 'lose')
+      platform.gameplayStop()
+      if (won) platform.happytime()
       const pay = meta.afterRound(save, mine, digger.coins)
-      meta.store(localStorage, save)
-      const again = () => {
+      meta.store(platform.storage, save)
+      // Play again: the site's midgame ad (if it shows one), silent, then a new world
+      const again = async () => {
+        document.querySelectorAll('.overlay .btn').forEach(b => { b.disabled = true })
+        sound.setMuted(true)
+        await platform.midgameAd()
         q.set('seed', Math.floor(Math.random() * 1e6))
         location.search = q.toString()
       }
@@ -115,8 +129,8 @@ export function start() {
           results.remove()
           showAnimals(save, meta.SHOP, {
             portrait,
-            onBuy: k => { if (meta.buy(save, k)) { meta.choose(save, k); meta.store(localStorage, save) } },
-            onChoose: k => { meta.choose(save, k); meta.store(localStorage, save) },
+            onBuy: k => { if (meta.buy(save, k)) { meta.choose(save, k); meta.store(platform.storage, save) } },
+            onChoose: k => { meta.choose(save, k); meta.store(platform.storage, save) },
             onClose: openResults,
           })
         })
@@ -150,8 +164,9 @@ export function start() {
   // M: sound on and off, any time
   window.addEventListener('keydown', e => {
     if (e.code !== 'KeyM') return
-    sound.setMuted(!sound.muted)
-    hud.toast(sound.muted ? 'Sound off' : 'Sound on')
+    userMuted = !userMuted
+    applyMute()
+    hud.toast(userMuted ? 'Sound off' : 'Sound on')
   })
 
   // the shop: 1 for the next drill, 2 for a bomb, any time in the race
@@ -168,9 +183,14 @@ export function start() {
     }
   })
 
-  let lastCount = 0
+  let lastCount = 0, loaded = false
   noa.on('tick', dt => {
     round.tick(dt / 1000)
+    if (!loaded) { loaded = true; platform.loadingStop() }
+    // the site is told the player is playing exactly while they are: in the
+    // race with the mouse in the game
+    if (round.phase === 'race' && document.pointerLockElement) platform.gameplayStart()
+    else platform.gameplayStop()
     if (round.phase === 'countdown' && round.countdown !== lastCount) { lastCount = round.countdown; sound.play('beep') }
     if (dazed > 0) dazed -= dt / 1000
     digger.enabled = round.phase === 'race' && dazed <= 0
@@ -181,7 +201,7 @@ export function start() {
   noa.on('beforeRender', dt => views.forEach(v => v.update(dt)))
 
   if (import.meta.env.DEV) {
-    window.__game = { noa, world, bots, round, digger, me, bombs, save, sound, dazed: () => dazed,
+    window.__game = { noa, world, bots, round, digger, me, bombs, save, sound, platform, dazed: () => dazed,
       // stand the player on the Core in their own lane (for tests)
       toCore() {
         const x = Math.floor(laneX(0))
