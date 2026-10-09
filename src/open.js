@@ -33,6 +33,7 @@ import { Minimap } from './ui/minimap.js'
 import { ROBOTS } from './robots.js'
 import { Companion } from './companion.js'
 import { chooseRobot, Talk, showTitle } from './ui/robotui.js'
+import { showComic } from './ui/comic.js'
 import { loadGear, value, nextCost, buy as buyGear, BOMB_PRICE, BOMB_CARRY, TICKET_PRICE, TICKET_CARRY } from './gear.js'
 import { OpenHud } from './ui/openhud.js'
 import { clickToPlay, lockMouse } from './ui/hud.js'
@@ -269,16 +270,20 @@ export function start(platform) {
   if (robot) {
     meet(robot)
     titling = true
-    showTitle(robot, () => { titling = false; showcase(false); lockMouse(noa.container.element) })
+    showTitle(robot, () => { titling = false; showcase(false); lockMouse(noa.container.element) },
+      () => showComic(robot, () => {}))                                // "How to play" shows the comic again
   } else chooseRobot(r => {
     meet(r)
-    showcase(false)
-    // that click was "Let's dig!": go straight in, no second "Click to play"
-    lockMouse(noa.container.element)
     persist()                                  // chosen on a click, long after persist exists
-    say(`Hi, I'm ${r.name}! Hold the left mouse button to dig down.`)
-    say('Space against a wall climbs back up.')
-    say('Press R if you need me!')
+    // then the comic (row 43); its last button (or Skip) is the click that starts the game
+    titling = true
+    showComic(r, () => {
+      titling = false
+      showcase(false)
+      lockMouse(noa.container.element)
+      say(`Hi, I'm ${r.name}! Hold the left mouse button to dig down.`)
+      say('Press R if you need me!')
+    })
   })
   let sonarT = 0, ping = null, deepTip = false, meteorT = 0, meteorTip = false
   clickToPlay(() => !card.open && !inside && !choosing && !titling, noa.container.element, 'Click to play',

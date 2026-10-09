@@ -10,7 +10,7 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   const p = await launch({ w: 1280, h: 720, port: 9403 })
   await p.navigate('http://localhost:5181/?fakeads=1')
   await p.waitFor(`!!document.querySelector('.choose-robot .go')`)
-  await p.eval(`(() => { const b = document.querySelector('.choose-robot .go'); if (b) b.click() })()`); await sleep(900)   // first start: the default robot, then "Click to play" shows
+  await p.eval(`(() => { const b = document.querySelector('.choose-robot .go'); if (b) b.click(); const sk = document.querySelector('.comic .skip'); if (sk) sk.click() })()`); await sleep(900)   // first start: the default robot, then "Click to play" shows
   await p.tap(640, 360); await sleep(300)
   const O = '__open'
   const click = sel => p.eval(`(() => { const b = document.querySelector('${sel}'); if (!b || b.disabled) return false; b.click(); return true })()`)

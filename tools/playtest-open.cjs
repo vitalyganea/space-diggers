@@ -28,8 +28,11 @@ const TO_SITE = [[4, 5], [20, 6], SITE]
   await p.waitFor(`!!document.querySelector('.choose-robot .go')`)
   // a real click on "Let's dig!": that is the click that starts the game
   const go = await p.eval(`(() => { const r = document.querySelector('.choose-robot .go').getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2] })()`)
-  await p.tap(go[0], go[1]); await sleep(800)
-  ok(await p.eval('!!document.pointerLockElement') && await p.eval(`!document.querySelector('.choose-robot') && !!__open.robot()`), '"Let\'s dig!" at once: the robot is chosen and the game starts, mouse locked')
+  await p.tap(go[0], go[1]); await sleep(500)
+  // then the comic for new players: a real click on Skip starts the game
+  const sk = await p.eval(`(() => { const r = document.querySelector('.comic .skip').getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2] })()`)
+  await p.tap(sk[0], sk[1]); await sleep(800)
+  ok(await p.eval('!!document.pointerLockElement') && await p.eval(`!document.querySelector('.choose-robot') && !!__open.robot()`), '"Let\'s dig!", then Skip on the comic: the robot is chosen and the game starts, mouse locked')
   const O = '__open'
   await p.eval('window.__mark = Date.now()')
   if (process.env.DEBUG) await p.eval(`window.__added = []; new MutationObserver(ms => ms.forEach(m => [...m.addedNodes].forEach(n => n.className && __added.push(n.className + ' @' + Math.round(performance.now() / 1000) + 's')))).observe(document.body, { childList: true })`)

@@ -5,7 +5,7 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
 ;(async () => {
   const p = await launch({ w: 1280, h: 720, port: 9408 })
   await p.navigate('http://localhost:5181/'); await sleep(6500)
-  await p.eval(`(() => { const b = document.querySelector('.choose-robot .go'); if (b) b.click() })()`); await sleep(900)   // first start: the default robot, then "Click to play" shows
+  await p.eval(`(() => { const b = document.querySelector('.choose-robot .go'); if (b) b.click(); const sk = document.querySelector('.comic .skip'); if (sk) sk.click() })()`); await sleep(900)   // first start: the default robot, then "Click to play" shows
   const O = '__open'
   // the colour of the map at a world offset (i, j) from you
   const at = (i, j) => p.eval(`(() => { const c = document.querySelector('.minimap canvas'), d = c.getContext('2d').getImageData((${i} + 24) * 4 + 2, (24 - ${j}) * 4 + 2, 1, 1).data; return [d[0], d[1], d[2]] })()`)

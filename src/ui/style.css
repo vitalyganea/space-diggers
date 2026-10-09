@@ -152,3 +152,17 @@ body.showcase .hud { display: none !important; }
 .title-screen .logo b { color: #fbbf24; text-shadow: 0 0 26px #f59e0b, 0 5px 0 #7c2d12; }
 .title-screen .play { font-size: 34px; padding: 16px 64px; }
 .title-screen .with { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; color: #e0f2fe; text-shadow: 0 2px 4px #000; }
+/* the comic for new players (row 43) */
+.comic { background: transparent; z-index: 40; }
+.comic .card { background: rgba(10, 14, 30, 0.85); max-width: 600px; }
+.comic h1 { font-size: 34px; }
+.comic canvas { display: block; width: 520px; max-width: 100%; border-radius: 12px; border: 3px solid #1e293b; margin: 6px auto 10px; image-rendering: pixelated; }
+.comic .bubble { background: #e0f2fe; color: #0b1324; border-radius: 16px; padding: 10px 14px; font-weight: 800; font-size: 18px; text-align: left; }
+.comic .keys { margin-top: 10px; font-weight: 800; font-size: 18px; }
+.comic .keys kbd { display: inline-block; padding: 2px 10px; border-radius: 6px; background: #fff; color: #222; font-weight: 900; }
+.comic .mouse { display: inline-block; width: 22px; height: 32px; border: 3px solid #fff; border-radius: 11px; position: relative; vertical-align: middle; }
+.comic .mouse i { position: absolute; left: 0; top: 0; width: 8px; height: 12px; background: #f5c518; border-radius: 8px 0 0 0; }
+.comic .row { margin-top: 14px; justify-content: center; }
+.comic .step { display: flex; gap: 6px; justify-content: center; margin-bottom: 6px; }
+.comic .step i { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.3); }
+.comic .step i.on { background: #f5c518; }

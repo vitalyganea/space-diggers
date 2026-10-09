@@ -6,7 +6,7 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   const p = await launch({ w: 1280, h: 720, port: 9444 })
   await p.navigate('http://localhost:5181/?seed=7')
   await p.waitFor(`!!document.querySelector('.choose-robot .go')`)
-  await p.eval(`document.querySelector('.choose-robot .go').click(); 1`); await sleep(1000)
+  await p.eval(`document.querySelector('.choose-robot .go').click(); document.querySelector('.comic .skip') && document.querySelector('.comic .skip').click(); 1`); await sleep(1000)
   const O = '__open'
   ok(await p.eval(`${O}.meteors.next >= 170`), 'none in the first minutes of a game')
   await p.eval(`${O}.noa.entities.setPosition(${O}.noa.playerEntity, [50.5, 3, 0.5]); 1`); await sleep(1500)
