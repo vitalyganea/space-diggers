@@ -180,12 +180,19 @@ function drawPlanet(g, px, r, cols, rings, rnd) {
   const halo = g.createRadialGradient(x, y, r * 0.9, x, y, r * 1.45)
   halo.addColorStop(0, rings ? 'rgba(253,186,116,0.38)' : 'rgba(125,211,252,0.5)'); halo.addColorStop(1, 'rgba(0,0,0,0)')
   g.fillStyle = halo; g.beginPath(); g.arc(x, y, r * 1.45, 0, Math.PI * 2); g.fill()
+  /* The ring goes behind the planet whole (one closed loop: drawn as two
+     halves, their square ends met in a hairline gap at either side, the
+     "two black lines" the user saw), then the near half over the planet,
+     exactly on top of the same loop. Opaque colours, so the double layer
+     where they overlap looks the same as one. */
   const ring = front => {
     g.save(); g.translate(x, y); g.rotate(-0.32); g.scale(1, 0.24)
-    g.beginPath(); g.arc(0, 0, r * 1.85, front ? 0 : Math.PI, front ? Math.PI : Math.PI * 2)
-    g.lineWidth = r * 0.5; g.strokeStyle = 'rgba(233,213,180,0.8)'; g.stroke()
-    g.lineWidth = r * 0.1; g.strokeStyle = 'rgba(120,90,60,0.55)'; g.stroke()
-    g.lineWidth = r * 0.03; g.strokeStyle = 'rgba(255,245,225,0.7)'; g.beginPath(); g.arc(0, 0, r * 2.02, front ? 0 : Math.PI, front ? Math.PI : Math.PI * 2); g.stroke()
+    const a0 = front ? 0 : 0, a1 = front ? Math.PI : Math.PI * 2
+    g.lineCap = 'round'
+    g.beginPath(); g.arc(0, 0, r * 1.85, a0, a1)
+    g.lineWidth = r * 0.5; g.strokeStyle = '#d8c7a6'; g.stroke()
+    g.lineWidth = r * 0.1; g.strokeStyle = '#9a7c5c'; g.stroke()
+    g.lineWidth = r * 0.03; g.strokeStyle = '#f3e9d6'; g.beginPath(); g.arc(0, 0, r * 2.02, a0, a1); g.stroke()
     g.restore()
   }
   if (rings) ring(false)
