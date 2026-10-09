@@ -30,6 +30,19 @@ export function chooseRobot(onDone) {
   return el
 }
 
+/* The title for a returning player (row 42): the name over the live scene
+   of the base, and one big Play button in the middle of the screen. */
+export function showTitle(robot, onPlay) {
+  const el = document.createElement('div')
+  el.className = 'overlay title-screen'
+  el.innerHTML = `<div class="logo">Space <b>Diggers</b></div>
+    <button class="btn play">Play</button>
+    <div class="with">${face(robot.kind)} <span>${robot.name} is waiting for you</span></div>`
+  el.querySelector('.play').addEventListener('click', () => { el.remove(); onPlay() })
+  document.body.appendChild(el)
+  return el
+}
+
 /* Speech bubbles: one at a time, each held long enough to read; anything
    said while one shows waits its turn (the same line twice in a row is
    dropped). */

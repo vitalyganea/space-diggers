@@ -143,3 +143,12 @@
 .tool-chip span { padding: 4px 10px; border-radius: 10px; opacity: 0.55; }
 .tool-chip span.on { opacity: 1; background: rgba(125, 249, 255, 0.18); }
 .tool-chip kbd { display: inline-block; padding: 0 5px; margin-right: 4px; border-radius: 4px; background: #fff; color: #222; font-weight: 900; }
+/* the start screen over the live scene (row 42) */
+body.showcase .hud { display: none !important; }
+.choose-robot { background: transparent; }
+.choose-robot .card { background: rgba(10, 14, 30, 0.72); backdrop-filter: blur(2px); }
+.title-screen { background: linear-gradient(rgba(5, 8, 20, 0.15), rgba(5, 8, 20, 0.55)); flex-direction: column; gap: 26px; }
+.title-screen .logo { font-size: 84px; font-weight: 900; letter-spacing: 3px; text-transform: uppercase; color: #e0f2fe; text-shadow: 0 0 26px #38bdf8, 0 5px 0 #1e3a8a; }
+.title-screen .logo b { color: #fbbf24; text-shadow: 0 0 26px #f59e0b, 0 5px 0 #7c2d12; }
+.title-screen .play { font-size: 34px; padding: 16px 64px; }
+.title-screen .with { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; color: #e0f2fe; text-shadow: 0 2px 4px #000; }

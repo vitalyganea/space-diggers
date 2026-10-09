@@ -32,7 +32,7 @@ import { market, workshop, bombShop } from './ui/shops.js'
 import { Minimap } from './ui/minimap.js'
 import { ROBOTS } from './robots.js'
 import { Companion } from './companion.js'
-import { chooseRobot, Talk } from './ui/robotui.js'
+import { chooseRobot, Talk, showTitle } from './ui/robotui.js'
 import { loadGear, value, nextCost, buy as buyGear, BOMB_PRICE, BOMB_CARRY, TICKET_PRICE, TICKET_CARRY } from './gear.js'
 import { OpenHud } from './ui/openhud.js'
 import { clickToPlay, lockMouse } from './ui/hud.js'
@@ -251,9 +251,28 @@ export function start(platform) {
     applyGear()
     choosing = false
   }
-  if (robot) meet(robot)
-  else chooseRobot(r => {
+  // the start (row 42): the camera circles the base while you choose a robot,
+  // or, coming back, behind the title and its Play button
+  let titling = false
+  const eye = noa.entities.add([0.5, 13, 0.5], 0.1, 0.1, null, null, false, false)
+  const ownTarget = noa.camera.cameraTarget          // noa's own: an entity that follows the player at eye height
+  let showing = false
+  const showcase = on => {
+    showing = on
+    document.body.classList.toggle('showcase', on)
+    noa.camera.cameraTarget = on ? eye : ownTarget
+    noa.camera.zoomDistance = on ? 26 : 0
+    if (on) { noa.camera.pitch = 0.3; noa.camera.currentZoom = 26 } else noa.camera.currentZoom = 0
+    if (look.hand) { if (on) { look.hand.root.setEnabled(false); look.hand.laser.setEnabled(false) } else look.hand.setTool(hand.tool) }
+  }
+  showcase(true)
+  if (robot) {
+    meet(robot)
+    titling = true
+    showTitle(robot, () => { titling = false; showcase(false); lockMouse(noa.container.element) })
+  } else chooseRobot(r => {
     meet(r)
+    showcase(false)
     // that click was "Let's dig!": go straight in, no second "Click to play"
     lockMouse(noa.container.element)
     persist()                                  // chosen on a click, long after persist exists
@@ -262,7 +281,7 @@ export function start(platform) {
     say('Press R if you need me!')
   })
   let sonarT = 0, ping = null, deepTip = false, meteorT = 0, meteorTip = false
-  clickToPlay(() => !card.open && !inside && !choosing, noa.container.element, 'Click to play',
+  clickToPlay(() => !card.open && !inside && !choosing && !titling, noa.container.element, 'Click to play',
     'WASD move · Space jump and climb · hold left mouse to dig · E to go in · R your robot')
 
   const bombs = new Bombs(noa, world, {
@@ -340,7 +359,7 @@ export function start(platform) {
   toolChip.className = 'hud tool-chip panel'
   document.body.appendChild(toolChip)
   const showTool = changed => {
-    look.hand && look.hand.setTool(hand.tool)
+    if (look.hand && !showing) look.hand.setTool(hand.tool)
     toolChip.innerHTML = hasLaser(gear)
       ? `<span class="${hand.tool === 'drill' ? 'on' : ''}"><kbd>1</kbd> Drill</span><span class="${hand.tool === 'laser' ? 'on' : ''}"><kbd>2</kbd> Laser</span>`
       : '<span class="on">Drill</span>'
@@ -397,7 +416,8 @@ export function start(platform) {
     prompt.show(inside ? null : doorNear(noa.entities.getPosition(noa.playerEntity)))
     // the robot: follow, and Sonar's scouting every 2.5 s
     meteors.update(dt)
-    music.play(choosing ? 'menu' : depth() > 4 ? 'deep' : 'surface')
+    if (choosing || titling) noa.camera.heading += dt / 1000 * 0.07         // the start screen's slow circle
+    music.play(choosing || titling ? 'menu' : depth() > 4 ? 'deep' : 'surface')
     // the tool picks itself when what you aim at changes kind
     const aimed = noa.targetedBlock ? noa.targetedBlock.blockID : null
     const was = hand.tool

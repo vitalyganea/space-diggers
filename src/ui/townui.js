@@ -22,7 +22,7 @@ export function nameBoards(noa) {
     m.backFaceCulling = false
     // two-sided, the back's picture flipped, so a sign seen from behind (the portal stands free) reads the right way
     const plane = MeshBuilder.CreatePlane('board_' + b.key, { width: 3.2, height: 0.8, sideOrientation: Mesh.DOUBLESIDE,
-      frontUVs: new Vector4(0, 0, 1, 1), backUVs: new Vector4(1, 0, 0, 1) }, scene)
+      frontUVs: new Vector4(1, 0, 0, 1), backUVs: new Vector4(0, 0, 1, 1) }, scene)
     plane.material = m
     plane.isPickable = false
     // a plane shows its face towards -z: turn that to face out of the building
