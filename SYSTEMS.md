@@ -89,6 +89,16 @@ no punishment, clear hints, the robot explaining.
 | 48 | The Museum opens: Professor Hoot takes finds as donations; sets with slots; a set complete pays a big reward | testing | src/museum.js (pure): a gift leaves the backpack for good; a set complete pays once (150, 300, 600, 1000). The card: each set's slots, on show / Give / a ? in the rarity's colour; Hoot's lines for a gift, a set done, something to give. `save.museum`, `save.setsDone`. |
 | 49 | Displays: donated finds on pedestals in the Museum | testing | src/displays.js: show cases on the Museum's two side walls (a set to a row, slots glowing in their rarity's colour, ? for the rest), redrawn on every gift. (Cases on the walls, not pedestals: the module is five blocks wide.) |
 
+## Stage 5 (part) and 6: coming back, and ready to publish
+
+| #  | System | Status | Test notes |
+|----|--------|--------|------------|
+| 50 | Daily reward on a seven-day streak (day 7: a rare find); three daily quests with rewards | testing | src/daily.js (pure, by date string): a missed day restarts the streak; three seeded quests a day from eight (dig, finds, sell, depth, copper, museum, bomb, charge), each paying 20–70 coins the moment it is done. The card comes on starting to play (Play / the comic), its Claim the click into the game; the list sits top left. `save.daily`. Browser tests and the bot claim it. Tests whose coin sums assumed 0 at the start may need +20. |
+| 51 | The Robot Bay opens: Sprocket upgrades your robot (and lets you swap it) | pending | |
+| 52 | The race through the Race portal, its winnings to your coins, back to the Moon after | pending | |
+| 53 | Settings: music, sound, mouse sensitivity; Esc pauses with them | pending | |
+| 54 | CrazyGames: SDK calls for the open game (gameplay, happytime, ads), the build, covers and videos | pending | |
+
 Later, with the rocket (stage 4): the rings as a level of floating
 asteroids; the ringed planet's moons as new planets. Kept for later as
 rare events: eclipses. Dropped, too hard on children: tides changing

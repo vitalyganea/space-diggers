@@ -201,3 +201,15 @@ body.showcase .hud { display: none !important; }
 .building button.slot.give { opacity: 1; cursor: pointer; animation: shine 0.7s ease-in-out infinite alternate; font-family: inherit; }
 .building .slot small { font-size: 10px; color: #fff; }
 .building .ficon { display: inline-block; margin-right: 6px; filter: drop-shadow(0 0 4px var(--c)); }
+/* daily reward and quests (row 50) */
+.daily .card { max-width: 760px; }
+.daily .days { display: flex; gap: 8px; margin: 14px 0 18px; }
+.daily .day { flex: 1; padding: 10px 4px; border-radius: 12px; background: rgba(255,255,255,0.07); border: 3px solid transparent; font-weight: 800; }
+.daily .day small { display: block; opacity: 0.8; margin-bottom: 6px; }
+.daily .day.got { opacity: 0.45; }
+.daily .day.today { border-color: #f5c518; background: rgba(245, 197, 24, 0.18); transform: scale(1.08); box-shadow: 0 0 16px rgba(245,197,24,0.6); }
+.quests { inset: 14px auto auto 14px; padding: 8px 12px; font-weight: 800; font-size: 14px; min-width: 210px; }
+.quests > b { display: block; color: #f5c518; margin-bottom: 4px; }
+.quests .q { display: flex; gap: 6px; align-items: baseline; margin: 2px 0; }
+.quests .q small { margin-left: auto; padding-left: 10px; opacity: 0.85; white-space: nowrap; }
+.quests .q.done { opacity: 0.55; text-decoration: line-through; }

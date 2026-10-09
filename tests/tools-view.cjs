@@ -7,7 +7,7 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   const p = await launch({ w: 1280, h: 720, port: 9445 })
   await p.navigate('http://localhost:5181/?seed=7')
   await p.waitFor(`!!document.querySelector('.choose-robot .go')`)
-  await p.eval(`document.querySelector('.choose-robot .go').click(); document.querySelector('.comic .skip') && document.querySelector('.comic .skip').click(); 1`); await sleep(1000)
+  await p.eval(`document.querySelector('.choose-robot .go').click(); document.querySelector('.comic .skip') && document.querySelector('.comic .skip').click(); document.querySelector('.daily .claim') && document.querySelector('.daily .claim').click(); 1`); await sleep(1000)
   const O = '__open'
   const chip = () => p.eval(`document.querySelector('.tool-chip').textContent.replace(/\\s+/g, ' ').trim()`)
   ok(/Drill/.test(await chip()) && !/Laser/.test(await chip()), `the HUD shows the drill in hand ("${await chip()}")`)

@@ -9,7 +9,7 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   const O = '__open'
   await p.tap(300, 120); await sleep(2500)                          // a click wakes the sound
   ok(await p.eval(`${O}.music.theme === 'menu' && ${O}.music.played > 4`), `while choosing a robot: the menu theme (${await p.eval(`${O}.music.played`)} notes so far)`)
-  await p.eval(`document.querySelector('.choose-robot .go').click(); document.querySelector('.comic .skip') && document.querySelector('.comic .skip').click(); 1`); await sleep(5500)
+  await p.eval(`document.querySelector('.choose-robot .go').click(); document.querySelector('.comic .skip') && document.querySelector('.comic .skip').click(); document.querySelector('.daily .claim') && document.querySelector('.daily .claim').click(); 1`); await sleep(5500)
   ok(await p.eval(`${O}.music.theme === 'surface'`), 'in the game, on the surface: the surface theme')
   await p.eval(`(() => { for (let y = 0; y > -12; y--) ${O}.world.set(30, y, 0, 0); ${O}.noa.entities.setPosition(${O}.noa.playerEntity, [30.5, -11, 0.5]) })(); 1`)
   ok(await p.waitFor(`${O}.music.theme === 'deep'`, 9000), 'down a shaft: the deep theme, from the next bar')

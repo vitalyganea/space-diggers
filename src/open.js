@@ -19,6 +19,8 @@ import { Battery } from './battery.js'
 import { Rescue, rechargeCost, FREE_CHARGE, SURFACE_DEPTH } from './stranded.js'
 import { chargeRate, onPad } from './charging.js'
 import { tip } from './tips.js'
+import { openDay, claim, progress, dayString, questReward, questText } from './daily.js'
+import { dailyCard, QuestList } from './ui/daily.js'
 import { donate, wanted } from './museum.js'
 import { makeDisplays } from './displays.js'
 import { rollFind, FINDS, RARITY, SETS } from './finds.js'
@@ -77,6 +79,16 @@ export function start(platform) {
   let lastHard = 0.8                     // the last block dug, for "blocks left"
   let fullWarned = 0
   // what a block drops goes into the backpack; a full one loses it, and says so
+  // daily quests (row 50): count progress, pay a finished one at once
+  const quests = new QuestList()
+  const quest = (id, n = 1) => {
+    for (const q of progress(save.daily, id, n)) {
+      const c = questReward(q)
+      digger.coins += c; sound.play('win'); hud.toast(`Quest done: ${questText(q)} · +${c} coins`)
+      say(`Quest done! +${c} coins.`)
+    }
+    quests.show(save.daily.quests)
+  }
   // finds (row 47): a chance at one in any dug block, below the surface
   const reveal = new Reveal()
   const findIn = () => {
@@ -88,6 +100,7 @@ export function start(platform) {
     const f = FINDS[key], isNew = !save.found.includes(key)
     if (isNew) save.found.push(key)
     reveal.show(key, isNew)
+    quest('finds')
     sound.play('find', RARITIES_N[f.rarity])
     const line = { legendary: `A ${f.name}! That is legendary!`, mythic: `The ${f.name}!! I can't believe it!`, epic: `Wow, a ${f.name}! Professor Hoot will love that.` }[f.rarity]
     if (line) say(line)
@@ -96,9 +109,11 @@ export function start(platform) {
   const RARITIES_N = { common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4, mythic: 5 }
   const collect = blockId => {
     findIn()
+    quest('dig')
     const key = dropFor(blockId)
     if (!key) return
     if (bag.add(key)) {
+      if (key === 'copper') quest('copper')
       hud.pickup(`+1 ${ITEMS[key].name}`, ITEMS[key].color); sound.play('coin', ITEMS[key].value)
       if (bag.count === 1) say('Ooh! That goes in your backpack. The Trade Hub buys it.')
       if (bag.full) say('The backpack is full! Let\'s go and sell at the Trade Hub.')
@@ -194,12 +209,12 @@ export function start(platform) {
       const n = bag.items[k] || 0
       if (!n || !bag.take(k, n)) return
       const c = Math.round(ITEMS[k].value * n * perk.coinMult)
-      digger.coins += c; lastSale = c; sound.play('coin', c); persist()
+      digger.coins += c; lastSale = c; sound.play('coin', c); quest('sell', c); persist()
     },
     sellAll(mult) {
       const c = bag.sellAll(perk.coinMult * mult)
       if (!c) return
-      digger.coins += c; lastSale = c; sound.play('coin', c); hud.toast(`Sold for ${c} coins`); persist()
+      digger.coins += c; lastSale = c; sound.play('coin', c); hud.toast(`Sold for ${c} coins`); quest('sell', c); persist()
     },
     async sellAllAd() {
       if (!bag.count) return
@@ -233,6 +248,7 @@ export function start(platform) {
     const r = donate(save, bag, key)
     if (!r) return
     museumNews = { gave: true }
+    quest('museum')
     sound.play('find', 2)
     if (r.done) {
       digger.coins += r.reward; museumNews.setDone = SETS[r.set].name
@@ -333,10 +349,33 @@ export function start(platform) {
     if (look.hand) { if (on) { look.hand.root.setEnabled(false); look.hand.laser.setEnabled(false) } else look.hand.setTool(hand.tool) }
   }
   showcase(true)
+  /* Into the game from the start screen, on a click: the daily reward first
+     if there is one today (its Claim is then the click that takes the mouse),
+     and today's quests on the screen (row 50). */
+  const startPlaying = () => {
+    showcase(false)
+    const today = dayString(), r = openDay(save.daily, today)
+    quests.show(save.daily.quests)
+    if (!r.reward) { titling = false; lockMouse(noa.container.element); return }
+    dailyCard(r.streakDay, () => {
+      const R = r.reward
+      if (R.coins) digger.coins += R.coins
+      if (R.bombs) digger.bombs = Math.min(BOMB_CARRY, digger.bombs + R.bombs)
+      if (R.tickets) tickets = Math.min(TICKET_CARRY, tickets + R.tickets)
+      if (R.find) {
+        const rare = Object.values(FINDS).filter(f => f.rarity === R.find && !save.found.includes(f.key))
+        const f = rare.length ? rare[Math.floor(Math.random() * rare.length)] : Object.values(FINDS).find(x => x.rarity === R.find)
+        if (bag.add(f.key)) { if (!save.found.includes(f.key)) save.found.push(f.key); reveal.show(f.key, true) } else digger.coins += f.value
+      }
+      claim(save.daily, today, r.streakDay)
+      sound.play('win'); titling = false; lockMouse(noa.container.element); persist()
+      say(r.streakDay === 7 ? 'Seven days in a row! A rare treasure for you!' : `Day ${r.streakDay}! Come back tomorrow for more.`)
+    })
+  }
   if (robot) {
     meet(robot)
     titling = true
-    showTitle(robot, () => { titling = false; showcase(false); lockMouse(noa.container.element) },
+    showTitle(robot, () => startPlaying(),
       () => showComic(robot, () => {}))                                // "How to play" shows the comic again
   } else chooseRobot(r => {
     meet(r)
@@ -344,14 +383,12 @@ export function start(platform) {
     // then the comic (row 43); its last button (or Skip) is the click that starts the game
     titling = true
     showComic(r, () => {
-      titling = false
-      showcase(false)
-      lockMouse(noa.container.element)
+      startPlaying()
       say(`Hi, I'm ${r.name}! Hold the left mouse button to dig down.`)
       say('Press R if you need me!')
     })
   })
-  let sonarT = 0, ping = null, deepTip = false, meteorT = 0, meteorTip = false
+  let deepestToday = 0, sonarT = 0, ping = null, deepTip = false, meteorT = 0, meteorTip = false
   clickToPlay(() => !card.open && !inside && !choosing && !titling, noa.container.element, 'Click to play',
     'WASD move · Space jump and climb · hold left mouse to dig · E to go in · R your robot')
 
@@ -368,6 +405,7 @@ export function start(platform) {
     sound.play('thrown')
     const p = noa.entities.getPosition(noa.playerEntity), d = noa.camera.getDirection()
     bombs.throw([p[0] + d[0] * 0.6, p[1] + 1.3, p[2] + d[2] * 0.6], d)
+    quest('bomb')
   })
   noa.inputs.down.on('alt-fire', () => {
     const t = noa.targetedBlock
@@ -474,7 +512,7 @@ export function start(platform) {
     const here = noa.entities.getPosition(noa.playerEntity)
     if (battery.fraction < 1) {
       battery.recharge(battery.capacity * chargeRate(here, depth(), battery.flat) * dt / 1000)
-      if (onPad(here) && !charging) { charging = true; sound.play('buy'); hud.toast('Charging...'); if (!saidCharging) { saidCharging = true; say('Charging! Stand here a moment.') } }
+      if (onPad(here) && !charging) { charging = true; quest('charge'); sound.play('buy'); hud.toast('Charging...'); if (!saidCharging) { saidCharging = true; say('Charging! Stand here a moment.') } }
     }
     if (charging && (!onPad(here) || battery.fraction >= 1)) {
       if (battery.fraction >= 1) hud.toast('Battery full!')
@@ -551,6 +589,7 @@ export function start(platform) {
         say('A meteorite crater! Its black rock is very hard, but full of meteor iron.')
       }
     }
+    if (depth() > deepestToday) { deepestToday = depth(); if (deepestToday % 5 === 0) quest('deep', deepestToday) }
     if (!deepTip && depth() > 6) { deepTip = true; say('Deep enough? Space against a wall takes you back up.') }
     minimap.update(dt / 1000, noa.entities.getPosition(noa.playerEntity), noa.camera.heading,
       { robot: buddy && !buddy.away ? buddy.pos : null, ping, meteors: meteors.marks })

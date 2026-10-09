@@ -7,7 +7,7 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   const p = await launch({ w: 1280, h: 720, port: 9450 })
   await p.navigate('http://localhost:5181/?seed=7')
   await p.waitFor(`!!document.querySelector('.choose-robot .go')`)
-  await p.eval(`document.querySelector('.choose-robot .go').click(); document.querySelector('.comic .skip') && document.querySelector('.comic .skip').click(); 1`); await sleep(800)
+  await p.eval(`document.querySelector('.choose-robot .go').click(); document.querySelector('.comic .skip') && document.querySelector('.comic .skip').click(); document.querySelector('.daily .claim') && document.querySelector('.daily .claim').click(); 1`); await sleep(800)
   const O = '__open', C = `${O}.creatures`
   // a cave room, 40 down, 9 wide, to have them in
   await p.eval(`(() => { for (let x = 26; x < 36; x++) for (let z = -4; z < 6; z++) { for (let y = -41; y < -36; y++) ${O}.world.set(x, y, z, 0); ${O}.world.set(x, -42, z, 4) }   // with a solid floor (there are caves below)

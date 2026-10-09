@@ -32,7 +32,10 @@ const TO_SITE = () => [[8, 0.5], [4, 5], [20, 6], SITE]
   await p.tap(go[0], go[1]); await sleep(500)
   // then the comic for new players: a real click on Skip starts the game
   const sk = await p.eval(`(() => { const r = document.querySelector('.comic .skip').getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2] })()`)
-  await p.tap(sk[0], sk[1]); await sleep(800)
+  await p.tap(sk[0], sk[1]); await sleep(500)
+  // and the daily reward: a real click on Claim takes the mouse
+  const cl = await p.eval(`(() => { const b = document.querySelector('.daily .claim'); if (!b) return null; const r = b.getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2] })()`)
+  if (cl) { await p.tap(cl[0], cl[1]); await sleep(800) }
   ok(await p.eval('!!document.pointerLockElement') && await p.eval(`!document.querySelector('.choose-robot') && !!__open.robot()`), '"Let\'s dig!", then Skip on the comic: the robot is chosen and the game starts, mouse locked')
   const O = '__open'
   await p.eval('window.__mark = Date.now()')

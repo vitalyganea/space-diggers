@@ -6,7 +6,7 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
 ;(async () => {
   const p = await launch({ w: 1280, h: 720, port: 9405 })
   await p.navigate('http://localhost:5181/'); await sleep(6500)
-  await p.eval(`(() => { const b = document.querySelector('.choose-robot .go'); if (b) b.click(); const sk = document.querySelector('.comic .skip'); if (sk) sk.click() })()`); await sleep(900)   // first start: the default robot, then "Click to play" shows
+  await p.eval(`(() => { const b = document.querySelector('.choose-robot .go'); if (b) b.click(); const sk = document.querySelector('.comic .skip'); if (sk) sk.click(); const cl = document.querySelector('.daily .claim'); if (cl) cl.click() })()`); await sleep(900)   // first start: the default robot, then "Click to play" shows
   await p.tap(640, 360); await sleep(300)
   const O = '__open'
   const promptText = () => p.eval(`getComputedStyle(document.querySelector('.door-prompt')).display === 'none' ? '' : document.querySelector('.door-prompt b').textContent`)

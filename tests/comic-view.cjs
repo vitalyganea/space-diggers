@@ -17,7 +17,10 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   for (let i = 0; i < 3; i++) { await p.eval(`document.querySelector('.comic .next').click(); 1`); await sleep(100) }
   const at = await p.eval(`(() => { const b = document.querySelector('.comic .next'); const r = b.getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2, b.textContent] })()`)
   ok(at[2] === 'Start digging!', 'the last button: "Start digging!"')
-  await p.tap(at[0], at[1]); await sleep(800)
+  await p.tap(at[0], at[1]); await sleep(500)
+  // the daily reward comes next on a first day (row 50); its Claim is the click into the game
+  const cl = await p.eval(`(() => { const r = document.querySelector('.daily .claim').getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2] })()`)
+  await p.tap(cl[0], cl[1]); await sleep(800)
   ok(await p.eval(`!document.querySelector('.comic') && !!document.pointerLockElement && !document.body.classList.contains('showcase')`), 'it starts the game: mouse locked, the camera back in your eyes')
   // coming back: the title offers it again
   await p.eval(`__open.persist(); 1`); await p.reload()
