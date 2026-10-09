@@ -1,7 +1,9 @@
 /* The minimap and the depth meter, top right.
 
    The map is a slice through the World at the level of your feet, seen
-   from above, RANGE blocks each way: rock in its own colour, open space
+   from above, RANGE blocks each way, +x to the right and +z UP (noa's
+   world is left-handed: drawn with +z down, the map was a mirror image and
+   turned the wrong way as you looked round): rock in its own colour, open space
    (your tunnels, caves, the open air) dark. The town's buildings are
    coloured squares with a letter; if the town is off the map an arrow at
    the edge points home. You are the white arrow, turned the way you look.
@@ -58,14 +60,14 @@ export class Minimap {
       const solid = w.get(px + i, py, pz + j) !== 0
       g.fillStyle = COLORS[id] || '#777'
       g.globalAlpha = solid ? 1 : 0.45
-      g.fillRect((i + RANGE) * PX, (j + RANGE) * PX, PX, PX)
+      g.fillRect((i + RANGE) * PX, (RANGE - j) * PX, PX, PX)
     }
     g.globalAlpha = 1
     // the town: a square per building, or an arrow home at the edge
     const c = SIZE / 2
     let townSeen = false
     for (const b of [...BUILDINGS, PORTAL, PAD]) {
-      const x = (b.at[0] - px + RANGE) * PX, z = (b.at[1] - pz + RANGE) * PX
+      const x = (b.at[0] - px + RANGE) * PX, z = (RANGE - (b.at[1] - pz)) * PX + PX
       if (x < 0 || z < 0 || x > SIZE || z > SIZE) continue
       townSeen = true
       g.fillStyle = SHOP_COLORS[b.key]
@@ -74,24 +76,24 @@ export class Minimap {
       g.fillText(b.name[0], x, z + 1)
     }
     if (!townSeen) {
-      const a = Math.atan2(-pz, -px), r = c - 10
+      const a = Math.atan2(pz, -px), r = c - 10                 // screen y runs against z
       g.save(); g.translate(c + Math.cos(a) * r, c + Math.sin(a) * r); g.rotate(a)
       g.fillStyle = '#f5c518'; g.beginPath(); g.moveTo(8, 0); g.lineTo(-6, -6); g.lineTo(-6, 6); g.fill(); g.restore()
     }
     // your robot (cyan) and what Sonar felt (a gold ring)
     const dot = (q, col, r, ring) => {
       if (!q) return
-      const x = (q[0] - px + RANGE) * PX, z = (q[2] - pz + RANGE) * PX
+      const x = (q[0] - px + RANGE) * PX, z = (RANGE - (q[2] - pz)) * PX + PX
       if (x < 0 || z < 0 || x > SIZE || z > SIZE) return
       g.beginPath(); g.arc(x, z, r, 0, Math.PI * 2)
       if (ring) { g.strokeStyle = col; g.lineWidth = 2; g.stroke() } else { g.fillStyle = col; g.fill() }
     }
     dot(extra.robot, '#7df9ff', 3.5)
     dot(extra.ping && [extra.ping[0] + 0.5, 0, extra.ping[2] + 0.5], '#f5c518', 6, true)
-    // you: noa's heading 0 looks down +z, which is down the map
-    g.save(); g.translate(c + PX / 2, c + PX / 2); g.rotate(-heading)
+    // you: noa's heading 0 looks along +z, which is up the map; turning right (heading up) turns the arrow clockwise
+    g.save(); g.translate(c + PX / 2, c + PX / 2); g.rotate(heading)
     g.fillStyle = '#fff'; g.strokeStyle = '#000'; g.lineWidth = 2
-    g.beginPath(); g.moveTo(0, 9); g.lineTo(-6, -6); g.lineTo(0, -3); g.lineTo(6, -6); g.closePath(); g.stroke(); g.fill(); g.restore()
+    g.beginPath(); g.moveTo(0, -9); g.lineTo(-6, 6); g.lineTo(0, 3); g.lineTo(6, 6); g.closePath(); g.stroke(); g.fill(); g.restore()
     // the meter
     const depth = Math.max(0, -py)
     this.el.querySelector('.you').style.top = `${Math.min(100, 100 * depth / -(CORE_Y - 2))}%`
