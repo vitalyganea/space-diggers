@@ -22,6 +22,9 @@ import { doorNear } from './town.js'
 import { nameBoards, DoorPrompt, buildingCard, shopCard } from './ui/townui.js'
 import { market, workshop, bombShop } from './ui/shops.js'
 import { Minimap } from './ui/minimap.js'
+import { ROBOTS } from './robots.js'
+import { Companion } from './companion.js'
+import { chooseRobot, Talk } from './ui/robotui.js'
 import { loadGear, value, buy as buyGear, BOMB_PRICE, BOMB_CARRY } from './gear.js'
 import { OpenHud } from './ui/openhud.js'
 import { clickToPlay } from './ui/hud.js'
@@ -57,7 +60,11 @@ export function start(platform) {
   const collect = blockId => {
     const key = dropFor(blockId)
     if (!key) return
-    if (bag.add(key)) { hud.pickup(`+1 ${ITEMS[key].name}`, ITEMS[key].color); sound.play('coin', ITEMS[key].value) }
+    if (bag.add(key)) {
+      hud.pickup(`+1 ${ITEMS[key].name}`, ITEMS[key].color); sound.play('coin', ITEMS[key].value)
+      if (bag.count === 1) say('Ooh! That goes in your backpack. The Market buys it.')
+      if (bag.full) say('The backpack is full! Let\'s go and sell at the Market.')
+    }
     else if (performance.now() - fullWarned > 2500) { fullWarned = performance.now(); hud.toast('Backpack full! Go and sell'); sound.play('denied') }
   }
   const digger = new Digger(noa, {
@@ -67,10 +74,10 @@ export function start(platform) {
       sound.play('break', e.block.hard); collect(e.block.id)
       battery.use(e.block.hard); lastHard = e.block.hard
       const w = battery.warn()
-      if (w) { hud.toast(`Battery ${Math.round(w * 100)}%!`); sound.play('low') }
+      if (w) { hud.toast(`Battery ${Math.round(w * 100)}%!`); sound.play('low'); say(w > 0.2 ? 'Battery at 25%. Think about heading back up!' : 'Battery 10%! We should climb up now.') }
       if (battery.flat) {
         sound.play('flat')
-        if (strandedNow()) openCard()
+        if (strandedNow()) { openCard(); say('Out of power! I can fly up and sell something for us.') }
         else hud.toast('Battery flat! Stand in the sun to charge')
       }
     },
@@ -80,13 +87,16 @@ export function start(platform) {
   const perk = meta.perk(save.chosen)
   digger.digSpeed = perk.digSpeed
   digger.coinMult = perk.coinMult
+  // the robot friend: chosen at the first start (below), then kept
+  let robot = save.robot, buddy = null, talk = null
+  const say = text => talk && talk.say(text)
   const look = applyLook(noa)
   // the Workshop's upgrades, kept for good
   const gear = loadGear(save.gear)
   const applyGear = () => {
     digger.speed = value(gear, 'drill')
     battery.capacity = value(gear, 'battery')
-    bag.capacity = Math.max(bag.capacity, value(gear, 'backpack'))
+    bag.capacity = value(gear, 'backpack') + (robot ? ROBOTS[robot.kind].bagBonus : 0)
     look.lamp.range = value(gear, 'lamp')
   }
   applyGear()
@@ -107,7 +117,12 @@ export function start(platform) {
         if (digger.coins < cost) return
         digger.coins -= cost; battery.recharge(); sound.play('buy'); card.hide(); hud.toast('Recharged!')
       }
-      if (kind === 'robot' && bag.take(arg)) { rescue.sendRobot(arg, ITEMS[arg].value, depth()); sound.play('thrown') }
+      if (kind === 'robot' && bag.take(arg)) {
+        rescue.sendRobot(arg, ITEMS[arg].value, depth(), robot ? ROBOTS[robot.kind].tripSpeed : 1)
+        sound.play('thrown')
+        if (buddy) buddy.leave()
+        say(`I'll take the ${ITEMS[arg].name} up to the Market. Back soon!`)
+      }
       if (kind === 'free') rescue.callFree()
       if (kind === 'ad') {
         sound.setMuted(true)
@@ -171,7 +186,25 @@ export function start(platform) {
     sound.play('place')
   }
   noa.inputs.down.on('use', () => { const d = doorNear(noa.entities.getPosition(noa.playerEntity)); if (d && !inside) enter(d) })
-  clickToPlay(() => !card.open && !inside, noa.container.element, 'Click to play',
+  let choosing = !robot
+  const meet = r => {
+    robot = r
+    save.robot = r
+    buddy = new Companion(noa, r.kind)
+    buddy.world = world
+    talk = new Talk(r.kind, r.name)
+    applyGear()
+    choosing = false
+  }
+  if (robot) meet(robot)
+  else chooseRobot(r => {
+    meet(r)
+    persist()                                  // chosen on a click, long after persist exists
+    say(`Hi, I'm ${r.name}! Hold the left mouse button to dig down.`)
+    say('Space against a wall climbs back up.')
+  })
+  let sonarT = 0, ping = null, deepTip = false
+  clickToPlay(() => !card.open && !inside && !choosing, noa.container.element, 'Click to play',
     'WASD move · Space jump and climb · hold left mouse to dig · E to go in')
 
   const bombs = new Bombs(noa, world, {
@@ -236,7 +269,9 @@ export function start(platform) {
     const done = rescue.tick(dt / 1000)
     if (done && done.kind === 'trip') {
       digger.coins += done.value; sound.play('coin', done.value)
-      hud.toast(`Your robot sold ${ITEMS[done.item].name}: +${done.value} coins`)
+      hud.toast(`${robot ? robot.name : 'Your robot'} sold ${ITEMS[done.item].name}: +${done.value} coins`)
+      if (buddy) buddy.back()
+      say(`Ka-ching! +${done.value} coins.`)
     }
     if (done && done.kind === 'free') {
       battery.recharge(battery.capacity * FREE_CHARGE); card.hide(); sound.play('buy')
@@ -248,8 +283,19 @@ export function start(platform) {
     if (sinceSave >= AUTOSAVE) { sinceSave = 0; persist() }
     hud.update({ coins: digger.coins, depth: depth(), bag, battery, blocksLeft: battery.blocksLeft(lastHard) })
     prompt.show(inside ? null : doorNear(noa.entities.getPosition(noa.playerEntity)))
-    minimap.update(dt / 1000, noa.entities.getPosition(noa.playerEntity), noa.camera.heading)
+    // the robot: follow, and Sonar's scouting every 2.5 s
+    if (buddy) buddy.update(dt)
+    sonarT += dt / 1000
+    if (buddy && sonarT > 2.5) {
+      sonarT = 0
+      const found = buddy.scan(world)
+      if (found && (!ping || found.at.join() !== ping.join())) say(`I feel ${found.id === ID.gem_ore ? 'a gem' : 'gold'} ${found.dir}, ${found.dist} blocks away!`)
+      ping = found ? found.at : null
+    }
+    if (!deepTip && depth() > 6) { deepTip = true; say('Deep enough? Space against a wall takes you back up.') }
+    minimap.update(dt / 1000, noa.entities.getPosition(noa.playerEntity), noa.camera.heading,
+      { robot: buddy && !buddy.away ? buddy.pos : null, ping })
   })
 
-  if (import.meta.env.DEV) window.__open = { noa, world, digger, save, sound, bombs, persist, bag, battery, rescue, card, gear, look, minimap, inside: () => inside, state: () => playerState(noa), depth }
+  if (import.meta.env.DEV) window.__open = { noa, world, digger, save, sound, bombs, persist, bag, battery, rescue, card, gear, look, minimap, inside: () => inside, robot: () => robot, buddy: () => buddy, talk: () => talk, state: () => playerState(noa), depth }
 }

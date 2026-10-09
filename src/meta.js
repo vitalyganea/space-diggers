@@ -8,6 +8,7 @@
      beaver  (300)  starts every round with a bomb and 10 blocks of rubble
      hamster (500)  ore pays half as much again */
 import { ID } from './blocks.js'
+import { ROBOTS } from './robots.js'
 
 export const KEY = 'boomdiggers-save-v1'
 export const PLACE_BONUS = [50, 30, 20, 10, 10, 10]
@@ -19,7 +20,7 @@ export const SHOP = [
 ]
 
 export function defaults() {
-  return { v: 1, coins: 0, owned: ['mole'], chosen: 'mole', rounds: 0, wins: 0, bestDepth: 0, backpack: null, battery: null, gear: null, bombs: 0 }
+  return { v: 1, coins: 0, owned: ['mole'], chosen: 'mole', rounds: 0, wins: 0, bestDepth: 0, backpack: null, battery: null, gear: null, bombs: 0, robot: null }
 }
 
 /* A save from storage, defensively: anything missing or wrong falls back. */
@@ -36,6 +37,7 @@ export function load(storage) {
     if (o.battery && typeof o.battery === 'object') d.battery = o.battery       // and by Battery
     if (o.gear && typeof o.gear === 'object') d.gear = o.gear                   // and by loadGear
     d.bombs = Math.max(0, Math.min(5, Math.floor(+o.bombs || 0)))
+    if (o.robot && ROBOTS[o.robot.kind]) d.robot = { kind: o.robot.kind, name: String(o.robot.name || '').replace(/[^\p{L}\p{N} '!?-]/gu, '').slice(0, 12) || ROBOTS[o.robot.kind].name }
   } catch (e) { /* a broken save starts fresh */ }
   return d
 }

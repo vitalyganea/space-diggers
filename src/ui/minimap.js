@@ -40,7 +40,8 @@ export class Minimap {
     this.t = 0
   }
 
-  update(dt, pos, heading) {
+  /* extra: { robot: [x, y, z] | null, ping: [x, y, z] | null } */
+  update(dt, pos, heading, extra = {}) {
     this.t += dt
     if (this.t < 0.2) return
     this.t = 0
@@ -76,6 +77,16 @@ export class Minimap {
       g.save(); g.translate(c + Math.cos(a) * r, c + Math.sin(a) * r); g.rotate(a)
       g.fillStyle = '#f5c518'; g.beginPath(); g.moveTo(8, 0); g.lineTo(-6, -6); g.lineTo(-6, 6); g.fill(); g.restore()
     }
+    // your robot (cyan) and what Sonar felt (a gold ring)
+    const dot = (q, col, r, ring) => {
+      if (!q) return
+      const x = (q[0] - px + RANGE) * PX, z = (q[2] - pz + RANGE) * PX
+      if (x < 0 || z < 0 || x > SIZE || z > SIZE) return
+      g.beginPath(); g.arc(x, z, r, 0, Math.PI * 2)
+      if (ring) { g.strokeStyle = col; g.lineWidth = 2; g.stroke() } else { g.fillStyle = col; g.fill() }
+    }
+    dot(extra.robot, '#7df9ff', 3.5)
+    dot(extra.ping && [extra.ping[0] + 0.5, 0, extra.ping[2] + 0.5], '#f5c518', 6, true)
     // you: noa's heading 0 looks down +z, which is down the map
     g.save(); g.translate(c + PX / 2, c + PX / 2); g.rotate(-heading)
     g.fillStyle = '#fff'; g.strokeStyle = '#000'; g.lineWidth = 2

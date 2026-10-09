@@ -1,0 +1,53 @@
+/* System 22 check in the open game: choosing the robot, its company, its
+   talents and its trip.   node tests/robot-view.cjs */
+const { launch, sleep } = require('../tools/cdp.cjs')
+const OUT = process.env.OUT || '/tmp/boom-tests'
+let fails = 0
+const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fails++ }
+;(async () => {
+  const p = await launch({ w: 1280, h: 720, port: 9409 })
+  await p.navigate('http://localhost:5181/?fakeads=1'); await sleep(6500)
+  const O = '__open'
+  ok(await p.eval(`!!document.querySelector('.choose-robot') && document.querySelectorAll('.robot-card').length === 3`), 'a new player is asked to choose one of three robots')
+  ok(await p.eval(`getComputedStyle(document.querySelector('.click-to-play')).display === 'none'`), '"Click to play" waits until the choice is made')
+  await p.shot(OUT + '/rb1-choose.png')
+  await p.eval(`document.querySelector('.robot-card[data-k="sonar"]').click()`); await sleep(200)
+  await p.eval(`document.querySelector('.choose-robot input').value = 'Beep<b>!'`)
+  await p.eval(`document.querySelector('.choose-robot .go').click()`); await sleep(600)
+  ok(JSON.stringify(await p.eval(`${O}.robot()`)) === '{"kind":"sonar","name":"Beep!"}', 'Sonar, named Beep (the markup stripped from the name)')
+  ok(await p.eval(`${O}.talk().said[0].includes("Hi, I'm Beep!")`), 'it says hello and how to dig')
+  await p.tap(640, 360); await sleep(1500)
+  const near = await p.eval(`(() => { const b = ${O}.buddy().pos, q = ${O}.noa.entities.getPosition(${O}.noa.playerEntity); return Math.hypot(b[0] - q[0], b[1] - q[1] - 1.7, b[2] - q[2]) })()`)
+  ok(near < 2.5, `it floats close by (${near.toFixed(2)} from your head)`)
+  await p.eval(`${O}.noa.camera.heading = 0.4; ${O}.noa.camera.pitch = 0.1`); await sleep(700)
+  await p.shot(OUT + '/rb2-buddy.png')
+  // Sonar feels gold: put some 3 blocks ahead, underground
+  await p.eval(`(() => { ${O}.noa.entities.setPosition(${O}.noa.playerEntity, [30.5, 1, 0.5]); ${O}.noa.camera.heading = 0; ${O}.world.set(30, 0, 4, 10) })()`); await sleep(3500)
+  const said = await p.eval(`${O}.talk().said.join(' | ')`)
+  ok(/I feel gold ahead, \d blocks away/.test(said), `Sonar: "${said.split(' | ').find(x => /feel/.test(x))}"`)
+  // its trip to the Market: it flies off and comes back
+  await p.eval(`(() => { const x = 30, z = 0; for (let y = 0; y > -20; y--) ${O}.world.set(x, y, z, 0)
+    ${O}.noa.entities.setPosition(${O}.noa.playerEntity, [x + 0.5, -19, z + 0.5]); ${O}.bag.add('gold'); ${O}.battery.charge = 0.1; ${O}.noa.camera.pitch = 1.55 })()`); await sleep(1500)
+  await p.tap(640, 360); await sleep(200); await p.mouseHold(640, 360, 900); await sleep(500)
+  await p.eval(`document.querySelector('[data-act="pick"]').click()`); await sleep(200)
+  await p.eval(`document.querySelector('[data-act="robot"][data-arg="gold"]').click()`); await sleep(1800)
+  ok(await p.eval(`${O}.buddy().away && ${O}.buddy().pos[1] > ${O}.state().y + 3`), 'sent to sell the gold, it flies off up the shaft')
+  await p.eval(`${O}.rescue.t += 120`); await sleep(1500)
+  ok(await p.eval(`!${O}.buddy().away && ${O}.digger.coins === 12`), 'and comes back with 12 coins')
+  ok((await p.eval(`${O}.talk().said.concat(${O}.talk().queue).join(' | ')`)).includes('Ka-ching'), 'saying so (now or next in line)')
+  await p.eval(`document.querySelector('[data-act="close"]') && document.querySelector('[data-act="close"]').click()`)
+  // kept: no second choice after a reload
+  await p.eval(`${O}.persist()`); await p.reload(); await sleep(6500)
+  ok(await p.eval(`!document.querySelector('.choose-robot') && ${O}.robot().name === 'Beep!' && !!${O}.buddy()`), 'after a reload Beep is back, no second choice')
+  ok(p.errors.length === 0, 'console clean ' + JSON.stringify(p.errors.slice(0, 3)))
+  await p.close()
+
+  // Bolt and Bzz: their talents
+  const q = await launch({ w: 1280, h: 720, port: 9410 })
+  await q.navigate('http://localhost:5181/'); await sleep(6500)
+  await q.eval(`document.querySelector('.robot-card[data-k="bolt"]').click()`); await sleep(100)
+  await q.eval(`document.querySelector('.choose-robot .go').click()`); await sleep(400)
+  ok((await q.eval(`${O}.bag.capacity`)) === 30, 'Bolt: the backpack holds 30 instead of 20')
+  await q.close()
+  console.log(fails ? `${fails} failed` : 'all ok'); process.exit(fails ? 1 : 0)
+})()
