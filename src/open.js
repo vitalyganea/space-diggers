@@ -21,6 +21,7 @@ import { StrandedCard } from './ui/stranded.js'
 import { doorNear } from './town.js'
 import { nameBoards, DoorPrompt, buildingCard, shopCard } from './ui/townui.js'
 import { market, workshop, bombShop } from './ui/shops.js'
+import { Minimap } from './ui/minimap.js'
 import { loadGear, value, buy as buyGear, BOMB_PRICE, BOMB_CARRY } from './gear.js'
 import { OpenHud } from './ui/openhud.js'
 import { clickToPlay } from './ui/hud.js'
@@ -122,6 +123,7 @@ export function start(platform) {
   // second binding for placing a block; that stays on the right button only.
   nameBoards(noa)
   const prompt = new DoorPrompt()
+  const minimap = new Minimap(world)
   let inside = null
   noa.inputs.unbind('alt-fire')
   noa.inputs.bind('alt-fire', 'Mouse3')
@@ -246,7 +248,8 @@ export function start(platform) {
     if (sinceSave >= AUTOSAVE) { sinceSave = 0; persist() }
     hud.update({ coins: digger.coins, depth: depth(), bag, battery, blocksLeft: battery.blocksLeft(lastHard) })
     prompt.show(inside ? null : doorNear(noa.entities.getPosition(noa.playerEntity)))
+    minimap.update(dt / 1000, noa.entities.getPosition(noa.playerEntity), noa.camera.heading)
   })
 
-  if (import.meta.env.DEV) window.__open = { noa, world, digger, save, sound, bombs, persist, bag, battery, rescue, card, gear, look, inside: () => inside, state: () => playerState(noa), depth }
+  if (import.meta.env.DEV) window.__open = { noa, world, digger, save, sound, bombs, persist, bag, battery, rescue, card, gear, look, minimap, inside: () => inside, state: () => playerState(noa), depth }
 }

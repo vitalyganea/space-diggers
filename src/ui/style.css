@@ -97,3 +97,13 @@
 .building .row { display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap; margin-bottom: 12px; }
 .building .have { font-size: 17px; font-weight: 800; }
 .building kbd { display: inline-block; padding: 0 6px; border-radius: 5px; background: #fff; color: #222; text-shadow: none; font-weight: 900; }
+.minimap { inset: 14px 14px auto auto; display: flex; gap: 8px; align-items: flex-start; }
+.minimap .map { padding: 6px; position: relative; }
+.minimap canvas { display: block; width: 196px; height: 196px; border-radius: 8px; image-rendering: pixelated; }
+.minimap .where { text-align: center; font-size: 15px; font-weight: 800; margin-top: 4px; }
+.minimap .meter { position: relative; width: 26px; height: 214px; padding: 4px; }
+.minimap .bands { height: 100%; border-radius: 6px; overflow: hidden; display: flex; flex-direction: column; }
+.minimap .bands div { position: relative; }
+.minimap .bands span { display: none; }
+.minimap .you { position: absolute; left: -6px; right: -6px; height: 4px; margin-top: 2px; background: #fff; border-radius: 2px;
+  box-shadow: 0 0 0 2px #000; transition: top .2s; }
