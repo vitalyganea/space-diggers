@@ -63,8 +63,8 @@ export function start(platform) {
     if (!key) return
     if (bag.add(key)) {
       hud.pickup(`+1 ${ITEMS[key].name}`, ITEMS[key].color); sound.play('coin', ITEMS[key].value)
-      if (bag.count === 1) say('Ooh! That goes in your backpack. The Market buys it.')
-      if (bag.full) say('The backpack is full! Let\'s go and sell at the Market.')
+      if (bag.count === 1) say('Ooh! That goes in your backpack. The Trade Hub buys it.')
+      if (bag.full) say('The backpack is full! Let\'s go and sell at the Trade Hub.')
     }
     else if (performance.now() - fullWarned > 2500) { fullWarned = performance.now(); hud.toast('Backpack full! Go and sell'); sound.play('denied') }
   }
@@ -124,7 +124,7 @@ export function start(platform) {
         rescue.sendRobot(arg, ITEMS[arg].value, depth(), robot ? ROBOTS[robot.kind].tripSpeed : 1)
         sound.play('thrown')
         if (buddy) buddy.leave()
-        say(`I'll take the ${ITEMS[arg].name} up to the Market. Back soon!`)
+        say(`I'll take the ${ITEMS[arg].name} up to the Trade Hub. Back soon!`)
       }
       if (kind === 'free') rescue.callFree()
       if (kind === 'ticket') { card.hide(); goHome() }
@@ -191,7 +191,8 @@ export function start(platform) {
     if (document.pointerLockElement) document.exitPointerLock()
     const close = () => { inside = null }
     const s = SHOPS[door.key]
-    inside = s ? shopCard(door.name, s.render, s.act, close) : buildingCard(door.name, '<p>Coming soon!</p>', close)
+    const soon = { pad: '<p>Coming soon: the rocket flies you to new planets.</p><p>An ice planet, a red one, one of lava and one of crystal, each with its own treasure.</p>' }
+    inside = s ? shopCard(door.name, s.render, s.act, close) : buildingCard(door.name, soon[door.key] || '<p>Coming soon!</p>', close)
     sound.play('place')
   }
   noa.inputs.down.on('use', () => { const d = doorNear(noa.entities.getPosition(noa.playerEntity)); if (d && !inside) enter(d) })
@@ -272,7 +273,7 @@ export function start(platform) {
 
   // a ticket home: T, from anywhere, straight to the middle of town
   const goHome = () => {
-    if (tickets <= 0) { hud.toast('No tickets: the Bomb shop sells them'); sound.play('denied'); return }
+    if (tickets <= 0) { hud.toast('No tickets: the Bomb Shop sells them'); sound.play('denied'); return }
     tickets--
     noa.entities.setPosition(noa.playerEntity, SPAWN)
     noa.entities.getPhysics(noa.playerEntity).body.velocity = [0, 0, 0]

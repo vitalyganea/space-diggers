@@ -8,7 +8,8 @@ let fails = 0
 const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fails++ }
 ;(async () => {
   const p = await launch({ w: 1280, h: 720, port: 9403 })
-  await p.navigate('http://localhost:5181/?fakeads=1'); await sleep(6000)
+  await p.navigate('http://localhost:5181/?fakeads=1')
+  await p.waitFor(`!!document.querySelector('.choose-robot .go')`)
   await p.eval(`(() => { const b = document.querySelector('.choose-robot .go'); if (b) b.click() })()`); await sleep(900)   // first start: the default robot, then "Click to play" shows
   await p.tap(640, 360); await sleep(300)
   const O = '__open'
@@ -19,7 +20,7 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
       ${O}.noa.entities.setPosition(${O}.noa.playerEntity, [x + 0.5, -29, z + 0.5]); ${O}.battery.charge = 0.3; ${O}.noa.camera.pitch = 1.55 })()`)
     await sleep(1500)
     await p.tap(640, 360); await sleep(200)
-    await p.mouseHold(640, 360, 1200); await sleep(500)
+    await p.holdUntil(`${O}.card.open`); await sleep(300)
   }
   await strand()
   ok(await p.eval(`${O}.card.open && ${O}.battery.flat`), 'flat 30 m down: the "Battery flat!" card opens')

@@ -3,13 +3,13 @@
    screen's light is what lights the tunnel round you (a small lamp of its
    own, in src/companion.js).
 
-     Bzz    a drone on four rotors: its trips to the Market take half as long
+     Bzz    a drone on four rotors: its trips to the Trade Hub take half as long
      Bolt   a little tracked carrier with a crate on its back: 10 more slots
      Sonar  a round scout with a turning dish: feels gold and gems nearby */
 import { MeshBuilder, StandardMaterial, Color3, Mesh } from '@babylonjs/core'
 
 export const ROBOTS = {
-  bzz: { name: 'Bzz', talent: 'A fast drone: its trips to the Market take half as long', body: '#3fb8f0', trim: '#1d4e89', tripSpeed: 2, bagBonus: 0, sonar: false },
+  bzz: { name: 'Bzz', talent: 'A fast drone: its trips to the Trade Hub take half as long', body: '#3fb8f0', trim: '#1d4e89', tripSpeed: 2, bagBonus: 0, sonar: false },
   bolt: { name: 'Bolt', talent: 'A strong carrier: 10 more slots in your backpack', body: '#f59e0b', trim: '#7c3d0a', tripSpeed: 1, bagBonus: 10, sonar: false },
   sonar: { name: 'Sonar', talent: 'A scout: feels gold and gems close by and tells you where', body: '#a78bfa', trim: '#4c1d95', tripSpeed: 1, bagBonus: 0, sonar: true },
 }

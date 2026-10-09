@@ -1,25 +1,33 @@
-/* The town at the spawn: a cobbled square with six buildings round it, all
-   of blocks that cannot be dug (src/blocks.js, hard 99). The World asks
-   townVoxel(x, y, z) first inside TOWN_R (worldgen, with { town: true }).
+/* The space base at the spawn (row 28): a deck of metal plates with five
+   modules round it, the race portal, two rows of solar panels, and west of
+   it all a launch pad with a rocket standing on it. All of blocks that
+   cannot be dug (src/blocks.js, hard 99). The Moon asks townVoxel(x, y, z)
+   first.
 
-   A building is described by the middle of its front wall (fx, fz), the
-   way its door faces (toward the square), its walls, its awning colour and
-   how big it is. Local u runs along the front, v runs from the front wall
-   (0) back into the building. */
+   A module is described by the middle of its front wall (at), the way its
+   door faces (toward the middle), and its colour: a lit band over the door
+   and round the top of its white walls, so each reads from across the
+   base. A glass dome sits on top. Local u runs along the front, v runs
+   from the front wall (0) back into the module. */
 import { ID } from './blocks.js'
 
-export const TOWN_R = 18          // the town is flat, cobbled and treeless within this
+export const TOWN_R = 18          // the base's deck reaches about this far
 export const SQUARE_R = 16
 
 export const BUILDINGS = [
-  { key: 'market', name: 'Market', at: [0, 9], face: [0, -1], wall: ID.floor, awning: ID.light_green, ready: true },
-  { key: 'workshop', name: 'Workshop', at: [9, 0], face: [-1, 0], wall: ID.hull, awning: ID.light_yellow, ready: true },
-  { key: 'bombs', name: 'Bomb shop', at: [-9, 0], face: [1, 0], wall: ID.hull, awning: ID.light_red, ready: true },
-  { key: 'museum', name: 'Museum', at: [0, -9], face: [0, 1], wall: ID.deck, awning: ID.light_blue, ready: false },
-  { key: 'robots', name: 'Robot shop', at: [-9, 12], face: [1, 0], wall: ID.floor, awning: ID.light_purple, ready: false },
+  { key: 'market', name: 'Trade Hub', at: [0, 9], face: [0, -1], band: ID.light_green, ready: true },
+  { key: 'workshop', name: 'Workshop', at: [9, 0], face: [-1, 0], band: ID.light_yellow, ready: true },
+  { key: 'bombs', name: 'Bomb Shop', at: [-9, 0], face: [1, 0], band: ID.light_red, ready: true },
+  { key: 'museum', name: 'Museum', at: [0, -9], face: [0, 1], band: ID.light_blue, ready: false },
+  { key: 'robots', name: 'Robot Bay', at: [-9, 12], face: [1, 0], band: ID.light_purple, ready: false },
 ]
-/* The race portal: a frame of bricks round a purple gateway, not a building. */
+/* The race portal: a metal frame round a purple gateway, not a building. */
 export const PORTAL = { key: 'portal', name: 'Race portal', at: [9, -12], face: [-1, 0], ready: false }
+/* The launch pad, west on the plain: a round pad with the rocket on it.
+   Other planets, by rocket, are stage 4; its door is round its east side. */
+export const PAD = { key: 'pad', name: 'Launch Pad', at: [-26, 0], r: 5, door: [-19.5, 1, 0.5], ready: false }
+/* Solar panels: rows of them in the two empty corners of the base. */
+const SOLAR = [{ x: [8, 15], z: [7, 15] }, { x: [-15, -8], z: [-15, -7] }]
 
 const W = 3, D = 6, H = 4        // half-width, depth, wall height
 
@@ -31,17 +39,53 @@ function local(b, x, z) {
 
 function buildingVoxel(b, x, y, z) {
   const { u, v } = local(b, x, z)
-  if (v === -1 && Math.abs(u) <= 1 && y === 3) return b.awning               // over the door
+  if (v === -1 && Math.abs(u) <= 1 && y === 3) return b.band                  // the lit sign over the door
   if (Math.abs(u) > W || v < 0 || v > D) return -1
-  if (y === 0) return ID.deck
-  if (y === H + 1) return ID.solar
-  if (y === H + 2) return Math.abs(u) <= 1 ? ID.solar : 0                       // a ridge along the top
-  if (y > H + 2) return 0
+  if (y === 0) return ID.floor
+  if (y > H) {                                                                // the glass dome
+    const du = u / (W + 0.5), dv = (v - D / 2) / (D / 2 + 0.5), dy = (y - H) / 3.2
+    const r = du * du + dv * dv + dy * dy
+    if (r > 1) return 0
+    const iu = u / (W - 0.5), iv = (v - D / 2) / (D / 2 - 0.5), iy = (y - H) / 2.2
+    return iu * iu + iv * iv + iy * iy > 1 ? ID.glass : 0
+  }
   const front = v === 0, back = v === D, side = Math.abs(u) === W
+  if (y === H) return front || back || side ? b.band : ID.hull                // a lit band round the top, a ceiling inside
   if (!(front || back || side)) return 0                                      // inside
   if (front && u === 0 && y <= 2) return 0                                    // the door
   if (y === 2 && ((front && Math.abs(u) === 2) || (side && (v === 2 || v === 4)))) return ID.glass
-  return b.wall
+  return ID.hull
+}
+
+/* The rocket on its pad: a round white body five blocks across, red bands,
+   a nose that narrows to a point, four red fins at the foot, a window
+   looking east at the base. Built round the block at the pad's middle. */
+function rocketVoxel(x, y, z) {
+  const dx = x - PAD.at[0], dz = z - PAD.at[1], d = Math.hypot(dx, dz)
+  if (d > PAD.r + 0.5 || y < 0 || y > 18) return -1
+  if (y === 0) return d > PAD.r - 0.5 ? ID.light_yellow : ID.deck           // a yellow ring round the pad
+  const body = y <= 11 ? 2.3 : y <= 13 ? 1.5 : y <= 15 ? 1 : y <= 17 ? 0.1 : -1
+  if (d <= body) {
+    if (y >= 12) return ID.light_red
+    if ((y === 8 || y === 9) && dx === 2 && dz === 0) return ID.glass
+    if (y === 1) return ID.floor                                              // the engine
+    return y === 5 || y === 11 ? ID.light_red : ID.hull
+  }
+  const onAxis = dx === 0 || dz === 0
+  if (onAxis && y <= 4 && d <= (y <= 2 ? 4 : 3)) return ID.light_red         // the fins
+  return 0
+}
+
+function solarVoxel(x, y, z) {
+  for (const s of SOLAR) {
+    if (x < s.x[0] || x > s.x[1] || z < s.z[0] || z > s.z[1]) continue
+    const row = (z - s.z[0]) % 3
+    if (row === 2) return y === 0 ? ID.deck : -1                              // a walkway between rows
+    if (y === 1) return (x - s.x[0]) % 4 === 0 ? ID.floor : 0                  // the legs
+    if (y === 2) return ID.solar
+    return y === 0 ? ID.deck : -1
+  }
+  return -1
 }
 
 function portalVoxel(x, y, z) {
@@ -51,21 +95,25 @@ function portalVoxel(x, y, z) {
   return ID.portal
 }
 
-/* The town's block at (x, y, z), or -1 where the town has nothing to say. */
+/* The base's block at (x, y, z), or -1 where the base has nothing to say. */
 export function townVoxel(x, y, z) {
-  if (Math.abs(x) > TOWN_R + 2 || Math.abs(z) > TOWN_R + 2 || y < 0 || y > 10) return -1
+  if (y < 0 || y > 17) return -1
+  if (x < -TOWN_R - 2) return rocketVoxel(x, y, z)
+  if (Math.abs(x) > TOWN_R + 2 || Math.abs(z) > TOWN_R + 2 || y > 10) return -1
   for (const b of BUILDINGS) { const id = buildingVoxel(b, x, y, z); if (id !== -1) return id }
   const p = portalVoxel(x, y, z)
   if (p !== -1) return p
+  const sol = solarVoxel(x, y, z)
+  if (sol !== -1) return sol
   if (y === 0 && Math.abs(x) <= SQUARE_R && Math.abs(z) <= SQUARE_R) return ID.deck
   return -1
 }
 
 /* Where to stand to use each place: one block out from its door. */
 export function doors() {
-  return [...BUILDINGS, PORTAL].map(b => ({
+  return [...BUILDINGS, PORTAL, PAD].map(b => ({
     key: b.key, name: b.name, ready: b.ready,
-    pos: [b.at[0] + b.face[0] * 1.5 + 0.5, 1, b.at[1] + b.face[1] * 1.5 + 0.5],
+    pos: b.door || [b.at[0] + b.face[0] * 1.5 + 0.5, 1, b.at[1] + b.face[1] * 1.5 + 0.5],
   }))
 }
 

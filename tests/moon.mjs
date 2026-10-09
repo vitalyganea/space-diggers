@@ -1,7 +1,7 @@
 /* Row 27 check: the Moon, the open game's world, headless.   node tests/moon.mjs */
 import { makeWorld, makeMoon, moonHeight, MOON, CORE_Y } from '../src/worldgen.js'
 import { ID, byId } from '../src/blocks.js'
-import { BUILDINGS } from '../src/town.js'
+import { BUILDINGS, townVoxel } from '../src/town.js'
 let fails = 0
 const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fails++ }
 const ORES = [ID.copper_ore, ID.titanium_ore, ID.gold_ore, ID.stargem_ore, ID.helium_ore]
@@ -16,7 +16,7 @@ for (const seed of [1, 7, 42]) {
   let plainFlat = true, low = 0, high = 0, boulders = 0
   for (let x = -120; x <= 120; x++) for (let z = -120; z <= 120; z++) {
     const h = moonHeight(seed, x, z), d = Math.hypot(x, z)
-    if (d <= MOON.plain && (h !== 0 || (w(x, 1, z) !== 0 && Math.max(Math.abs(x), Math.abs(z)) > 22))) plainFlat = false
+    if (d <= MOON.plain && (h !== 0 || (w(x, 1, z) !== 0 && townVoxel(x, 1, z) === -1))) plainFlat = false
     low = Math.min(low, h); high = Math.max(high, h)
     if (d > MOON.plain && w(x, h + 1, z) === ID.moonrock) boulders++
   }

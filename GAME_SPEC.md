@@ -145,7 +145,7 @@ Full small game, built in stages. Each stage ends playable:
   nebula, a big ringed planet hanging over the horizon. No grass, no
   trees: moon dust (regolith), craters, boulders.
 - **The town is a space base:** glass domes and metal walls, a landing
-  pad with a rocket. Buildings: Trade Hub (sell), Workshop, Explosives,
+  pad with a rocket. Buildings: Trade Hub (sell), Workshop, Bomb Shop,
   Robot Bay (capsules), Museum, Launch Pad (other planets, stage 4; the
   race later).
 - **The ground, top to bottom on the Moon:** regolith, moon rock, dark

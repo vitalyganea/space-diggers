@@ -1,35 +1,36 @@
-/* The town on screen: a name board over every door (always turned to
-   you), the "[E] Market" prompt when you stand at one, and the card a
+/* The base on screen: a lit name panel over every door (always turned to
+   you), the "[E] Trade Hub" prompt when you stand at one, and the card a
    building opens. Shops fill their cards in row 20; the rest say what is
    coming. */
 import { MeshBuilder, StandardMaterial, DynamicTexture, Texture, Color3, Mesh } from '@babylonjs/core'
-import { BUILDINGS, PORTAL } from '../town.js'
+import { BUILDINGS, PORTAL, PAD } from '../town.js'
 
 export function nameBoards(noa) {
   const scene = noa.rendering.getScene()
-  for (const b of [...BUILDINGS, PORTAL]) {
+  for (const b of [...BUILDINGS, PORTAL, PAD]) {
     const tex = new DynamicTexture('board_' + b.key, { width: 512, height: 128 }, scene, false, Texture.TRILINEAR_SAMPLINGMODE)
     const g = tex.getContext()
-    g.fillStyle = '#5e3d22'; g.fillRect(0, 0, 512, 128)
-    g.fillStyle = '#8a5a33'; g.fillRect(8, 8, 496, 112)
+    g.fillStyle = '#7dd3fc'; g.fillRect(0, 0, 512, 128)                       // a lit edge
+    g.fillStyle = '#0b1324'; g.fillRect(6, 6, 500, 116)
     g.font = 'bold 64px "Trebuchet MS", sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'
-    g.fillStyle = '#2a1a0c'; g.fillText(b.name, 258, 70)
-    g.fillStyle = '#fff3d6'; g.fillText(b.name, 256, 66)
+    g.shadowColor = '#38bdf8'; g.shadowBlur = 18
+    g.fillStyle = '#e0f2fe'; g.fillText(b.name, 256, 68)
     tex.update()
     const m = new StandardMaterial('boardMat_' + b.key, scene)
     m.diffuseTexture = tex
-    m.emissiveColor = new Color3(0.35, 0.35, 0.35)
+    m.emissiveColor = new Color3(0.85, 0.85, 0.85)                           // it glows: readable in the base's shadows
     m.backFaceCulling = false
     const plane = MeshBuilder.CreatePlane('board_' + b.key, { width: 3.2, height: 0.8 }, scene)
     plane.material = m
     plane.billboardMode = Mesh.BILLBOARDMODE_Y
     plane.isPickable = false
-    const y = b.key === 'portal' ? 7.6 : 4.5
-    noa.rendering.addMeshToScene(plane, false, [b.at[0] + b.face[0] * 0.7 + 0.5, y, b.at[1] + b.face[1] * 0.7 + 0.5])
+    const at = b.key === 'pad' ? [b.door[0] + 1, 3.4, b.door[2]]
+      : [b.at[0] + b.face[0] * 0.7 + 0.5, b.key === 'portal' ? 7.6 : 4.5, b.at[1] + b.face[1] * 0.7 + 0.5]
+    noa.rendering.addMeshToScene(plane, false, at)
   }
 }
 
-/* "[E] Market" at the bottom of the screen while you stand at a door. */
+/* "[E] Trade Hub" at the bottom of the screen while you stand at a door. */
 export class DoorPrompt {
   constructor() {
     this.el = document.createElement('div')

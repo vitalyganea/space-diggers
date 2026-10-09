@@ -9,7 +9,7 @@
    The meter beside it is the way down through the Moon to the Core, its layers coloured,
    with a marker where you are. Redrawn five times a second. */
 import { byId, ID } from '../blocks.js'
-import { BUILDINGS, PORTAL } from '../town.js'
+import { BUILDINGS, PORTAL, PAD } from '../town.js'
 import { MOON, CORE_Y } from '../worldgen.js'
 
 const RANGE = 24
@@ -21,7 +21,7 @@ const COLORS = {
   [ID.stargem_ore]: '#f472b6', [ID.helium_ore]: '#4ade80', [ID.core]: '#fbbf24', [ID.ice]: '#9fd3f0', [ID.frost]: '#e3f0f9',
   [ID.rubble]: '#7a7a80', [ID.deck]: '#454c58', [ID.floor]: '#6b7280', [ID.hull]: '#dde3ea',
 }
-const SHOP_COLORS = { market: '#2fbf71', workshop: '#f5c518', bombs: '#e63946', museum: '#3b82f6', robots: '#8b5cf6', portal: '#a78bfa' }
+const SHOP_COLORS = { market: '#2fbf71', workshop: '#f5c518', bombs: '#e63946', museum: '#3b82f6', robots: '#8b5cf6', portal: '#a78bfa', pad: '#e5e7eb' }
 const BAND = [['Dust', 0, MOON.dust, '#8b8780'], ['Moon rock', MOON.dust, MOON.rock, '#76777e'], ['Dark rock', MOON.rock, MOON.dark, '#454c62'],
   ['Ice caves', MOON.dark, MOON.ice, '#7fbde4'], ['Crystal', MOON.ice, MOON.crystal, '#7c5ce6'], ['Core', MOON.crystal, CORE_Y - 2, '#fbbf24']]
 
@@ -64,13 +64,13 @@ export class Minimap {
     // the town: a square per building, or an arrow home at the edge
     const c = SIZE / 2
     let townSeen = false
-    for (const b of [...BUILDINGS, PORTAL]) {
+    for (const b of [...BUILDINGS, PORTAL, PAD]) {
       const x = (b.at[0] - px + RANGE) * PX, z = (b.at[1] - pz + RANGE) * PX
       if (x < 0 || z < 0 || x > SIZE || z > SIZE) continue
       townSeen = true
       g.fillStyle = SHOP_COLORS[b.key]
       g.fillRect(x - 6, z - 6, 12, 12)
-      g.fillStyle = '#fff'; g.font = 'bold 10px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'
+      g.fillStyle = b.key === 'pad' ? '#111' : '#fff'; g.font = 'bold 10px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'
       g.fillText(b.name[0], x, z + 1)
     }
     if (!townSeen) {
