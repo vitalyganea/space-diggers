@@ -1,7 +1,7 @@
 /* The robot on screen: the first-start choice, and its speech bubbles. */
 import { ROBOTS } from '../robots.js'
 
-const face = kind => `<span class="robo-face" style="background:${ROBOTS[kind].body};border-color:${ROBOTS[kind].trim}"><i></i><i></i></span>`
+const face = kind => `<span class="robo-face ${kind}" style="background:${ROBOTS[kind].body};border-color:${ROBOTS[kind].trim}"><i></i><i></i></span>`
 
 /* "Choose your robot friend": three cards, Bzz picked to start with, a
    name box with its name in it, and one button, so a new player is digging

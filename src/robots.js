@@ -4,13 +4,14 @@
    own, in src/companion.js).
 
      Bzz    a drone on four rotors: its trips to the Trade Hub take half as long
-     Bolt   a little tracked carrier with a crate on its back: 10 more slots
+     Bolt   a boxy little rover on tracks with binocular eyes, rolling on
+            the ground behind you (row 34): 10 more slots
      Sonar  a round scout with a turning dish: feels gold and star gems nearby */
 import { MeshBuilder, StandardMaterial, Color3, Mesh } from '@babylonjs/core'
 
 export const ROBOTS = {
   bzz: { name: 'Bzz', talent: 'A fast drone: its trips to the Trade Hub take half as long', body: '#3fb8f0', trim: '#1d4e89', tripSpeed: 2, bagBonus: 0, sonar: false },
-  bolt: { name: 'Bolt', talent: 'A strong carrier: 10 more slots in your backpack', body: '#f59e0b', trim: '#7c3d0a', tripSpeed: 1, bagBonus: 10, sonar: false },
+  bolt: { name: 'Bolt', talent: 'A rover on tracks that rolls along with you: 10 more slots in your backpack', body: '#e0a33a', trim: '#7c3d0a', tripSpeed: 1, bagBonus: 10, sonar: false, ground: true },
   sonar: { name: 'Sonar', talent: 'A scout: feels gold and star gems close by and tells you where', body: '#a78bfa', trim: '#4c1d95', tripSpeed: 1, bagBonus: 0, sonar: true },
 }
 
@@ -48,10 +49,24 @@ export function makeRobot(scene, kind, register = () => {}) {
       spin.push([hub, 40])
     }
   } else if (kind === 'bolt') {
-    box('body', 0.4, 0.32, 0.36, R.body, 0, 0, 0)
-    box('trackL', 0.1, 0.12, 0.44, '#262626', -0.22, -0.18, 0)
-    box('trackR', 0.1, 0.12, 0.44, '#262626', 0.22, -0.18, 0)
-    box('crate', 0.3, 0.2, 0.18, '#8a5a33', 0, 0.12, -0.24)
+    // stands on the ground: the tracks' feet at y 0
+    for (const x of [-0.25, 0.25]) {
+      box('track', 0.15, 0.2, 0.58, '#2b2b2e', x, 0.1, 0)
+      for (const z of [-0.2, 0, 0.2]) box('wheel', 0.16, 0.1, 0.1, '#6b7280', x, 0.1, z, root, 0.1)
+      box('tread', 0.16, 0.03, 0.58, '#4b4b50', x, 0.205, 0)
+    }
+    box('body', 0.4, 0.34, 0.38, R.body, 0, 0.38, 0)
+    box('panel', 0.3, 0.2, 0.02, '#b7791f', 0, 0.36, 0.2)
+    box('stripe', 0.41, 0.04, 0.39, R.trim, 0, 0.5, 0)
+    for (const x of [-0.24, 0.24]) box('arm', 0.06, 0.06, 0.2, '#9ca3af', x, 0.34, 0.14)
+    box('neck', 0.05, 0.16, 0.05, '#6b7280', 0, 0.62, -0.02)
+    // binocular eyes, looking forward (+z), with glowing lenses
+    for (const x of [-0.09, 0.09]) {
+      const eye = MeshBuilder.CreateCylinder('eye', { diameter: 0.15, height: 0.15, tessellation: 10 }, scene)
+      eye.material = mat(scene, '#9ca3af'); eye.parent = root; eye.rotation.x = Math.PI / 2; eye.position.set(x, 0.76, 0.02); eye.isPickable = false; register(eye)
+      const lens = MeshBuilder.CreateCylinder('lens', { diameter: 0.1, height: 0.02, tessellation: 10 }, scene)
+      lens.material = mat(scene, '#7df9ff', 1.2); lens.parent = root; lens.rotation.x = Math.PI / 2; lens.position.set(x, 0.76, 0.1); lens.isPickable = false; register(lens)
+    }
   } else {
     box('body', 0.36, 0.36, 0.36, R.body, 0, 0, 0)
     const mast = new Mesh('mast', scene); mast.parent = root; mast.position.set(0, 0.24, 0)
@@ -59,11 +74,13 @@ export function makeRobot(scene, kind, register = () => {}) {
     box('dish', 0.26, 0.04, 0.12, '#e5e7eb', 0, 0.1, 0, mast, 0.3)
     spin.push([mast, 3])
   }
-  // the face: a dark screen with two glowing eyes, at the front (+z)
-  const face = kind === 'bolt' ? 0.19 : kind === 'bzz' ? 0.22 : 0.19
-  box('screen', 0.3, 0.16, 0.02, '#0b1020', 0, kind === 'bzz' ? 0 : 0.02, face, root, 0)
-  box('eyeL', 0.06, 0.07, 0.02, '#7df9ff', -0.07, kind === 'bzz' ? 0 : 0.02, face + 0.012, root, 1.2)
-  box('eyeR', 0.06, 0.07, 0.02, '#7df9ff', 0.07, kind === 'bzz' ? 0 : 0.02, face + 0.012, root, 1.2)
+  // the flyers' face: a dark screen with two glowing eyes, at the front (+z)
+  if (kind !== 'bolt') {
+    const face = kind === 'bzz' ? 0.22 : 0.19
+    box('screen', 0.3, 0.16, 0.02, '#0b1020', 0, kind === 'bzz' ? 0 : 0.02, face, root, 0)
+    box('eyeL', 0.06, 0.07, 0.02, '#7df9ff', -0.07, kind === 'bzz' ? 0 : 0.02, face + 0.012, root, 1.2)
+    box('eyeR', 0.06, 0.07, 0.02, '#7df9ff', 0.07, kind === 'bzz' ? 0 : 0.02, face + 0.012, root, 1.2)
+  }
 
   let t = 0
   return {
@@ -71,8 +88,13 @@ export function makeRobot(scene, kind, register = () => {}) {
     update(dt, moving) {
       t += dt / 1000
       for (const [m, s] of spin) m.rotation.y += s * dt / 1000
-      root.position.y = Math.sin(t * 2.4) * 0.05                  // a gentle hover
-      root.rotation.z = moving ? Math.sin(t * 6) * 0.06 : 0
+      if (R.ground) {                                              // a little bump as it rolls, its eyes looking about
+        root.position.y = moving ? Math.abs(Math.sin(t * 14)) * 0.012 : 0
+        root.rotation.z = 0
+      } else {
+        root.position.y = Math.sin(t * 2.4) * 0.05                // a gentle hover
+        root.rotation.z = moving ? Math.sin(t * 6) * 0.06 : 0
+      }
     },
   }
 }

@@ -110,6 +110,8 @@
 .robo-face { display: inline-flex; align-items: center; justify-content: center; gap: 6px; width: 46px; height: 38px; border-radius: 10px;
   border: 3px solid; box-shadow: inset 0 0 0 6px rgba(11,16,32,.9); flex: none; }
 .robo-face i { width: 7px; height: 9px; border-radius: 2px; background: #7df9ff; box-shadow: 0 0 6px #7df9ff; }
+.robo-face.bolt { gap: 3px; }
+.robo-face.bolt i { width: 14px; height: 14px; border-radius: 50%; background: radial-gradient(#7df9ff 40%, #9ca3af 45%); box-shadow: 0 0 6px #7df9ff; }   /* binocular eyes */
 .choose-robot .card { max-width: 760px; }
 .choose-robot .logo { font-size: 44px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: #e0f2fe; margin-bottom: 6px;
   text-shadow: 0 0 18px #38bdf8, 0 3px 0 #1e3a8a; }

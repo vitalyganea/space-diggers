@@ -65,11 +65,11 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   ok(await p.eval(`${O}.card.open`), 'trying to dig brings it back')
   await click('[data-act="close"]')
 
-  // at the surface the sun charges you, and there is no card
+  // at the surface it trickles back slowly (row 33), and there is no card
   await p.eval(`(() => { const s = ${O}.state(); ${O}.noa.entities.setPosition(${O}.noa.playerEntity, [s.x + 3, 1, s.z]); ${O}.battery.charge = 0 })()`)
   await sleep(2500)
   const sun = await p.eval(`${O}.battery.charge`)
-  ok(sun > 2 && !(await p.eval(`${O}.card.open`)), `in the sun it charges (${sun.toFixed(1)} after a moment) with no card`)
+  ok(sun > 0.4 && sun < 3 && !(await p.eval(`${O}.card.open`)), `on the surface it trickles back (${sun.toFixed(1)} after a moment), with no card`)
   ok(p.errors.length === 0, 'console clean ' + JSON.stringify(p.errors.slice(0, 3)))
   await p.close()
   console.log(fails ? `${fails} failed` : 'all ok'); process.exit(fails ? 1 : 0)

@@ -26,8 +26,8 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   await p.shot(OUT + '/rb2-buddy.png')
   // Sonar feels gold: put some 3 blocks ahead, underground
   await p.eval(`(() => { ${O}.noa.entities.setPosition(${O}.noa.playerEntity, [30.5, 1, 0.5]); ${O}.noa.camera.heading = 0; ${O}.world.set(30, 0, 4, 10) })()`); await sleep(3500)
-  const said = await p.eval(`${O}.talk().said.join(' | ')`)
-  ok(/I feel gold ahead, \d blocks away/.test(said), `Sonar: "${said.split(' | ').find(x => /feel/.test(x))}"`)
+  const said = await p.eval(`${O}.talk().said.concat(${O}.talk().queue).join(' | ')`)   // said, or next in line
+  ok(/I feel gold ahead, \d blocks away/.test(said), `Sonar: "${said.split(" | ").find(x => /feel/.test(x))}" (said: ${said}; waiting: ${await p.eval(`${O}.talk().queue.join(" | ")`)})`)
   // its trip to the Market: it flies off and comes back
   await p.eval(`(() => { const x = 30, z = 0; for (let y = 0; y > -20; y--) ${O}.world.set(x, y, z, 0)
     ${O}.noa.entities.setPosition(${O}.noa.playerEntity, [x + 0.5, -19, z + 0.5]); ${O}.bag.add('gold'); ${O}.battery.charge = 0.1; ${O}.noa.camera.pitch = 1.55 })()`); await sleep(1500)

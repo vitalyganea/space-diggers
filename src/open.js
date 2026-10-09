@@ -322,7 +322,7 @@ export function start(platform) {
     hud.update({ coins: digger.coins, depth: depth(), bag, battery, blocksLeft: battery.blocksLeft(lastHard), tickets })
     prompt.show(inside ? null : doorNear(noa.entities.getPosition(noa.playerEntity)))
     // the robot: follow, and Sonar's scouting every 2.5 s
-    if (buddy) buddy.update(dt)
+    if (buddy) { buddy.speaking = !!(talk && talk.busy); buddy.update(dt) }
     sonarT += dt / 1000
     if (buddy && sonarT > 2.5) {
       sonarT = 0
