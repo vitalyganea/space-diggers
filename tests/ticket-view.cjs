@@ -10,7 +10,7 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   await p.tap(640, 360); await sleep(300)
   const click = sel => p.eval(`(() => { const b = document.querySelector('${sel}'); if (!b || b.disabled) return false; b.click(); return true })()`)
   // buy two at the Bomb shop
-  await p.eval(`${O}.digger.coins = 40; ${O}.noa.entities.setPosition(${O}.noa.playerEntity, [-8.4, 1, 0.5])`); await sleep(500)
+  await p.eval(`${O}.digger.coins = 40; ${O}.noa.entities.setPosition(${O}.noa.playerEntity, [-10.4, 1, 0.5])`); await sleep(500)
   await p.hold('KeyE', 80); await sleep(400)
   ok(await click('[data-act="ticket"]') && await click('[data-act="ticket"]'), 'the Bomb shop sells tickets home')
   await sleep(200)

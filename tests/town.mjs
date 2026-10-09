@@ -33,5 +33,5 @@ ok(w.get(px, 15, pz) === ID.light_red && w.get(px + 2, 9, pz) === ID.glass && w.
 let solar = 0; for (let x = -TOWN_R; x <= TOWN_R; x++) for (let z = -TOWN_R; z <= TOWN_R; z++) if (w.get(x, 2, z) === ID.solar) solar++
 ok(solar >= 40, `solar panels in the base (${solar})`)
 ok(doors().length === 7 && doors().every(d => w.get(Math.floor(d.pos[0]), 1, Math.floor(d.pos[2])) === 0), 'seven doors (five modules, the portal, the pad), each with clear ground in front')
-ok(doorNear([0.5, 1, 7.6]).key === 'market' && doorNear([0.5, 1, 0.5]) === null, 'standing by the Trade Hub door finds it; the middle of the square finds none')
+ok(doorNear([0.5, 1, 11.4]).key === 'market' && doorNear([0.5, 1, 0.5]) === null, 'standing at the Trade Hub\'s counter finds it; the middle of the square finds none')
 console.log(fails ? fails + ' failed' : 'all ok'); process.exit(fails ? 1 : 0)

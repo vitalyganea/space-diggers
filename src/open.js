@@ -19,6 +19,8 @@ import { Battery } from './battery.js'
 import { Rescue, rechargeCost, FREE_CHARGE, SURFACE_DEPTH } from './stranded.js'
 import { chargeRate, onPad } from './charging.js'
 import { tip } from './tips.js'
+import { KEEPERS, lineFor, keeperSpots } from './shopkeepers.js'
+import { makeAnimal } from './animals.js'
 import { Music } from './music.js'
 import { Hand, toolSpeed, hasLaser, LASER_ROCK } from './tools.js'
 import { Meteors } from './meteors.js'
@@ -27,7 +29,7 @@ import { direction } from './companion.js'
 import { meteorCraters } from './worldgen.js'
 import { robotPanel } from './ui/robotpanel.js'
 import { StrandedCard } from './ui/stranded.js'
-import { doorNear, SPAWN } from './town.js'
+import { doorNear, SPAWN, BUILDINGS } from './town.js'
 import { nameBoards, DoorPrompt, buildingCard, shopCard } from './ui/townui.js'
 import { market, workshop, bombShop } from './ui/shops.js'
 import { Minimap } from './ui/minimap.js'
@@ -170,12 +172,12 @@ export function start(platform) {
       const n = bag.items[k] || 0
       if (!n || !bag.take(k, n)) return
       const c = Math.round(ITEMS[k].value * n * perk.coinMult)
-      digger.coins += c; sound.play('coin', c); persist()
+      digger.coins += c; lastSale = c; sound.play('coin', c); persist()
     },
     sellAll(mult) {
       const c = bag.sellAll(perk.coinMult * mult)
       if (!c) return
-      digger.coins += c; sound.play('coin', c); hud.toast(`Sold for ${c} coins`); persist()
+      digger.coins += c; lastSale = c; sound.play('coin', c); hud.toast(`Sold for ${c} coins`); persist()
     },
     async sellAllAd() {
       if (!bag.count) return
@@ -203,13 +205,36 @@ export function start(platform) {
     },
   }
   const SHOPS = { market: market(shop), workshop: workshop(shop), bombs: bombShop(shop) }
+  // the shopkeepers (row 46): one behind each module's counter; you buy from them
+  let lastSale = 0
+  const keepers = BUILDINGS.map(b => {
+    const K = KEEPERS[b.key], spot = keeperSpots(b)
+    const a = makeAnimal(noa.rendering.getScene(), b.key, null, m => noa.rendering.addMeshToScene(m), K.look)
+    noa.rendering.addMeshToScene(a.root, false, spot.keeper)
+    a.root.rotation.y = Math.atan2(b.face[0], b.face[1])                    // facing the door
+    return { key: b.key, b, K, a, spot, waved: false }
+  })
+  const keeperState = () => {
+    const costs = Object.keys(gear).map(k => nextCost(gear, k)).filter(c => c !== null)
+    const best = Object.keys(bag.items).sort((x, y) => ITEMS[y].value - ITEMS[x].value)[0] || null
+    return { bag: bag.items, bagCount: bag.count, coins: digger.coins, cheapest: costs.length ? Math.min(...costs) : null,
+      laser: gear.laser || 0, bombs: digger.bombs, tickets, justSold: lastSale, best }
+  }
+  const keeperHead = key => {
+    const K = KEEPERS[key]
+    return `<div class="keeper"><span class="keeper-face" style="background:${K.look.body};border-color:${K.look.ear}"><i></i><i></i><b style="background:${K.look.nose}"></b></span>
+      <div><b>${K.name}</b><span>${lineFor(key, keeperState(), Math.random())}</span></div></div>`
+  }
   const enter = door => {
     if (document.pointerLockElement) document.exitPointerLock()
     // Close is a click, so the mouse can be taken straight back: no second "Click to play"
     const close = () => { inside = null; lockMouse(noa.container.element) }
     const s = SHOPS[door.key]
+    lastSale = 0
     const soon = { pad: '<p>Coming soon: the rocket flies you to new planets.</p><p>An ice planet, a red one, one of lava and one of crystal, each with its own treasure.</p>' }
-    inside = s ? shopCard(door.name, s.render, s.act, close) : buildingCard(door.name, soon[door.key] || '<p>Coming soon!</p>', close)
+    if (s) inside = shopCard(door.name, () => keeperHead(door.key) + s.render(), s.act, close)
+    else if (KEEPERS[door.key]) inside = buildingCard(door.name, keeperHead(door.key), close)
+    else inside = buildingCard(door.name, soon[door.key] || '<p>Coming soon!</p>', close)
     sound.play('place')
   }
   // R: the robot's panel (row 35)
@@ -447,6 +472,18 @@ export function start(platform) {
     prompt.show(inside ? null : doorNear(noa.entities.getPosition(noa.playerEntity)))
     // the robot: follow, and Sonar's scouting every 2.5 s
     meteors.update(dt)
+    {
+      const q = noa.entities.getPosition(noa.playerEntity)
+      for (const k of keepers) {
+        const dx = q[0] - k.spot.keeper[0], dz = q[2] - k.spot.keeper[2], d = Math.hypot(dx, dz)
+        const near = d < 7 && Math.abs(q[1] - 1) < 2
+        if (near) k.a.root.rotation.y = Math.atan2(dx, dz)
+        if (near && !k.waved) { k.waved = true; k.waveT = 2 }
+        if (d > 9) k.waved = false
+        k.waveT = Math.max(0, (k.waveT || 0) - dt / 1000)
+        k.a.update(dt, 0, false, k.waveT > 0)
+      }
+    }
     if (!choosing && !titling) creatures.update(dt)
     if (choosing || titling) noa.camera.heading += dt / 1000 * 0.07         // the start screen's slow circle
     music.play(choosing || titling ? 'menu' : depth() > 4 ? 'deep' : 'surface')

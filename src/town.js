@@ -53,6 +53,7 @@ function buildingVoxel(b, x, y, z) {
   }
   const front = v === 0, back = v === D, side = Math.abs(u) === W
   if (y === H) return front || back || side ? b.band : ID.hull                // a lit band round the top, a ceiling inside
+  if (v === 3 && Math.abs(u) <= 2 && y === 1) return b.band                   // the shop counter, in the module's colour (row 46)
   if (!(front || back || side)) return 0                                      // inside
   if (front && u === 0 && y <= 2) return 0                                    // the door
   if (y === 2 && ((front && Math.abs(u) === 2) || (side && (v === 2 || v === 4)))) return ID.glass
@@ -112,11 +113,14 @@ export function townVoxel(x, y, z) {
   return -1
 }
 
-/* Where to stand to use each place: one block out from its door. */
+/* Where to stand to use each place: in a module, in front of its counter,
+   facing the shopkeeper (row 46); the portal and the pad, one block out. */
 export function doors() {
   return [...BUILDINGS, PORTAL, PAD].map(b => ({
-    key: b.key, name: b.name, ready: b.ready,
-    pos: b.door || [b.at[0] + b.face[0] * 1.5 + 0.5, 1, b.at[1] + b.face[1] * 1.5 + 0.5],
+    key: b.key, name: b.name, ready: b.ready, keeper: BUILDINGS.includes(b),
+    pos: b.door || (BUILDINGS.includes(b)
+      ? [b.at[0] - b.face[0] * 2 + 0.5, 1, b.at[1] - b.face[1] * 2 + 0.5]
+      : [b.at[0] + b.face[0] * 1.5 + 0.5, 1, b.at[1] + b.face[1] * 1.5 + 0.5]),
   }))
 }
 

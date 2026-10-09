@@ -4,6 +4,7 @@
    coming. */
 import { MeshBuilder, StandardMaterial, DynamicTexture, Texture, Color3, Mesh, Vector4 } from '@babylonjs/core'
 import { BUILDINGS, PORTAL, PAD } from '../town.js'
+import { KEEPERS } from '../shopkeepers.js'
 
 export function nameBoards(noa) {
   const scene = noa.rendering.getScene()
@@ -46,7 +47,9 @@ export class DoorPrompt {
   }
   show(door) {
     this.el.style.display = door ? 'block' : 'none'
-    if (door) this.el.querySelector('b').textContent = door.ready ? door.name : `${door.name} (coming soon)`
+    if (door) this.el.querySelector('b').textContent = door.keeper && KEEPERS[door.key]
+      ? `Talk to ${KEEPERS[door.key].name}`                                     // at a counter: the shopkeeper (row 46)
+      : door.ready ? door.name : `${door.name} (coming soon)`
   }
 }
 

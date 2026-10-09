@@ -12,8 +12,8 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   const promptText = () => p.eval(`getComputedStyle(document.querySelector('.door-prompt')).display === 'none' ? '' : document.querySelector('.door-prompt b').textContent`)
   ok((await promptText()) === '', 'in the middle of the square: no prompt')
   ok(await p.eval(`${O}.world.get(0, 0, 0) === 28 && ${O}.noa.getBlock(0, 7, 12) === 19`), 'the charging pad, and the Trade Hub\'s glass dome, drawn')
-  await p.eval(`${O}.noa.entities.setPosition(${O}.noa.playerEntity, [0.5, 1, 7.4]); ${O}.noa.camera.heading = 0`); await sleep(500)
-  ok((await promptText()) === 'Trade Hub', 'at the Trade Hub door: "[E] Trade Hub"')
+  await p.eval(`${O}.noa.entities.setPosition(${O}.noa.playerEntity, [0.5, 1, 11.4]); ${O}.noa.camera.heading = 0`); await sleep(500)
+  ok((await promptText()) === 'Talk to Rita', 'at the Trade Hub\'s counter: "[E] Talk to Rita" (row 46)')
   await p.hold('KeyE', 80); await sleep(400)
   ok(await p.eval(`!!document.querySelector('.building') && document.querySelector('.building h1').textContent === 'Trade Hub'`), 'E opens it')
   ok(!(await p.eval('!!document.pointerLockElement')), 'with the mouse free')
@@ -22,8 +22,8 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   await p.tap(at[0], at[1]); await sleep(500)
   ok(await p.eval(`!document.querySelector('.building') && !!document.pointerLockElement && getComputedStyle(document.querySelector('.click-to-play')).display === 'none'`), 'Close: straight back in the game, no "Click to play"')
   ok(!(await p.eval(`!!document.querySelector('.building')`)), 'Close shuts it')
-  await p.eval(`${O}.noa.entities.setPosition(${O}.noa.playerEntity, [0.5, 1, -6.6])`); await sleep(500)
-  ok(/Museum \(coming soon\)/.test(await promptText()), 'the Museum says it is coming soon')
+  await p.eval(`${O}.noa.entities.setPosition(${O}.noa.playerEntity, [0.5, 1, -10.4])`); await sleep(500)
+  ok((await promptText()) === 'Talk to Hoot', 'at the Museum\'s counter, its keeper Hoot (the museum itself opens with stage 2)')
   // E no longer places a block; the right button still does
   await p.tap(640, 360); await sleep(300)
   // out of town on open grass: stand on the ground there, look a little down

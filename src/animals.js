@@ -37,14 +37,14 @@ function mat(scene, hex, glow = 0) {
 
 /* Build one digger. Returns { root, parts, update(dt, moving, digging) }.
    `register(mesh)` is called for every box (noa needs to be handed each). */
-export function makeAnimal(scene, kind, label, register = () => {}) {
-  const A = ANIMALS[kind]
+export function makeAnimal(scene, kind, label, register = () => {}, look = null) {
+  const A = look || ANIMALS[kind]                    // a look of its own: the base's shopkeepers (src/shopkeepers.js)
   const root = new Mesh(kind, scene)        // placed by noa
   const inner = new Mesh(kind + 'Inner', scene)
   inner.parent = root                       // bobs as it walks
   const box = (name, w, h, d, hex, x, y, z, parent = inner, glow = 0) => {
     const b = MeshBuilder.CreateBox(name, { width: w, height: h, depth: d }, scene)
-    b.material = mat(scene, hex, glow)
+    b.material = mat(scene, hex, Math.max(glow, A.glow || 0))      // shopkeepers glow a little: lit whichever way they face
     b.parent = parent
     b.position.set(x, y, z)
     b.isPickable = false
@@ -62,11 +62,18 @@ export function makeAnimal(scene, kind, label, register = () => {}) {
   box('body', 0.56, 0.56, 0.4, A.body, 0, 0.7, 0)
   box('belly', 0.4, 0.42, 0.04, A.belly, 0, 0.68, 0.21)
   const head = box('head', 0.5, 0.44, 0.46, A.body, 0, 1.2, 0.02)
-  const eye = A.snout ? 0.05 : 0.08                 // a mole's eyes are pinpricks
+  const eye = A.snout ? 0.05 : A.bigEyes ? 0.13 : 0.08   // a mole's eyes are pinpricks, an owl's are big
+  if (A.bigEyes) { box('eyeRingL', 0.19, 0.19, 0.02, '#fff7e0', -0.12, 0.06, 0.235, head); box('eyeRingR', 0.19, 0.19, 0.02, '#fff7e0', 0.12, 0.06, 0.235, head) }
+  if (A.mask) box('mask', 0.46, 0.12, 0.02, A.mask, 0, 0.06, 0.232, head)
   box('eyeL', eye, eye, 0.02, A.eye, -0.12, 0.06, 0.24, head)
   box('eyeR', eye, eye, 0.02, A.eye, 0.12, 0.06, 0.24, head)
-  box('earL', 0.12, 0.12, 0.08, A.ear, -0.2, 0.2, -0.04, head)
-  box('earR', 0.12, 0.12, 0.08, A.ear, 0.2, 0.2, -0.04, head)
+  if (A.longEars) {
+    box('earL', 0.1, 0.42, 0.08, A.ear, -0.13, 0.4, -0.04, head); box('earInL', 0.05, 0.3, 0.02, '#f29bb2', -0.13, 0.4, 0.005, head)
+    box('earR', 0.1, 0.42, 0.08, A.ear, 0.13, 0.4, -0.04, head); box('earInR', 0.05, 0.3, 0.02, '#f29bb2', 0.13, 0.4, 0.005, head)
+  } else {
+    box('earL', 0.12, 0.12, 0.08, A.ear, -0.2, 0.2, -0.04, head)
+    box('earR', 0.12, 0.12, 0.08, A.ear, 0.2, 0.2, -0.04, head)
+  }
   if (A.snout) {
     box('snout', 0.22, 0.16, 0.24, A.nose, 0, -0.08, 0.34, head)
     box('nose', 0.14, 0.1, 0.05, '#e0708f', 0, -0.05, 0.47, head)
@@ -117,13 +124,14 @@ export function makeAnimal(scene, kind, label, register = () => {}) {
   let t = 0
   return {
     root, head, tag,
-    /* moving: speed on the ground, 0..1; digging: true while breaking */
-    update(dt, moving, digging) {
+    /* moving: speed on the ground, 0..1; digging: true while breaking; waving: a hand up, waving */
+    update(dt, moving, digging, waving = false) {
       t += dt / 1000
       const swing = Math.sin(t * 10) * 0.7 * moving
       legL.rotation.x = swing
       legR.rotation.x = -swing
       armL.rotation.x = -swing * 0.6
+      armL.rotation.z = waving ? -2.6 + Math.sin(t * 9) * 0.35 : 0
       armR.rotation.x = digging ? -1.2 + Math.sin(t * 16) * 0.45 : swing * 0.6
       inner.position.y = moving ? Math.abs(Math.sin(t * 10)) * 0.04 : 0
     },

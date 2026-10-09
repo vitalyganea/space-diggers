@@ -18,9 +18,10 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
 
 // the way between the dig site, the Trade Hub and the Workshop, round the buildings
 let SITE = [26.5, 0.5]                       // a fresh spot each trip (the old shaft is dug out)
-const TO_MARKET = [[20, 6], [0.5, 5.5], [0.5, 7.4]]
-const TO_WORKSHOP = [[4, 3], [8.4, 0.5]]
-const TO_SITE = () => [[4, 5], [20, 6], SITE]
+// in at the door, up to the counter (row 46: you buy from the shopkeeper inside)
+const TO_MARKET = [[20, 6], [0.5, 5.5], [0.5, 8], [0.5, 11.4]]
+const TO_WORKSHOP = [[0.5, 8], [0.5, 5], [4, 3], [8, 0.5], [11.4, 0.5]]
+const TO_SITE = () => [[8, 0.5], [4, 5], [20, 6], SITE]
 
 ;(async () => {
   const p = await launch({ w: 1280, h: 720, port: 9420 })

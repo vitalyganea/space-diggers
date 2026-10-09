@@ -12,7 +12,7 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   const chip = () => p.eval(`document.querySelector('.tool-chip').textContent.replace(/\\s+/g, ' ').trim()`)
   ok(/Drill/.test(await chip()) && !/Laser/.test(await chip()), `the HUD shows the drill in hand ("${await chip()}")`)
   // buy one at the Workshop
-  await p.eval(`${O}.digger.coins = 200; ${O}.noa.entities.setPosition(${O}.noa.playerEntity, [8.4, 1, 0.5]); 1`); await sleep(600)
+  await p.eval(`${O}.digger.coins = 200; ${O}.noa.entities.setPosition(${O}.noa.playerEntity, [11.4, 1, 0.5]); 1`); await sleep(600)
   await p.hold('KeyE', 80); await sleep(400)
   ok(/Cuts black meteorite rock/.test(await p.eval(`document.querySelector('.building').textContent`)), 'the Workshop offers a laser, and says what it is for')
   await p.eval(`document.querySelector('[data-act="buy"][data-arg="laser"]').click(); 1`); await sleep(300)
