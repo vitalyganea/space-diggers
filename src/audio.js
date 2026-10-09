@@ -89,5 +89,6 @@ const SOUNDS = {
   lose: s => [392, 330, 262].forEach((f, i) => s.tone('triangle', f, f * 0.98, 0.25, 0.2, i * 0.16)),
   thrown: s => s.tone('sine', 300, 600, 0.15, 0.12),
   low: s => { s.tone('square', 880, 880, 0.1, 0.15); s.tone('square', 660, 660, 0.14, 0.15, 0.14) },
+  whoosh: s => { s.noise(2.4, 400, 0.25, 0, 0.8); s.tone('sine', 900, 120, 2.4, 0.08) },
   flat: s => [440, 330, 220].forEach((f, i) => s.tone('sawtooth', f, f * 0.9, 0.18, 0.12, i * 0.15)),
 }

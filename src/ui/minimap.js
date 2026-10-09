@@ -104,6 +104,21 @@ export class Minimap {
       if (ring) { g.strokeStyle = col; g.lineWidth = 2; g.stroke() } else { g.fillStyle = col; g.fill() }
     }
     dot(extra.robot, '#7df9ff', 3.5)
+    // fresh meteor craters (row 38): a pulsing orange star, or an arrow at the edge towards one
+    this.pulse = (this.pulse || 0) + 1
+    for (const m of extra.meteors || []) {
+      const x = (m[0] + 0.5 - px + RANGE) * PX, z = (RANGE - (m[2] + 0.5 - pz)) * PX
+      if (x >= 0 && z >= 0 && x <= SIZE && z <= SIZE) {
+        const r = 5 + (this.pulse % 4)
+        g.fillStyle = '#fb923c'; g.beginPath()
+        for (let k = 0; k < 10; k++) { const a = k * Math.PI / 5 - Math.PI / 2, rr = k % 2 ? r * 0.45 : r; g.lineTo(x + Math.cos(a) * rr, z + Math.sin(a) * rr) }
+        g.fill()
+      } else {
+        const a = Math.atan2(-(m[2] - pz), m[0] - px), rr = c - 8
+        g.save(); g.translate(c + Math.cos(a) * rr, c + Math.sin(a) * rr); g.rotate(a)
+        g.fillStyle = '#fb923c'; g.beginPath(); g.moveTo(8, 0); g.lineTo(-6, -6); g.lineTo(-6, 6); g.fill(); g.restore()
+      }
+    }
     dot(extra.ping && [extra.ping[0] + 0.5, 0, extra.ping[2] + 0.5], '#f5c518', 6, true)
     // you: noa's heading 0 looks along +z, which is up the map; turning right (heading up) turns the arrow clockwise
     g.save(); g.translate(c + PX / 2, c + PX / 2); g.rotate(heading)

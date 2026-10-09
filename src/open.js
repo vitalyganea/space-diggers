@@ -19,6 +19,8 @@ import { Battery } from './battery.js'
 import { Rescue, rechargeCost, FREE_CHARGE, SURFACE_DEPTH } from './stranded.js'
 import { chargeRate, onPad } from './charging.js'
 import { tip } from './tips.js'
+import { Meteors } from './meteors.js'
+import { direction } from './companion.js'
 import { meteorCraters } from './worldgen.js'
 import { robotPanel } from './ui/robotpanel.js'
 import { StrandedCard } from './ui/stranded.js'
@@ -325,6 +327,20 @@ export function start(platform) {
   noa.inputs.down.on('fire', () => { if (strandedNow() && !card.open) openCard() })
 
   let charging = false, saidCharging = false
+  // meteors from the rings (row 38)
+  const meteors = new Meteors(noa, world, {
+    skyDir: () => look.sky.planet.home.clone().normalize(),
+    onFall: () => sound.play('whoosh'),
+    onImpact: ({ at }) => {
+      const q = noa.entities.getPosition(noa.playerEntity)
+      const d = Math.hypot(at[0] - q[0], at[2] - q[2])
+      sound.play('boom', Math.max(0.25, Math.min(1, 20 / d)))
+      hud.toast('A meteor fell! It is on your map.')
+      const dir = direction({ x: at[0] - q[0], y: 0, z: at[2] - q[2] }, noa.camera.heading)
+      say(`A meteor fell ${dir}, ${Math.round(d)} blocks away! Meteor iron inside. Let's go!`)
+      persist()
+    },
+  })
   noa.on('tick', dt => {
     if (!loaded) { loaded = true; platform.loadingStop() }
     digger.enabled = !battery.flat
@@ -356,6 +372,7 @@ export function start(platform) {
     hud.update({ coins: digger.coins, depth: depth(), bag, battery, blocksLeft: battery.blocksLeft(lastHard), tickets })
     prompt.show(inside ? null : doorNear(noa.entities.getPosition(noa.playerEntity)))
     // the robot: follow, and Sonar's scouting every 2.5 s
+    meteors.update(dt)
     if (buddy) { buddy.speaking = !!(talk && talk.busy); buddy.update(dt) }
     sonarT += dt / 1000
     if (buddy && sonarT > 2.5) {
@@ -376,8 +393,8 @@ export function start(platform) {
     }
     if (!deepTip && depth() > 6) { deepTip = true; say('Deep enough? Space against a wall takes you back up.') }
     minimap.update(dt / 1000, noa.entities.getPosition(noa.playerEntity), noa.camera.heading,
-      { robot: buddy && !buddy.away ? buddy.pos : null, ping })
+      { robot: buddy && !buddy.away ? buddy.pos : null, ping, meteors: meteors.marks })
   })
 
-  if (import.meta.env.DEV) window.__open = { noa, world, digger, save, sound, bombs, persist, bag, battery, rescue, card, gear, look, minimap, inside: () => inside, tickets: () => tickets, robot: () => robot, buddy: () => buddy, talk: () => talk, state: () => playerState(noa), depth }
+  if (import.meta.env.DEV) window.__open = { noa, world, meteors, digger, save, sound, bombs, persist, bag, battery, rescue, card, gear, look, minimap, inside: () => inside, tickets: () => tickets, robot: () => robot, buddy: () => buddy, talk: () => talk, state: () => playerState(noa), depth }
 }
