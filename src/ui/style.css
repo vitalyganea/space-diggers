@@ -178,7 +178,8 @@ body.showcase .hud { display: none !important; }
 /* the reveal of a find (row 47) */
 .reveal { inset: 150px auto auto 50%; transform: translate(-50%, -260%); display: flex; align-items: center; gap: 14px; padding: 10px 20px 10px 12px;
   background: rgba(10, 14, 30, 0.85); border: 3px solid var(--c); border-radius: 18px; box-shadow: 0 0 22px var(--c); transition: transform 0.35s cubic-bezier(.2,1.4,.4,1); pointer-events: none; }
-.reveal.on { transform: translate(-50%, 0); }
+.reveal:not(.on) { opacity: 0; visibility: hidden; transition: transform 0.35s, opacity 0.3s, visibility 0s 0.35s; }   /* empty, it showed as a dark oval */
+.reveal.on { transform: translate(-50%, 0); opacity: 1; visibility: visible; }
 .reveal .icon { font-size: 40px; width: 58px; height: 58px; display: flex; align-items: center; justify-content: center; border-radius: 14px; background: radial-gradient(var(--c) -30%, transparent 75%); }
 .reveal small { display: block; color: var(--c); font-weight: 900; text-transform: uppercase; letter-spacing: 1px; font-size: 13px; }
 .reveal small b { color: #fde047; }
