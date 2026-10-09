@@ -1,6 +1,7 @@
-/* playtest-open.cjs: stage 1's loop, played for real (keys and mouse only)
-   for several trips: walk to the dig site, dig down, climb out when the
-   backpack is full or the battery low, walk to the Market and sell, walk
+/* playtest-open.cjs: the open game's loop, played for real (keys and mouse
+   only) for several trips: walk to the dig site, dig down (breaking any ore
+   that shows in the shaft's walls on the way, as a player would), climb out
+   when the backpack is full or the battery low, walk to the Trade Hub and sell, walk
    to the Workshop and buy the cheapest upgrade it can, walk back, again.
    A stranded card, if one comes, is answered with the free rescue.
    Slow: not in tests/run.sh.
@@ -15,7 +16,7 @@ const MINUTES = +process.argv[2] || 8
 let fails = 0
 const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fails++ }
 
-// the way between the dig site, the Market and the Workshop, round the buildings
+// the way between the dig site, the Trade Hub and the Workshop, round the buildings
 const SITE = [26.5, 0.5]
 const TO_MARKET = [[20, 6], [0.5, 5.5], [0.5, 7.4]]
 const TO_WORKSHOP = [[4, 3], [8.4, 0.5]]
@@ -28,8 +29,16 @@ const TO_SITE = [[4, 5], [20, 6], SITE]
   // a real click on "Let's dig!": that is the click that starts the game
   const go = await p.eval(`(() => { const r = document.querySelector('.choose-robot .go').getBoundingClientRect(); return [r.x + r.width / 2, r.y + r.height / 2] })()`)
   await p.tap(go[0], go[1]); await sleep(800)
-  ok(await p.eval('!!document.pointerLockElement'), '"Let\'s dig!" goes straight into the game, mouse locked')
+  ok(await p.eval('!!document.pointerLockElement') && await p.eval(`!document.querySelector('.choose-robot') && !!__open.robot()`), '"Let\'s dig!" at once: the robot is chosen and the game starts, mouse locked')
   const O = '__open'
+  await p.eval('window.__mark = Date.now()')
+  if (process.env.DEBUG) await p.eval(`window.__added = []; new MutationObserver(ms => ms.forEach(m => [...m.addedNodes].forEach(n => n.className && __added.push(n.className + ' @' + Math.round(performance.now() / 1000) + 's')))).observe(document.body, { childList: true })`)
+  const t0 = Date.now()
+  const watch = async where => {           // the page reloading under us shows here
+    const w = await p.eval(`[!!window.__mark, !!document.querySelector('.choose-robot')]`)
+    if (process.env.DEBUG && (!w[0] || w[1])) console.log('    added:', await p.eval(`(window.__added || []).join(' | ')`), JSON.stringify(await p.eval(`${O}.robot()`)))
+    if (!w[0] || w[1]) { console.log(`    !! at ${where}, ${Math.round((Date.now() - t0) / 1000)} s: page ${w[0] ? 'same' : 'RELOADED'}, chooser ${w[1] ? 'SHOWING' : 'gone'}`); await p.eval('window.__mark = 1') }
+  }
   const st = () => p.eval(`(() => { const s = ${O}.state(); return { ...s, depth: ${O}.depth(), bag: ${O}.bag.count, cap: ${O}.bag.capacity,
     batt: ${O}.battery.fraction, coins: ${O}.digger.coins, card: ${O}.card.open, gear: { ...${O}.gear } } })()`)
   const relock = async () => { if (!(await p.eval('!!document.pointerLockElement'))) { await p.tap(640, 360); await sleep(300) } }
@@ -84,17 +93,56 @@ const TO_SITE = [[4, 5], [20, 6], SITE]
     }
     return false
   }
+  /* ore showing in the wall beside you, at your feet or your head: turn to
+     it, dig it out, look back down. True if there was any. */
+  const ORE = [8, 9, 10, 11, 27]
+  async function wallOre() {
+    const s = await st()
+    const c = [Math.floor(s.x), Math.floor(s.y + 1e-6), Math.floor(s.z)]
+    for (let d = 0; d < 4; d++) for (const up of [1, 0]) {
+      const [dx, dz] = STEP[d], at = [c[0] + dx, c[1] + up, c[2] + dz]
+      if (!ORE.includes(await p.eval(`${O}.world.get(${at.join(',')})`))) continue
+      await p.pointer('up', 640, 360)
+      await look(HEADING[d], up ? 0.05 : 0.75); await sleep(200)
+      await p.holdUntil(`${O}.world.get(${at.join(',')}) === 0 || ${O}.bag.full`, 8000)
+      log.wall = (log.wall || 0) + 1
+      await look(0, 1.5707); await sleep(150)
+      await p.pointer('down', 640, 360)
+      return true
+    }
+    return false
+  }
+  /* Space and W against the shaft's wall; if the wall in front has a hole
+     (ore dug out of it), turn to another. Returns the seconds it took. */
   async function climbOut() {
-    await look(Math.atan2(TO_MARKET[0][0] - SITE[0], TO_MARKET[0][1] - SITE[1]), 0)
+    const t = Date.now()
+    let h = 0, best = (await st()).y, since = Date.now()
+    await look(HEADING[h], 0)
     await p.keyDown('Space'); await p.keyDown('KeyW')
-    for (let k = 0; k < 400 && (await st()).y < 0.95; k++) await sleep(150)
+    for (let k = 0; k < 2400; k++) {
+      const y = (await st()).y
+      if (process.env.TRACE && k % 15 === 0) console.log('      climb', k, y, JSON.stringify(await p.eval(`[${O}.noa.inputs.state.jump, ${O}.noa.inputs.state.forward, !!document.pointerLockElement, document.activeElement && document.activeElement.tagName, !!document.querySelector('.overlay:not(.click-to-play)'), ${O}.card.open]`)))
+      if (y >= 0.95) break
+      if (y > best + 0.3) { best = y; since = Date.now() }
+      else if (Date.now() - since > 2500) {
+        // stuck under a ledge (the shaft wandered after wall ore): look up and dig through it, as a player would
+        await p.keyUp('KeyW'); await look(HEADING[h], -1.5); await sleep(150)
+        const q = await st(), above = [Math.floor(q.x), Math.floor(q.y + 1e-6) + 2, Math.floor(q.z)]
+        await p.holdUntil(`${O}.world.get(${above.join(',')}) === 0`, 6000)
+        h = (h + 1) % 4; await look(HEADING[h], 0); await p.keyDown('KeyW')
+        since = Date.now(); log.turns = (log.turns || 0) + 1
+      }
+      await sleep(150)
+    }
     await sleep(600)
     await p.keyUp('KeyW'); await p.keyUp('Space')
+    return Math.round((Date.now() - t) / 1000)
   }
   const click = sel => p.eval(`(() => { const b = document.querySelector('${sel}'); if (!b || b.disabled) return false; b.click(); return true })()`)
   async function useDoor() { await p.hold('KeyE', 80); await sleep(400) }
 
-  const log = { trips: 0, sold: 0, upgrades: [], stranded: 0, maxDepth: 0 }
+  const log = { trips: 0, sold: 0, upgrades: [], stranded: 0, maxDepth: 0, tripTimes: [] }
+  let tripStart = Date.now()
   const end = Date.now() + MINUTES * 60000
   await walk(TO_SITE)                                   // round the Workshop: straight east runs in at its door
   while (Date.now() < end) {
@@ -118,8 +166,10 @@ const TO_SITE = [[4, 5], [20, 6], SITE]
         await p.pointer('down', 640, 360); stuckSince = Date.now(); log.retries = (log.retries || 0) + 1
       }
       log.maxDepth = Math.max(log.maxDepth, s.depth)
+      if (k % 10 === 0) await watch('digging, depth ' + s.depth)
       if (s.card) break
       if (s.bag >= s.cap || s.batt < 0.3 || Date.now() > end) break
+      if (s.onGround && await wallOre()) continue
       // lava below: go round it
       if ((await p.eval(`${O}.world.get(Math.floor(${s.x}), Math.floor(${s.y} + 1e-6) - 1, Math.floor(${s.z}))`)) === 6) {
         await p.pointer('up', 640, 360)
@@ -142,7 +192,9 @@ const TO_SITE = [[4, 5], [20, 6], SITE]
       await relock()
     }
     if (Date.now() > end) break
-    await climbOut()
+    await watch('before the climb')
+    log.climbs = (log.climbs || []).concat([await climbOut()])
+    await watch('after the climb')
     const coinsItems = (await st()).bag
     await walk(TO_MARKET); await useDoor()
     const coins0 = (await st()).coins
@@ -160,6 +212,7 @@ const TO_SITE = [[4, 5], [20, 6], SITE]
     await click('.building .close'); await relock()
     s = await st()
     log.items = (log.items || []).concat([coinsItems])
+    log.tripTimes.push(Math.round((Date.now() - tripStart) / 1000)); tripStart = Date.now()
     console.log(`    trip ${log.trips}: ${coinsItems} items, sold for ${log.sold} in all, ${s.coins} coins, depth so far ${log.maxDepth}, gear ${JSON.stringify(s.gear)}`)
     await p.shot(`${OUT}/trip-${log.trips}.png`)
     // sun-charge a moment in town if the battery is low, then back to the shaft
@@ -167,7 +220,7 @@ const TO_SITE = [[4, 5], [20, 6], SITE]
     await walk(TO_SITE)
   }
   console.log(`    ${MINUTES} min: ${log.trips} trips, ${log.sold} coins from selling, upgrades ${log.upgrades.join(', ') || 'none'}, ` +
-              `deepest ${log.maxDepth} m, stranded ${log.stranded}×, round lava ${log.lava || 0}×, re-tries ${log.retries || 0}, items per trip ${(log.items || []).join(' ')}`)
+              `deepest ${log.maxDepth} m, stranded ${log.stranded}×, ore from the walls ${log.wall || 0}, round lava ${log.lava || 0}×, re-tries ${log.retries || 0}, items per trip ${(log.items || []).join(' ')}, seconds per trip ${log.tripTimes.join(' ')} (climbing out ${(log.climbs || []).join(' ')}, turned ${log.turns || 0}×)`)
   ok(log.trips >= 2, `the loop goes round: ${log.trips} trips to sell`)
   ok(log.sold > 0, `selling pays (${log.sold} coins)`)
   ok(log.upgrades.length >= 1, `the coins buy upgrades (${log.upgrades.join(', ')})`)
