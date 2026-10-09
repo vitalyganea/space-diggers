@@ -1,78 +1,131 @@
 # Game Spec: Boom Diggers
 
+> Redesigned with the user on 2026-10-09. The first version was a timed
+> race to the Core (rows 1–14 of SYSTEMS.md, all built). The user found it
+> would bore players: only the race, a clock that leaves no time to look
+> around, nothing but trees and earth, no shops, nothing new. It becomes an
+> open-world digging game in the Roblox digging-sim mould. The race stays,
+> as one mode reached from a portal in town.
+
 ## Core loop
 
-A round lasts 3–5 minutes. You and 3–5 others (bots in the prototype) are
-cute blocky animals with drills, each dropped at your own spot on the
-surface of a layered voxel world. Everyone digs straight down towards the
-Core: grass and dirt, then stone, deep stone, a lava band, then crystal.
-You hold the mouse on a block to break it, in first person, the way Bloxd
-and Minecraft do it. Harder layers take longer. Ores along the way (coal,
-iron, gold, gems) pay coins at once, and in the round you spend them on a
-faster drill and on bombs. Bombs blast a hole that speeds you up, or
-collapse a rival's shaft; you can also drop blocks to plug the shaft of
-whoever is below you. Nobody gets hurt: it is a race with silly
-interference. The first to touch the Core wins; the rest are ranked by
-depth. After the round, the coins you keep buy new animals (mole, beaver,
-hamster, …), and each animal has its own small perk.
+No clock. **Dig → fill your backpack → get back → sell → buy better gear →
+dig deeper.**
+
+You are a blocky animal with a drill (first person, like Bloxd). Every
+block can give something, from junk to legendary treasure, and the luck
+of what turns up is the pull. Your backpack has limited room and your
+drill runs on a battery that every block drains, so every trip is a
+choice: one more block, or go back? Run the battery flat underground and
+you are stranded. You can pay for a recharge on the spot, send your robot
+friend up to sell something from your backpack and come back with the
+money (slow, more so the deeper you are), or watch an ad for a free
+recharge. There is always a free, slow rescue as well, so a child is never
+stuck for good and the game works with no ads at all.
+
+Above ground is a small **town** you walk around, with buildings on a
+minimap: the Market (sell), the Workshop (drill, battery, backpack, lamp),
+the Bomb shop, the Robot shop (capsules), the Museum (your collection) and
+the Race portal. Going to the shop costs digging time; a bomb from it
+clears fifty blocks at once. That trade is part of the game.
+
+Your **robot friend**, chosen at the start and named by you, follows you,
+lights the tunnel, picks up drops, warns you ("Battery 25%!", "Something
+shiny to the left!"), makes the trips to the Market when you are stranded,
+and levels up. Three to choose from: **Bzz** (a fast drone, short trips),
+**Bolt** (a carrier with a backpack of its own) and **Sonar** (a scout
+that feels treasure nearby).
+
+## What keeps players coming back
+
+- **Luck:** finds from common to mythic, each rarity with its own colour,
+  sound and reveal; each depth has its own.
+- **Collection:** the Museum. Donate finds instead of selling them to
+  complete sets (Dinosaurs 4/6) for big rewards; donated finds stand on
+  display.
+- **Capsules:** found or bought, they hatch **mini-robots** of a rarity,
+  which follow you and add a small bonus (luck, speed, magnet). Three of a
+  kind merge into a stronger one. (These replace the eggs and pets from the
+  research.)
+- **Depth as new worlds:** earth and stone, ice caves, glowing mushroom
+  caves, a lava zone that drains the battery faster, then crystal and an
+  alien Core. Each has its own textures, sounds, finds and hazards.
+- **Underground outposts** (sell and recharge, unlocked by reaching them),
+  a **lift** you build in your own shaft, and a **ticket home**, so going
+  back is a choice and not a long climb.
+- **Vaults:** treasure rooms of stone only bombs can crack, some needing
+  bombs placed right (chain reactions through explosive crystals), with
+  legendary chests inside.
+- **Gentle hazards:** cave-ins, gas pockets, bats that steal a coin.
+- **Coming back each day:** a daily reward with a 7-day streak, a free
+  spin, three daily quests, short events (gold rush, a meteor in town,
+  lucky weekend), and new content every few weeks, made easy to add as
+  data tables.
+- **Optional ads that help** (rewarded only): a recharge when stranded,
+  double coins on a sale, a better capsule, an extra spin.
 
 ## Genre
 
-3D first-person voxel digging race, multiplayer in spirit (bots first).
-Visual reference: Bloxd.io. Same level of finish, none of its assets.
-Original against the closest game on CrazyGames (Crazy Miners Multiplayer):
-playable animals with perks, a layered world with a Core, and sabotage by
-bombs and plugged shafts.
+3D first-person voxel digging and collecting game (a "dig sim"), single
+player first. Visual reference: Bloxd.io, the same level of finish and
+none of its assets. A race mode in the portal. Real multiplayer later.
 
 ## Platform target
 
-CrazyGames, **desktop first**: keyboard + mouse, pointer lock (WASD to
-move, Space to jump, mouse to look, hold left button to dig, right button
-or a key to place a block or throw a bomb). Mobile controls (an on-screen
-joystick and buttons) come later, once the game is fun. The CrazyGames SDK
-v3 (gameplay start/stop, data save, midgame ad between rounds) is part of
-the prototype.
+CrazyGames, **desktop first**: keyboard and mouse with pointer lock (WASD,
+Space, mouse, hold left to dig, right to place, Q to throw a bomb, E to
+use a building). Mobile controls come later. The CrazyGames SDK v3 is wired
+(row 13): data save, gameplay start/stop, ads.
 
 ## Art approach
 
-Bloxd.io-level voxel look, all made here:
-- 16×16 pixel textures for every block, generated by a script into one
-  atlas (no copied textures);
-- the engine's ambient occlusion, sky colour, distance fog, and some light
-  falling off with depth (darker the deeper you dig);
-- blocky animal characters built from boxes, a drill held in first person,
-  block-break cracks and particles.
+Bloxd.io-level voxel look, all made here (rows 2, 5, 6): 16×16 pixel
+textures generated by a script into one atlas, ambient occlusion, sky,
+clouds and fog, darker the deeper you go with a helmet lamp, blocky animals
+in miners' helmets. New depths add their own textures and light.
 
 ## Engine and stack
 
-noa-engine 0.33 (MIT, a voxel engine on Babylon.js 6, reportedly the one
-Bloxd.io is built on), Vite as the bundler, plain JavaScript. A spike on
-2026-10-08 ran it in headless Chrome on WebGL2 and drew voxel terrain with
-ambient occlusion. Later, for real multiplayer: Colyseus (Node.js) with an
-authoritative server.
+noa-engine 0.33 on Babylon.js 6, Vite, plain JavaScript (rows 1–14).
+Later, for real multiplayer: Colyseus (Node.js), an authoritative server.
+The World (`src/world.js`, generator plus edits) is already the source of
+truth, the shape a server will need.
 
 ## Scope
 
-Prototype with bots: one complete round, start to finish, with you and
-bots, ores, in-round upgrades, bombs, a winner, then coins into the animal
-shop and a save. Real multiplayer and mobile controls are the next steps,
-not part of this pass.
+Full small game, built in stages. Each stage ends playable:
+1. The loop: no clock, a persistent world, town with Market and Workshop,
+   backpack, battery with the stranded choices, selling, minimap, robot
+   friend, ticket home.
+2. Finds with rarity and their reveal; the Museum with sets.
+3. Capsules and mini-robots.
+4. Worlds by depth, outposts and the lift, vaults with bomb puzzles,
+   hazards.
+5. Daily reward, quests, events.
+6. The race as a portal mode; polish; rewarded ads on CrazyGames.
+7. Real multiplayer: a shared world, trading, leaderboards.
 
-## Genre-specific answers
+## Decisions taken with the user
 
-- Camera: **first person**, like Bloxd.
-- Devices: **desktop first**; mobile later.
-- Start with: **a prototype with bots**; real multiplayer after.
-- Players vs players: **funny interference**: bombs that collapse tunnels,
-  blocks dropped into a rival's path, no weapons, no damage.
-- Name: Boom Diggers, chosen by the user over Core Crashers, Mole Mayhem
-  and others. A web search found no game by that name. Check the
-  CrazyGames search and the app stores before launch.
+- Camera: first person. Devices: desktop first.
+- No time limit in the main game. The race survives only as a mode.
+- Stranded underground: pay to recharge; or the robot sells an item (it
+  takes time); or a rewarded ad. Added by me, agreed: a free slow rescue
+  so nobody is stuck, and warnings at 25% and 10%.
+- A robot or drone companion chosen at the start, the player's friend.
+- Robots (capsules) replace eggs and pets. My recommendation, taken by
+  default when the user said "continue".
+- The world persists between sessions (tunnels, lift, outposts). Also my
+  recommendation, taken by default.
+- Players affect each other with funny interference only: no weapons, no
+  damage.
+- Name: Boom Diggers.
 
 ## Explicit non-goals
 
-- No Minecraft-style building or crafting sandbox, no persistent world.
+- No crafting sandbox; no building beyond rubble, the lift and placed
+  items.
 - No combat, health or killing.
-- No real network multiplayer in this prototype (bots stand in).
-- No mobile controls in this prototype.
-- No assets, names or look copied from Bloxd.io, Minecraft or Crazy Miners.
+- No forced ads; no purchases with real money in this pass.
+- No assets, names or look copied from Bloxd.io, Minecraft, Crazy Miners or
+  the Roblox games researched.

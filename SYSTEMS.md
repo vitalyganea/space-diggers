@@ -20,6 +20,37 @@ note it inline if you do.
 | 13 | CrazyGames SDK: gameplay start/stop, data save, midgame ad between rounds, loading | done | `src/platform.js`: one interface, no-ops on the plain web, the CrazyGames SDK v3 when its script is on the page: loading start/stop around the first world, gameplay start/stop exactly while racing with the mouse in the game, happytime on a win, a midgame ad on Play again (game muted and buttons off meanwhile, 60 s safety), the save through `SDK.data` mirrored to localStorage, the site's mute obeyed alongside M. `bash build-crazygames.sh`: `vite build` (relative paths, `vite.config.js`), the SDK `<script>` put first in `<head>`, checks for absolute paths and outside addresses, `crazygames/boom-diggers-crazygames.zip` (45 files, ~1 MB; build outputs are git-ignored). `tests/crazygames.cjs` on the built copy with the real SDK in local mode, 13/13: SDK up; loading started and stopped; no gameplay until the player is in, then gameplay start, and stop when the mouse leaves ("Click to dig" back); an 8 s round ends in results and the save is written both ways; Play again asks for an ad, the SDK's local test ad ("A midgame ad would appear here", ~3 s) plays, then a new round loads the save back from the SDK. All checks pass. |
 | 14 | Full playtest: a real round start to finish, desktop | done (by a robot player; a person still to play it) | `tools/playtest.cjs`: a whole round on mouse and keys only against five bots, then results, shop, Play again; 7/7, console clean. The player reached the Core in 133 s, the bots were at 68–73 m. Findings in `PLAYTEST.md`: bots too slow, ore too sparse for upgrades to matter, feel/sound/real-GPU speed need a person. |
 
+Rows 1–14 built the first design, a timed race (see GAME_SPEC.md: it was
+redesigned on 2026-10-09 into an open digging game). They stay: engine,
+digging, look, animals, bots, bombs, sound and the SDK are all reused, and
+the race becomes a portal mode in stage 6.
+
+## Stage 1: the loop (no clock)
+
+| #  | System | Status | Test notes |
+|----|--------|--------|------------|
+| 15 | Open play: no round or clock; the World saved and restored between sessions (its edits, compactly) | pending | |
+| 16 | Backpack and finds: what you dig goes into a backpack with limited room; ore and later finds are items, not instant coins | pending | |
+| 17 | Battery: each block drains it by hardness; warnings at 25% and 10%; the HUD says whether it gets you home | pending | |
+| 18 | Stranded: battery flat underground opens the choices: pay to recharge, the robot sells an item (a timed trip), rewarded ad, free slow rescue | pending | |
+| 19 | The town: buildings of blocks at the spawn (Market, Workshop, Bomb shop; Robot shop, Museum and Race portal as signs for later); E to use one | pending | |
+| 20 | Market and Workshop: sell the backpack; permanent drill, battery, backpack and lamp upgrades; the bomb shop | pending | |
+| 21 | Minimap and depth meter: the town's buildings, your tunnels, your robot | pending | |
+| 22 | Robot friend: chosen and named at the start (Bzz, Bolt, Sonar), follows and lights, picks up, talks in bubbles, makes the Market trip | pending | |
+| 23 | Ticket home: a cheap item that takes you to town | pending | |
+| 24 | Stage 1 playtest: a long session on real inputs; the loop holds up | pending | |
+
+## Later stages (rows to be split when each starts)
+
+| Stage | What | Status |
+|-------|------|--------|
+| 2 | Finds with rarity (common to mythic) and their reveal; the Museum with sets and displays | pending |
+| 3 | Capsules and mini-robots: hatching, bonuses, merging three | pending |
+| 4 | Worlds by depth (ice, mushrooms, lava, crystal, alien Core), outposts, the lift, vaults with bomb puzzles, hazards | pending |
+| 5 | Daily reward and streak, free spin, daily quests, events | pending |
+| 6 | The race as a portal mode; rewarded ads (stranded, double sale, capsule, spin); polish | pending |
+| 7 | Real multiplayer: Colyseus server, shared world, trading, leaderboards | pending |
+
 Status values: `pending` / `building` / `testing` / `done`.
 
 Audio (row 12) is in because "Bloxd-level finish" includes sound; it can
