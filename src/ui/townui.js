@@ -2,7 +2,7 @@
    (facing out; they used to turn after you and swing into the walls), the "[E] Trade Hub" prompt when you stand at one, and the card a
    building opens. Shops fill their cards in row 20; the rest say what is
    coming. */
-import { MeshBuilder, StandardMaterial, DynamicTexture, Texture, Color3 } from '@babylonjs/core'
+import { MeshBuilder, StandardMaterial, DynamicTexture, Texture, Color3, Mesh, Vector4 } from '@babylonjs/core'
 import { BUILDINGS, PORTAL, PAD } from '../town.js'
 
 export function nameBoards(noa) {
@@ -20,7 +20,9 @@ export function nameBoards(noa) {
     m.diffuseTexture = tex
     m.emissiveColor = new Color3(0.85, 0.85, 0.85)                           // it glows: readable in the base's shadows
     m.backFaceCulling = false
-    const plane = MeshBuilder.CreatePlane('board_' + b.key, { width: 3.2, height: 0.8 }, scene)
+    // two-sided, the back's picture flipped, so a sign seen from behind (the portal stands free) reads the right way
+    const plane = MeshBuilder.CreatePlane('board_' + b.key, { width: 3.2, height: 0.8, sideOrientation: Mesh.DOUBLESIDE,
+      frontUVs: new Vector4(0, 0, 1, 1), backUVs: new Vector4(1, 0, 0, 1) }, scene)
     plane.material = m
     plane.isPickable = false
     // a plane shows its face towards -z: turn that to face out of the building

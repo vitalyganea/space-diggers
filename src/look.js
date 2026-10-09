@@ -57,8 +57,9 @@ export function applyLook(noa, { drill = true } = {}) {
     scene.fogStart = 34 - 26 * deep
     scene.fogEnd = 72 - 50 * deep
     light.intensity = 1 - 0.85 * deep
-    const amb = 0.5 - 0.32 * deep
-    scene.ambientColor = new Color3(amb, amb, amb * 1.04)
+    // planet-light: the higher the ringed planet, the warmer and a little brighter the shade (row 37)
+    const amb = 0.5 - 0.32 * deep, warm = sky.planetHigh * (1 - deep)
+    scene.ambientColor = new Color3(amb * (1 + 0.22 * warm), amb * (1 + 0.08 * warm), amb * (1.04 - 0.1 * warm))
     sky.update(dt, deep)
     lamp.intensity = 0.25 + 1.1 * deep
     lamp.position.copyFrom(cam.globalPosition)

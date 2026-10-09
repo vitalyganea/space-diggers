@@ -22,7 +22,16 @@ const R = 180                                 // how far off the sky things hang
 export function skyDir(heading, elev) {
   return new Vector3(Math.sin(heading) * Math.cos(elev), Math.sin(elev), Math.cos(heading) * Math.cos(elev))
 }
-export const PLANET = { heading: -2.25, elev: 0.33, size: 200 }      // the ringed planet, low in the south-west
+export const PLANET = { heading: -2.25, elev: 0.33, size: 200 }      // the ringed planet, where it starts: low in the south-west
+/* Row 37: it goes once round the sky in DAY seconds, rising and sinking
+   between LOW and HIGH (never under the horizon, so it is always there to
+   see), and the higher it is the warmer the Moon's light. */
+export const DAY = 24 * 60
+const LOW = 0.14, HIGH = 0.8
+export function planetAt(time) {
+  const ph = (time / DAY) * Math.PI * 2
+  return { heading: PLANET.heading + ph, elev: LOW + (HIGH - LOW) * (0.5 - 0.5 * Math.cos(ph * 2 + 1.2)) }
+}
 export const EARTH = { heading: 1.05, elev: 0.68, size: 26 }
 
 export function makeSky(noa) {
@@ -90,7 +99,9 @@ export function makeSky(noa) {
   let t = 0
   return {
     dome, stars: faint.mesh, brightStars: bright.mesh, planet, earth, streak,
-    shootingStars: 0,
+    shootingStars: 0, planetHigh: 0,
+    /* jump the clock (tests, and so a new game need not start at dawn) */
+    setTime(v) { t = v },
     update(dt, deep) {
       const s = dt / 1000
       t += s
@@ -98,6 +109,9 @@ export function makeSky(noa) {
       for (const m of [dome, faint.mesh, bright.mesh, planet, earth, streak]) m.setEnabled(on)
       if (!on) return
       for (const m of [dome, faint.mesh, bright.mesh, streak]) m.position.setAll(0)   // undo noa's origin shifts
+      const pa = planetAt(t)
+      planet.home = skyDir(pa.heading, pa.elev).scale(R - 15)
+      this.planetHigh = (pa.elev - LOW) / (HIGH - LOW)                // 0 low on the horizon, 1 at its highest
       planet.position.copyFrom(planet.home); earth.position.copyFrom(earth.home)
       dome.rotation.y = t * 0.002
       faint.mesh.rotation.y = bright.mesh.rotation.y = t * 0.002
