@@ -2,7 +2,7 @@
    buttons do. `g` is the game: { coins, bag, gear, bombs, hasAds, ... }
    with the actions it needs; these only draw and ask. */
 import { ITEMS } from '../items.js'
-import { GEAR, value, nextCost, BOMB_PRICE, BOMB_CARRY } from '../gear.js'
+import { GEAR, value, nextCost, BOMB_PRICE, BOMB_CARRY, TICKET_PRICE, TICKET_CARRY } from '../gear.js'
 
 const coin = n => `<i class="coin"></i>${n}`
 const purse = g => `<div class="purse">You have ${coin(g.coins())}</div>`
@@ -39,7 +39,10 @@ export const bombShop = g => ({
     const full = g.bombs() >= BOMB_CARRY
     return purse(g) + `<p>A bomb clears a ball of rock round where it lands. Throw it with <kbd>Q</kbd>.</p>
       <div class="row"><button class="btn" data-act="bomb" ${full || g.coins() < BOMB_PRICE ? 'disabled' : ''}>Buy a bomb · ${coin(BOMB_PRICE)}</button>
-      <span class="have">You carry ${g.bombs()}/${BOMB_CARRY}</span></div>`
+      <span class="have">You carry ${g.bombs()}/${BOMB_CARRY}</span></div>
+      <p>A ticket home takes you straight back to town from anywhere. Use it with <kbd>T</kbd>.</p>
+      <div class="row"><button class="btn" data-act="ticket" ${g.tickets() >= TICKET_CARRY || g.coins() < TICKET_PRICE ? 'disabled' : ''}>Buy a ticket home · ${coin(TICKET_PRICE)}</button>
+      <span class="have">You carry ${g.tickets()}/${TICKET_CARRY}</span></div>`
   },
-  act: () => g.buyBomb(),
+  act: kind => kind === 'ticket' ? g.buyTicket() : g.buyBomb(),
 })

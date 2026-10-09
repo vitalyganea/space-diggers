@@ -10,6 +10,8 @@ export const GEAR = {
 }
 export const BOMB_PRICE = 25
 export const BOMB_CARRY = 5
+export const TICKET_PRICE = 15        // a ticket home (row 23): T takes you to town
+export const TICKET_CARRY = 5
 
 export function defaultGear() { return { drill: 0, battery: 0, backpack: 0, lamp: 0 } }
 

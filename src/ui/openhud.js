@@ -7,7 +7,8 @@ export class OpenHud {
     this.el.innerHTML = `
       <div class="me-box panel"><span class="coins"><i class="coin"></i><b>0</b></span><span class="depth">↓ 0 m</span>
         <span class="bag"><i class="bag-ico"></i><b>0/20</b><em><s></s></em></span>
-        <span class="batt"><i class="batt-ico"><s></s></i><b>100%</b><small></small></span></div>
+        <span class="batt"><i class="batt-ico"><s></s></i><b>100%</b><small></small></span>
+        <span class="tickets" title="Tickets home (T)"><i class="ticket-ico"></i><b>0</b></span></div>
       <div class="pickups"></div>
       <div class="toast"></div>`
     document.body.appendChild(this.el)
@@ -20,6 +21,10 @@ export class OpenHud {
       this.$('.bag b').textContent = `${b.count}/${b.capacity}`
       this.$('.bag s').style.width = Math.min(100, 100 * b.count / b.capacity) + '%'
       this.$('.bag').classList.toggle('full', b.full)
+    }
+    if (me.tickets !== undefined) {
+      this.$('.tickets b').textContent = me.tickets
+      this.$('.tickets').style.display = me.tickets ? 'inline-flex' : 'none'
     }
     if (me.battery) {
       const f = me.battery.fraction, el = this.$('.batt')

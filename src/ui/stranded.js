@@ -58,6 +58,7 @@ export class StrandedCard {
           ${busy === 'trip'
             ? `<div class="wait">Your robot is selling ${s.job.itemName}… back in <b>${fmt(s.left)}</b><em><s style="width:${100 * (1 - s.left / s.job.total)}%"></s></em></div>`
             : `<button class="btn alt" data-act="pick" ${busy ? 'disabled' : ''}>Send your robot to sell something</button>`}
+          ${s.tickets ? `<button class="btn alt" data-act="ticket" ${busy ? 'disabled' : ''}>Use a ticket home (${s.tickets} left): the sun charges you there</button>` : ''}
           ${s.hasAds ? `<button class="btn alt" data-act="ad" ${busy ? 'disabled' : ''}>▶ Watch an ad · free recharge</button>` : ''}
           ${busy === 'free'
             ? `<div class="wait">The free rescue drone is coming… <b>${fmt(s.left)}</b><em><s style="width:${100 * (1 - s.left / s.job.total)}%"></s></em></div>`

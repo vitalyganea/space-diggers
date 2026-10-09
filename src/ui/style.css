@@ -122,3 +122,6 @@
   border-radius: 14px; background: rgba(14, 18, 28, .7); border: 2px solid rgba(255,255,255,.15); opacity: 0; transition: opacity .25s; max-width: 520px; }
 .talk.on { opacity: 1; }
 .talk b { display: block; font-size: 14px; color: #7df9ff; } .talk span { font-size: 18px; font-weight: 800; }
+.hud .tickets { display: none; align-items: center; gap: 6px; }
+.hud .ticket-ico { display: inline-block; width: 24px; height: 15px; border-radius: 3px; background: #f5c518;
+  box-shadow: inset 6px 0 0 #e0b015, 0 0 0 2px rgba(0,0,0,.35); }

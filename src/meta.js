@@ -20,7 +20,7 @@ export const SHOP = [
 ]
 
 export function defaults() {
-  return { v: 1, coins: 0, owned: ['mole'], chosen: 'mole', rounds: 0, wins: 0, bestDepth: 0, backpack: null, battery: null, gear: null, bombs: 0, robot: null }
+  return { v: 1, coins: 0, owned: ['mole'], chosen: 'mole', rounds: 0, wins: 0, bestDepth: 0, backpack: null, battery: null, gear: null, bombs: 0, robot: null, tickets: 0 }
 }
 
 /* A save from storage, defensively: anything missing or wrong falls back. */
@@ -37,6 +37,7 @@ export function load(storage) {
     if (o.battery && typeof o.battery === 'object') d.battery = o.battery       // and by Battery
     if (o.gear && typeof o.gear === 'object') d.gear = o.gear                   // and by loadGear
     d.bombs = Math.max(0, Math.min(5, Math.floor(+o.bombs || 0)))
+    d.tickets = Math.max(0, Math.min(5, Math.floor(+o.tickets || 0)))
     if (o.robot && ROBOTS[o.robot.kind]) d.robot = { kind: o.robot.kind, name: String(o.robot.name || '').replace(/[^\p{L}\p{N} '!?-]/gu, '').slice(0, 12) || ROBOTS[o.robot.kind].name }
   } catch (e) { /* a broken save starts fresh */ }
   return d

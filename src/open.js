@@ -25,7 +25,7 @@ import { Minimap } from './ui/minimap.js'
 import { ROBOTS } from './robots.js'
 import { Companion } from './companion.js'
 import { chooseRobot, Talk } from './ui/robotui.js'
-import { loadGear, value, buy as buyGear, BOMB_PRICE, BOMB_CARRY } from './gear.js'
+import { loadGear, value, buy as buyGear, BOMB_PRICE, BOMB_CARRY, TICKET_PRICE, TICKET_CARRY } from './gear.js'
 import { OpenHud } from './ui/openhud.js'
 import { clickToPlay } from './ui/hud.js'
 import { addCrosshair } from './ui/crosshair.js'
@@ -84,6 +84,7 @@ export function start(platform) {
   })
   digger.coins = save.coins
   digger.bombs = Math.max(0, Math.min(5, Math.floor(+save.bombs || 0)))
+  let tickets = save.tickets || 0
   const perk = meta.perk(save.chosen)
   digger.digSpeed = perk.digSpeed
   digger.coinMult = perk.coinMult
@@ -109,6 +110,7 @@ export function start(platform) {
       depth: depth(), coins: digger.coins, cost: rechargeCost(depth()), hasAds: platform.hasAds,
       items: Object.entries(bag.items).map(([key, n]) => ({ key, n, name: ITEMS[key].name, value: ITEMS[key].value })),
       job: rescue.job && { ...rescue.job, itemName: rescue.job.item && ITEMS[rescue.job.item].name }, left: rescue.left(),
+      tickets,
     }),
     async (kind, arg) => {
       if (kind === 'close') { card.hide(); return }
@@ -124,6 +126,7 @@ export function start(platform) {
         say(`I'll take the ${ITEMS[arg].name} up to the Market. Back soon!`)
       }
       if (kind === 'free') rescue.callFree()
+      if (kind === 'ticket') { card.hide(); goHome() }
       if (kind === 'ad') {
         sound.setMuted(true)
         const watched = await platform.rewardedAd()
@@ -171,6 +174,11 @@ export function start(platform) {
       applyGear()
       if (k === 'battery') battery.recharge()
       sound.play('buy'); hud.toast('Upgraded!'); persist()
+    },
+    tickets: () => tickets,
+    buyTicket() {
+      if (tickets >= TICKET_CARRY || digger.coins < TICKET_PRICE) { sound.play('denied'); return }
+      digger.coins -= TICKET_PRICE; tickets++; sound.play('buy'); persist()
     },
     buyBomb() {
       if (digger.bombs >= BOMB_CARRY || digger.coins < BOMB_PRICE) { sound.play('denied'); return }
@@ -241,6 +249,7 @@ export function start(platform) {
     save.battery = battery.toJSON()
     save.gear = { ...gear }
     save.bombs = digger.bombs
+    save.tickets = tickets
     meta.store(store, save)
     return saveWorld(store, world, noa.entities.getPosition(noa.playerEntity))
   }
@@ -257,6 +266,20 @@ export function start(platform) {
       for (const dy of [0.3, 1.2]) if (world.get(Math.floor(p[0] + dx), Math.floor(p[1] + dy), Math.floor(p[2] + dz)) !== 0) return true
     return false
   }
+
+  // a ticket home: T, from anywhere, straight to the middle of town
+  const goHome = () => {
+    if (tickets <= 0) { hud.toast('No tickets: the Bomb shop sells them'); sound.play('denied'); return }
+    tickets--
+    noa.entities.setPosition(noa.playerEntity, SPAWN)
+    noa.entities.getPhysics(noa.playerEntity).body.velocity = [0, 0, 0]
+    if (buddy && !buddy.away) buddy.pos = [SPAWN[0], SPAWN[1] + 3, SPAWN[2]]
+    sound.play('go'); hud.toast('Home!')
+    say('Home sweet home. The sun will charge us up.')
+    persist()
+  }
+  noa.inputs.bind('ticket', 'KeyT')
+  noa.inputs.down.on('ticket', () => { if (!inside && !choosing && !card.open) goHome() })
 
   // trying to dig on a flat battery down there brings the card back
   noa.inputs.down.on('fire', () => { if (strandedNow() && !card.open) openCard() })
@@ -281,7 +304,7 @@ export function start(platform) {
     if (document.pointerLockElement) platform.gameplayStart(); else platform.gameplayStop()
     sinceSave += dt / 1000
     if (sinceSave >= AUTOSAVE) { sinceSave = 0; persist() }
-    hud.update({ coins: digger.coins, depth: depth(), bag, battery, blocksLeft: battery.blocksLeft(lastHard) })
+    hud.update({ coins: digger.coins, depth: depth(), bag, battery, blocksLeft: battery.blocksLeft(lastHard), tickets })
     prompt.show(inside ? null : doorNear(noa.entities.getPosition(noa.playerEntity)))
     // the robot: follow, and Sonar's scouting every 2.5 s
     if (buddy) buddy.update(dt)
@@ -297,5 +320,5 @@ export function start(platform) {
       { robot: buddy && !buddy.away ? buddy.pos : null, ping })
   })
 
-  if (import.meta.env.DEV) window.__open = { noa, world, digger, save, sound, bombs, persist, bag, battery, rescue, card, gear, look, minimap, inside: () => inside, robot: () => robot, buddy: () => buddy, talk: () => talk, state: () => playerState(noa), depth }
+  if (import.meta.env.DEV) window.__open = { noa, world, digger, save, sound, bombs, persist, bag, battery, rescue, card, gear, look, minimap, inside: () => inside, tickets: () => tickets, robot: () => robot, buddy: () => buddy, talk: () => talk, state: () => playerState(noa), depth }
 }
