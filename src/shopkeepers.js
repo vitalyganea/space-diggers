@@ -55,7 +55,11 @@ export function lineFor(key, s, r = 0) {
     if (s.canGive) return 'Oh my! You have something for my collection!'
     return pick(['Bring me finds from the deep and I will put them on show.', 'Complete a set and I will reward you well!'], r)
   }
-  if (key === 'robots') return 'Soon I will have robot capsules for you. Keep digging!'
+  if (key === 'robots') {
+    if (s.robotNews) return s.robotNews
+    if (s.robotCheapest !== null && s.coins >= s.robotCheapest) return 'Your robot could use an upgrade. Let me tune it up!'
+    return pick(['A happy robot is a fast robot! What shall we upgrade?', 'Bring coins and I will make your robot even better.'], r)
+  }
   return 'Hello!'
 }
 

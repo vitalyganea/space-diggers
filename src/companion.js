@@ -54,6 +54,8 @@ export class Companion {
   }
 
   leave() { this.away = true }
+  /* gone for good (swapped for another robot at the Robot Bay) */
+  dispose() { this.model.root.getChildMeshes().forEach(m => m.dispose()); this.model.root.dispose(); this.light.dispose() }
   /* back from the trip: it drops in from above */
   back() {
     this.away = false
@@ -63,7 +65,7 @@ export class Companion {
 
   /* Sonar: the nearest gold, helium or star gem within `r` blocks, as { dir, dist } in
      words relative to where you look, or null. */
-  scan(world, r = 6) {
+  scan(world, r = this.sonarRange || 6) {
     if (!this.R.sonar) return null
     const p = this.noa.entities.getPosition(this.noa.playerEntity)
     const c = [Math.floor(p[0]), Math.floor(p[1] + 0.8), Math.floor(p[2])]

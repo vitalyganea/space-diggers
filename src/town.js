@@ -21,7 +21,7 @@ export const BUILDINGS = [
   { key: 'workshop', name: 'Workshop', at: [9, 0], face: [-1, 0], band: ID.light_yellow, ready: true },
   { key: 'bombs', name: 'Bomb Shop', at: [-9, 0], face: [1, 0], band: ID.light_red, ready: true },
   { key: 'museum', name: 'Museum', at: [0, -9], face: [0, 1], band: ID.light_blue, ready: true },
-  { key: 'robots', name: 'Robot Bay', at: [-9, 12], face: [1, 0], band: ID.light_purple, ready: false },
+  { key: 'robots', name: 'Robot Bay', at: [-9, 12], face: [1, 0], band: ID.light_purple, ready: true },
 ]
 /* The race portal: a metal frame round a purple gateway, not a building. */
 export const PORTAL = { key: 'portal', name: 'Race portal', at: [9, -12], face: [-1, 0], ready: false }

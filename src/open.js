@@ -37,7 +37,8 @@ import { robotPanel } from './ui/robotpanel.js'
 import { StrandedCard } from './ui/stranded.js'
 import { doorNear, SPAWN, BUILDINGS } from './town.js'
 import { nameBoards, DoorPrompt, buildingCard, shopCard } from './ui/townui.js'
-import { market, workshop, bombShop, museumShop } from './ui/shops.js'
+import { market, workshop, bombShop, museumShop, robotBay } from './ui/shops.js'
+import { loadRobotGear, robotStats, rgBuy, rgNext, SWAP_PRICE } from './robotgear.js'
 import { Minimap } from './ui/minimap.js'
 import { ROBOTS } from './robots.js'
 import { Companion } from './companion.js'
@@ -145,6 +146,7 @@ export function start(platform) {
   digger.coinMult = perk.coinMult
   // the robot friend: chosen at the first start (below), then kept
   let robot = save.robot, buddy = null, talk = null
+  const robotGear = loadRobotGear(save.robotGear)            // the Robot Bay's upgrades (row 51)
   const say = text => talk && talk.say(text)
   const look = applyLook(noa)
   // the Workshop's upgrades, kept for good
@@ -152,7 +154,9 @@ export function start(platform) {
   const applyGear = () => {
     digger.speed = 1                        // the tools' speeds go in digSpeed
     battery.capacity = value(gear, 'battery')
-    bag.capacity = value(gear, 'backpack') + (robot ? ROBOTS[robot.kind].bagBonus : 0)
+    const rs = robot ? robotStats(robot.kind, robotGear, ROBOTS[robot.kind]) : null
+    bag.capacity = value(gear, 'backpack') + (rs ? rs.bagBonus : 0)
+    if (buddy && rs) { buddy.light.range = rs.light; buddy.sonarRange = rs.sonarRange }
     look.lamp.range = value(gear, 'lamp')
   }
   applyGear()
@@ -175,7 +179,7 @@ export function start(platform) {
         digger.coins -= cost; battery.recharge(); sound.play('buy'); card.hide(); lockMouse(noa.container.element); hud.toast('Recharged!')
       }
       if (kind === 'robot' && bag.take(arg)) {
-        rescue.sendRobot(arg, ITEMS[arg].value, depth(), robot ? ROBOTS[robot.kind].tripSpeed : 1)
+        rescue.sendRobot(arg, ITEMS[arg].value, depth(), robot ? robotStats(robot.kind, robotGear, ROBOTS[robot.kind]).tripSpeed : 1)
         sound.play('thrown')
         if (buddy) buddy.leave()
         say(`I'll take the ${ITEMS[arg].name} up to the Trade Hub. Back soon!`)
@@ -259,7 +263,26 @@ export function start(platform) {
     persist()
   }
   const displays = makeDisplays(noa, save)                   // the Museum's show cases (row 49)
-  const SHOPS = { market: market(shop), workshop: workshop(shop), bombs: bombShop(shop), museum: museumShop(shop) }
+  // the Robot Bay (row 51): Sprocket's upgrades and swaps
+  let robotNews = ''
+  shop.robot = () => robot
+  shop.robotGear = robotGear
+  shop.buyRobotGear = k => {
+    if (!rgBuy(robotGear, k, digger)) { sound.play('denied'); return }
+    save.robotGear = robotGear; applyGear(); sound.play('buy'); robotNews = 'All tuned up! Your robot feels great.'
+    say(k === 'speed' ? 'Wheee! I am faster now!' : k === 'light' ? 'Look how bright my light is!' : 'I feel stronger! Thank you!')
+    persist()
+  }
+  shop.swapRobot = kind => {
+    if (digger.coins < SWAP_PRICE || !robot || robot.kind === kind || (buddy && buddy.away)) { sound.play('denied'); return }
+    digger.coins -= SWAP_PRICE
+    if (buddy) buddy.dispose()
+    if (talk) talk.el.remove()                                   // its speech bubble goes with it
+    meet({ kind, name: robot.name }); sound.play('buy'); robotNews = `Here is ${robot.name}, as a ${ROBOTS[kind].name} now!`
+    say(`Hi again! It's me, ${robot.name}, in a new body!`)
+    persist()
+  }
+  const SHOPS = { market: market(shop), workshop: workshop(shop), bombs: bombShop(shop), museum: museumShop(shop), robots: robotBay(shop) }
   // the shopkeepers (row 46): one behind each module's counter; you buy from them
   let lastSale = 0
   const keepers = BUILDINGS.map(b => {
@@ -274,7 +297,8 @@ export function start(platform) {
     const best = Object.keys(bag.items).sort((x, y) => ITEMS[y].value - ITEMS[x].value)[0] || null
     return { bag: bag.items, bagCount: bag.count, coins: digger.coins, cheapest: costs.length ? Math.min(...costs) : null,
       laser: gear.laser || 0, bombs: digger.bombs, tickets, justSold: lastSale, best,
-      canGive: wanted(save, bag).length > 0, gave: museumNews.gave, setDone: museumNews.setDone }
+      canGive: wanted(save, bag).length > 0, gave: museumNews.gave, setDone: museumNews.setDone,
+      robotNews, robotCheapest: (() => { const c = Object.keys(robotGear).map(k => rgNext(robotGear, k)).filter(x => x !== null); return c.length ? Math.min(...c) : null })() }
   }
   const keeperHead = key => {
     const K = KEEPERS[key]
@@ -286,7 +310,7 @@ export function start(platform) {
     // Close is a click, so the mouse can be taken straight back: no second "Click to play"
     const close = () => { inside = null; lockMouse(noa.container.element) }
     const s = SHOPS[door.key]
-    lastSale = 0; museumNews = {}
+    lastSale = 0; museumNews = {}; robotNews = ''
     const soon = { pad: '<p>Coming soon: the rocket flies you to new planets.</p><p>An ice planet, a red one, one of lava and one of crystal, each with its own treasure.</p>' }
     if (s) inside = shopCard(door.name, () => keeperHead(door.key) + s.render(), s.act, close)
     else if (KEEPERS[door.key]) inside = buildingCard(door.name, keeperHead(door.key), close)
@@ -298,7 +322,7 @@ export function start(platform) {
     robot: () => robot, bag, job: () => rescue.job, left: () => rescue.left(),
     send(item) {
       if (rescue.busy || !bag.take(item)) return null
-      rescue.sendRobot(item, ITEMS[item].value, depth(), robot ? ROBOTS[robot.kind].tripSpeed : 1)
+      rescue.sendRobot(item, ITEMS[item].value, depth(), robot ? robotStats(robot.kind, robotGear, ROBOTS[robot.kind]).tripSpeed : 1)
       sound.play('thrown'); if (buddy) buddy.leave()
       const line = `I'll take the ${ITEMS[item].name} to the Trade Hub. Back soon!`
       say(line); return line

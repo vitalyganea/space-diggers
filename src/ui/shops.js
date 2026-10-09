@@ -4,6 +4,8 @@
 import { ITEMS } from '../items.js'
 import { SETS, FINDS, RARITY } from '../finds.js'
 import { has, setProgress } from '../museum.js'
+import { ROBOT_GEAR, rgValue, rgNext, SWAP_PRICE, TALENT_WORDS } from '../robotgear.js'
+import { ROBOTS } from '../robots.js'
 import { GEAR, value, nextCost, BOMB_PRICE, BOMB_CARRY, TICKET_PRICE, TICKET_CARRY } from '../gear.js'
 
 const coin = n => `<i class="coin"></i>${n}`
@@ -69,4 +71,21 @@ export const museumShop = g => ({
     }).join('')
   },
   act: (kind, arg) => g.donate(arg),
+})
+
+/* The Robot Bay (row 51): upgrades for your robot, and a swap. */
+export const robotBay = g => ({
+  render() {
+    const r = g.robot(), rg = g.robotGear
+    const rows = Object.entries(ROBOT_GEAR).map(([k, d]) => {
+      const c = rgNext(rg, k), now = rgValue(rg, k), next = c === null ? null : d.levels[rg[k] + 1]
+      const what = k === 'talent' ? `${ROBOTS[r.kind].name}: ${TALENT_WORDS[r.kind]}${rg.talent ? ` (level ${rg.talent})` : ''}` : `${now} ${d.unit}${next !== null ? ` → ${next}` : ''}`
+      return `<tr><td><b>${d.name}</b><br><small>${what}</small></td>
+        <td>${c === null ? '<b>MAX</b>' : `<button class="btn small" data-act="rbuy" data-arg="${k}" ${g.coins() < c ? 'disabled' : ''}>Upgrade · ${coin(c)}</button>`}</td></tr>`
+    }).join('')
+    const swaps = Object.entries(ROBOTS).filter(([k]) => k !== r.kind).map(([k, R]) =>
+      `<button class="btn small alt" data-act="swap" data-arg="${k}" ${g.coins() < SWAP_PRICE ? 'disabled' : ''}>Swap to a ${R.name} · ${coin(SWAP_PRICE)}</button>`).join('')
+    return purse(g) + `<table class="goods">${rows}</table><p>Want a different robot? ${r.name} keeps its name.</p><div class="row">${swaps}</div>`
+  },
+  act: (kind, arg) => kind === 'rbuy' ? g.buyRobotGear(arg) : g.swapRobot(arg),
 })
