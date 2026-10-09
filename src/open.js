@@ -19,6 +19,7 @@ import { Battery } from './battery.js'
 import { Rescue, rechargeCost, FREE_CHARGE, SURFACE_DEPTH } from './stranded.js'
 import { chargeRate, onPad } from './charging.js'
 import { tip } from './tips.js'
+import { Hand, toolSpeed, hasLaser, LASER_ROCK } from './tools.js'
 import { Meteors } from './meteors.js'
 import { direction } from './companion.js'
 import { meteorCraters } from './worldgen.js'
@@ -93,7 +94,9 @@ export function start(platform) {
   digger.bombs = Math.max(0, Math.min(5, Math.floor(+save.bombs || 0)))
   let tickets = save.tickets || 0
   const perk = meta.perk(save.chosen)
-  digger.digSpeed = perk.digSpeed
+  // the tool in hand (row 40) sets the speed for each block
+  const hand = new Hand()
+  digger.digSpeed = id => perk.digSpeed(id) * toolSpeed(hand.tool, id, gear)
   digger.coinMult = perk.coinMult
   // the robot friend: chosen at the first start (below), then kept
   let robot = save.robot, buddy = null, talk = null
@@ -102,7 +105,7 @@ export function start(platform) {
   // the Workshop's upgrades, kept for good
   const gear = loadGear(save.gear)
   const applyGear = () => {
-    digger.speed = value(gear, 'drill')
+    digger.speed = 1                        // the tools' speeds go in digSpeed
     battery.capacity = value(gear, 'battery')
     bag.capacity = value(gear, 'backpack') + (robot ? ROBOTS[robot.kind].bagBonus : 0)
     look.lamp.range = value(gear, 'lamp')
@@ -180,6 +183,7 @@ export function start(platform) {
       if (!buyGear(gear, k, digger)) { sound.play('denied'); return }
       applyGear()
       if (k === 'battery') battery.recharge()
+      if (k === 'laser') { showTool(false); if (gear.laser === 1) say('A laser! Aim at black meteorite rock or crystal and it comes to hand by itself.') }
       sound.play('buy'); hud.toast('Upgraded!'); persist()
     },
     tickets: () => tickets,
@@ -326,7 +330,23 @@ export function start(platform) {
   // trying to dig on a flat battery down there brings the card back
   noa.inputs.down.on('fire', () => { if (strandedNow() && !card.open) openCard() })
 
-  let charging = false, saidCharging = false
+  let charging = false, saidCharging = false, laserTip = false
+  // the tool chip on the HUD, and 1 / 2 / the wheel to change by hand
+  const toolChip = document.createElement('div')
+  toolChip.className = 'hud tool-chip panel'
+  document.body.appendChild(toolChip)
+  const showTool = changed => {
+    look.hand && look.hand.setTool(hand.tool)
+    toolChip.innerHTML = hasLaser(gear)
+      ? `<span class="${hand.tool === 'drill' ? 'on' : ''}"><kbd>1</kbd> Drill</span><span class="${hand.tool === 'laser' ? 'on' : ''}"><kbd>2</kbd> Laser</span>`
+      : '<span class="on">Drill</span>'
+    if (changed) sound.play('beep')
+  }
+  showTool(false)
+  noa.inputs.bind('tool1', 'Digit1'); noa.inputs.bind('tool2', 'Digit2')
+  noa.inputs.down.on('tool1', () => { hand.choose('drill', gear); showTool(true) })
+  noa.inputs.down.on('tool2', () => { if (!hasLaser(gear)) { hud.toast('No laser yet: the Workshop sells one'); return } hand.choose('laser', gear); showTool(true) })
+  noa.container.element.addEventListener('wheel', e => { if (document.pointerLockElement && hasLaser(gear)) { hand.next(gear); showTool(true) } }, { passive: true })
   // meteors from the rings (row 38)
   const meteors = new Meteors(noa, world, {
     skyDir: () => look.sky.planet.home.clone().normalize(),
@@ -373,6 +393,12 @@ export function start(platform) {
     prompt.show(inside ? null : doorNear(noa.entities.getPosition(noa.playerEntity)))
     // the robot: follow, and Sonar's scouting every 2.5 s
     meteors.update(dt)
+    // the tool picks itself when what you aim at changes kind
+    const aimed = noa.targetedBlock ? noa.targetedBlock.blockID : null
+    const was = hand.tool
+    hand.aim(aimed, gear)
+    if (hand.tool !== was) showTool(true)
+    if (aimed && LASER_ROCK.has(aimed) && !hasLaser(gear) && !laserTip) { laserTip = true; say('This black rock is very hard. A laser from the Workshop cuts it three times as fast!') }
     if (buddy) { buddy.speaking = !!(talk && talk.busy); buddy.update(dt) }
     sonarT += dt / 1000
     if (buddy && sonarT > 2.5) {

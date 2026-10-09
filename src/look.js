@@ -109,16 +109,52 @@ function makeDrill(scene, cam, noa) {
   root.position.copyFrom(home)
   root.scaling.setAll(0.62)
   root.rotation.set(0.1, -0.22, 0)
+  // the laser (row 40): a white body with cyan bands, a glowing emitter, and a beam while it cuts
+  const laser = new Mesh('laser', scene)
+  laser.parent = cam
+  for (const [n, size, c, at, e] of [
+    ['lgrip', { width: 0.12, height: 0.26, depth: 0.14 }, [0.2, 0.22, 0.26], [0, -0.14, -0.06], 0.2],
+    ['lbody', { width: 0.17, height: 0.17, depth: 0.42 }, [0.92, 0.95, 0.98], [0, 0.02, 0.1], 0.35],
+    ['lband1', { width: 0.18, height: 0.18, depth: 0.04 }, [0.13, 0.83, 0.93], [0, 0.02, 0.02], 1],
+    ['lband2', { width: 0.18, height: 0.18, depth: 0.04 }, [0.13, 0.83, 0.93], [0, 0.02, 0.18], 1],
+    ['lfin', { width: 0.03, height: 0.1, depth: 0.2 }, [0.13, 0.83, 0.93], [0, 0.14, 0.08], 0.8],
+  ]) {
+    const b = MeshBuilder.CreateBox(n, size, scene)
+    b.material = mat(n + 'Mat', c, e); b.parent = laser; b.position.set(...at)
+  }
+  const muzzle = MeshBuilder.CreateCylinder('lmuzzle', { diameter: 0.1, height: 0.14, tessellation: 10 }, scene)
+  muzzle.material = mat('lmuzzleMat', [0.4, 1, 1], 1.4); muzzle.parent = laser; muzzle.rotation.x = Math.PI / 2; muzzle.position.set(0, 0.02, 0.36)
+  const beam = MeshBuilder.CreateCylinder('beam', { diameter: 0.09, height: 1, tessellation: 8 }, scene)
+  const beamMat = new StandardMaterial('beamMat', scene)
+  beamMat.disableLighting = true; beamMat.emissiveColor = new Color3(0.25, 1, 1); beamMat.alpha = 0.9
+  beam.material = beamMat; beam.parent = laser; beam.rotation.x = Math.PI / 2
+  for (const m of laser.getChildMeshes()) { m.renderingGroupId = 1; m.isPickable = false; noa.rendering.addMeshToScene(m) }
+  laser.position.copyFrom(home); laser.scaling.setAll(0.62); laser.rotation.set(0.1, -0.22, 0)
+  let tool = 'drill'
+  const setTool = name => { tool = name; root.setEnabled(name === 'drill'); laser.setEnabled(name === 'laser') }
+  setTool('drill')
   return {
-    root, bit,
+    root, bit, laser, beam, setTool, get tool() { return tool },
     update(t, noa) {
       const v = noa.entities.getPhysics(noa.playerEntity).body.velocity
       const walking = Math.hypot(v[0], v[2]) > 0.5
       const digging = noa.inputs.state.fire && !!noa.targetedBlock
       const bob = walking ? Math.sin(t * 9) * 0.018 : 0
       const buzz = digging ? Math.sin(t * 90) * 0.006 : 0
-      root.position.set(home.x + buzz, home.y + bob + buzz, home.z + (digging ? 0.06 + Math.sin(t * 14) * 0.03 : 0))
+      const held = tool === 'drill' ? root : laser
+      const push = tool === 'drill' && digging ? 0.06 + Math.sin(t * 14) * 0.03 : 0
+      held.position.set(home.x + buzz, home.y + bob + buzz, home.z + push)
       bit.rotation.y += digging ? 0.6 : 0.02
+      // the beam: from the emitter to the block you aim at
+      const on = tool === 'laser' && digging
+      beam.setEnabled(on)
+      if (on) {
+        const d = noa.targetedBlock.position, c = noa.camera.getPosition()
+        const reach = Math.max(0.6, Math.hypot(d[0] + 0.5 - c[0], d[1] + 0.5 - c[1], d[2] + 0.5 - c[2]) / 0.62)
+        beam.scaling.y = reach
+        beam.position.set(0, 0.02, 0.43 + reach / 2)
+        beamMat.alpha = 0.7 + 0.25 * Math.sin(t * 40)
+      }
     },
   }
 }

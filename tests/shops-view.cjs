@@ -31,7 +31,7 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   await p.shot(OUT + '/sh2-workshop.png')
   ok(await click('[data-act="buy"][data-arg="drill"]'), 'upgrade the drill (50)')
   await sleep(300)
-  ok(await p.eval(`${O}.gear.drill === 1 && ${O}.digger.speed === 1.3 && ${O}.digger.coins === 46`), 'drill 2: faster, 46 coins left')
+  ok(await p.eval(`${O}.gear.drill === 1 && Math.abs(${O}.digger.digSpeed(4) - 1.3) < 1e-9 && ${O}.digger.coins === 46`), 'drill 2: faster, 46 coins left')
   ok(!(await click('[data-act="buy"][data-arg="drill"]')) && (await p.eval(`${O}.gear.drill`)) === 1, 'drill 3 (150) is too dear now')
   await p.eval(`${O}.digger.coins = 500`); await sleep(100)
   await click('.building .close'); await goIn([8.4, 1, 0.5])
@@ -47,7 +47,7 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   await click('.building .close')
   // all of it kept
   await p.eval(`${O}.persist()`); await p.reload(); await sleep(6500)
-  ok(await p.eval(`${O}.gear.drill === 1 && ${O}.gear.lamp === 1 && ${O}.battery.capacity === 150 && ${O}.bag.capacity === 30 && ${O}.digger.bombs === 5 && ${O}.digger.speed === 1.3`), 'after a reload: the upgrades, and the bombs')
+  ok(await p.eval(`${O}.gear.drill === 1 && ${O}.gear.lamp === 1 && ${O}.battery.capacity === 150 && ${O}.bag.capacity === 30 && ${O}.digger.bombs === 5 && Math.abs(${O}.digger.digSpeed(4) - 1.3) < 1e-9`), 'after a reload: the upgrades, and the bombs')
   ok(p.errors.length === 0, 'console clean ' + JSON.stringify(p.errors.slice(0, 3)))
   await p.close()
   console.log(fails ? `${fails} failed` : 'all ok'); process.exit(fails ? 1 : 0)

@@ -27,8 +27,11 @@ export const workshop = g => ({
     return purse(g) + `<table class="goods">${Object.entries(GEAR).map(([k, d]) => {
       const c = nextCost(g.gear, k), now = value(g.gear, k)
       const next = c === null ? null : d.levels[g.gear[k] + 1]
-      return `<tr><td><b>${d.name}</b><br><small>Lv ${g.gear[k] + 1}: ${now} ${d.unit}${next !== null ? ` → ${next}` : ''}</small></td>
-        <td>${c === null ? '<b>MAX</b>' : `<button class="btn small" data-act="buy" data-arg="${k}" ${g.coins() < c ? 'disabled' : ''}>Upgrade · ${coin(c)}</button>`}</td></tr>`
+      const notYet = k === 'laser' && g.gear[k] === 0
+      const what = notYet ? 'Cuts black meteorite rock and crystal 3× as fast. Picks itself when you aim at them.'
+        : `Lv ${g.gear[k] + (k === 'laser' ? 0 : 1)}: ${now} ${d.unit}${next !== null ? ` → ${next}` : ''}`
+      return `<tr><td><b>${d.name}</b><br><small>${what}</small></td>
+        <td>${c === null ? '<b>MAX</b>' : `<button class="btn small" data-act="buy" data-arg="${k}" ${g.coins() < c ? 'disabled' : ''}>${notYet ? 'Buy' : 'Upgrade'} · ${coin(c)}</button>`}</td></tr>`
     }).join('')}</table>`
   },
   act: (kind, arg) => g.buyGear(arg),

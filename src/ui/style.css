@@ -138,3 +138,8 @@
 .building .said { margin-top: 12px; padding: 10px 14px; border-radius: 12px; background: rgba(125, 249, 255, 0.15); font-weight: 800; }
 .building .busy { font-weight: 800; color: #7df9ff; }
 .building .row .btn .dot { margin-right: 6px; }
+/* the tool in hand (row 40) */
+.tool-chip { inset: auto auto 14px 50%; transform: translateX(-50%); display: flex; gap: 6px; padding: 6px 8px; font-weight: 800; }
+.tool-chip span { padding: 4px 10px; border-radius: 10px; opacity: 0.55; }
+.tool-chip span.on { opacity: 1; background: rgba(125, 249, 255, 0.18); }
+.tool-chip kbd { display: inline-block; padding: 0 5px; margin-right: 4px; border-radius: 4px; background: #fff; color: #222; font-weight: 900; }
