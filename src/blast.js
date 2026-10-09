@@ -25,7 +25,7 @@ export function blast(world, c) {
       for (let z = Math.floor(c[2]) - r; z <= Math.floor(c[2]) + r; z++) {
         const d = Math.hypot(x + 0.5 - c[0], y + 0.5 - c[1], z + 0.5 - c[2])
         const id = world.get(x, y, z)
-        if (d > BLAST_R || id === 0 || KEEP.has(id)) continue
+        if (d > BLAST_R || id === 0 || KEEP.has(id) || (byId[id] && byId[id].hard >= 50)) continue   // lava, the Core, the town
         world.set(x, y, z, 0)
         coins += byId[id] ? byId[id].coins : 0
         broken.push({ pos: [x, y, z], id })

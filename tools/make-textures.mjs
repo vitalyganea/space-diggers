@@ -164,6 +164,52 @@ T.rubble = () => {
   }
   return t
 }
+// the town (system 19)
+T.planks = () => {
+  const t = new Tex(20).noise(['#b8864e', '#a9784a', '#c4925a', '#9e6f40'], 1.4)
+  for (const y of [3, 7, 11, 15]) for (let x = 0; x < N; x++) t.set(x, y, '#7a5230')     // board joints
+  for (const [x, y] of [[5, 0], [11, 4], [3, 8], [9, 12]]) for (let k = 0; k < 3; k++) t.set(x, y + k, '#7a5230')
+  return t
+}
+T.bricks = () => {
+  const t = new Tex(21).noise(['#b5523b', '#a84a35', '#c25e44', '#9c432f'], 1.4)
+  for (const y of [3, 7, 11, 15]) for (let x = 0; x < N; x++) t.set(x, y, '#d9cfc0')     // mortar
+  for (let r = 0; r < 4; r++) for (const x of r % 2 ? [3, 11] : [7, 15]) for (let k = 0; k < 3; k++) t.set(x, r * 4 + k, '#d9cfc0')
+  return t
+}
+T.roof = () => {
+  const t = new Tex(22).noise(['#8f2f2a', '#a3362f', '#7d2823'], 1.3)
+  for (let y = 0; y < N; y += 4) for (let x = 0; x < N; x++) t.set(x, y + 3, '#5e1c18')
+  for (let y = 0; y < N; y += 4) for (let x = (y / 4) % 2 ? 2 : 6; x < N; x += 8) for (let k = 0; k < 3; k++) t.set(x, y + k, '#5e1c18')
+  return t
+}
+T.glass = () => {
+  const t = new Tex(23).noise(['#a9d8f0', '#9fd0ea', '#b4e0f5'], 1.2)
+  for (let i = 0; i < N; i++) { t.set(i, 0, '#e8f0f4'); t.set(i, 15, '#e8f0f4'); t.set(0, i, '#e8f0f4'); t.set(15, i, '#e8f0f4'); t.set(7, i, '#e8f0f4') }
+  for (let k = 0; k < 4; k++) t.set(3 + k, 3 + k, '#ffffff')                               // a glint
+  return t
+}
+T.cobble = () => {
+  const t = new Tex(24).noise(['#9a9890', '#8c8a82', '#a7a59d', '#7f7d76'], 1.4)
+  for (const [x, y, w, h] of [[0, 0, 6, 5], [6, 0, 10, 4], [0, 5, 4, 6], [4, 4, 7, 7], [11, 4, 5, 7], [0, 11, 8, 5], [8, 11, 8, 5]]) {
+    for (let i = 0; i < w; i++) { t.set(x + i, y, '#5f5d57') }
+    for (let j = 0; j < h; j++) { t.set(x, y + j, '#5f5d57') }
+  }
+  return t
+}
+for (const [name, col] of [['green', '#2fbf71'], ['red', '#e63946'], ['blue', '#3b82f6'], ['yellow', '#f5c518'], ['purple', '#8b5cf6']]) {
+  T['awning_' + name] = () => {
+    const t = new Tex(25)
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) t.set(x, y, Math.floor(x / 4) % 2 ? '#f4f1ea' : col)
+    for (let x = 0; x < N; x++) t.set(x, 15, '#3a3a3a')                                       // a dark hem
+    return t
+  }
+}
+T.portal = () => {
+  const t = new Tex(26).noise(['#6d28d9', '#7c3aed', '#5b21b6', '#8b5cf6'], 1.2)
+  for (let k = 0; k < 5; k++) t.vein('#c4b5fd', 8)
+  return t.specks(6, ['#ffffff', '#e9d5ff'], 1)
+}
 T.core = () => {
   const t = new Tex(9).noise(['#fbbf24', '#f59e0b', '#fcd34d'], 1.3)
   for (let i = 0; i < N; i++) { t.set(i, i, '#ec4899'); t.set(N - 1 - i, i, '#ec4899') }

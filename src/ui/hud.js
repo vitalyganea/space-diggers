@@ -113,10 +113,10 @@ export function showAnimals(save, shop, { portrait, onBuy, onChoose, onClose }) 
    The lock is asked for on `lockEl`, noa's own container: noa counts the
    mouse as locked only when that element holds it, and otherwise ignores
    mouse movement (asking for it on the canvas left the view frozen). */
-export function clickToPlay(isRacing, lockEl) {
+export function clickToPlay(isRacing, lockEl, title = 'Click to dig', help = 'WASD move · Space jump · hold left mouse to dig') {
   const el = document.createElement('div')
   el.className = 'overlay click-to-play'
-  el.innerHTML = '<div class="card panel"><h1>Click to dig</h1><h2>WASD move · Space jump · hold left mouse to dig</h2></div>'
+  el.innerHTML = `<div class="card panel"><h1>${title}</h1><h2>${help}</h2></div>`
   el.style.cursor = 'pointer'
   document.body.appendChild(el)
   const refresh = () => { el.style.display = !document.pointerLockElement && isRacing() ? 'flex' : 'none' }

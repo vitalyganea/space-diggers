@@ -17,6 +17,18 @@ export const BLOCKS = [
   { id: 13, name: 'log', tex: ['log_top', 'log_top', 'log_side'], hard: 0.6, coins: 0 },
   { id: 14, name: 'leaves', tex: 'leaves', hard: 0.15, coins: 0 },
   { id: 15, name: 'rubble', tex: 'rubble', hard: 0.5, coins: 0 },
+  // the town: none of it can be dug or blown up (hard 99)
+  { id: 16, name: 'planks', tex: 'planks', hard: 99, coins: 0 },
+  { id: 17, name: 'bricks', tex: 'bricks', hard: 99, coins: 0 },
+  { id: 18, name: 'roof', tex: 'roof', hard: 99, coins: 0 },
+  { id: 19, name: 'glass', tex: 'glass', hard: 99, coins: 0 },
+  { id: 20, name: 'cobble', tex: 'cobble', hard: 99, coins: 0 },
+  { id: 21, name: 'awning_green', tex: 'awning_green', hard: 99, coins: 0 },
+  { id: 22, name: 'awning_red', tex: 'awning_red', hard: 99, coins: 0 },
+  { id: 23, name: 'awning_blue', tex: 'awning_blue', hard: 99, coins: 0 },
+  { id: 24, name: 'awning_yellow', tex: 'awning_yellow', hard: 99, coins: 0 },
+  { id: 25, name: 'awning_purple', tex: 'awning_purple', hard: 99, coins: 0 },
+  { id: 26, name: 'portal', tex: 'portal', hard: 99, coins: 0 },
 ]
 export const ID = Object.fromEntries(BLOCKS.map(b => [b.name, b.id]))
 

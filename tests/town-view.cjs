@@ -1,0 +1,42 @@
+/* System 19 check in the open game: the town, its doors and E.
+   node tests/town-view.cjs */
+const { launch, sleep } = require('../tools/cdp.cjs')
+let fails = 0
+const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fails++ }
+;(async () => {
+  const p = await launch({ w: 1280, h: 720, port: 9405 })
+  await p.navigate('http://localhost:5181/'); await sleep(6500)
+  await p.tap(640, 360); await sleep(300)
+  const O = '__open'
+  const promptText = () => p.eval(`getComputedStyle(document.querySelector('.door-prompt')).display === 'none' ? '' : document.querySelector('.door-prompt b').textContent`)
+  ok((await promptText()) === '', 'in the middle of the square: no prompt')
+  ok(await p.eval(`${O}.world.get(0, 0, 0) === 20 && ${O}.noa.getBlock(0, 5, 12) === 18`), 'the square is cobbled and the Market has its roof, drawn')
+  await p.eval(`${O}.noa.entities.setPosition(${O}.noa.playerEntity, [0.5, 1, 7.4]); ${O}.noa.camera.heading = 0`); await sleep(500)
+  ok((await promptText()) === 'Market', 'at the Market door: "[E] Market"')
+  await p.hold('KeyE', 80); await sleep(400)
+  ok(await p.eval(`!!document.querySelector('.building') && document.querySelector('.building h1').textContent === 'Market'`), 'E opens it')
+  ok(!(await p.eval('!!document.pointerLockElement')), 'with the mouse free')
+  await p.eval(`document.querySelector('.building .close').click()`); await sleep(300)
+  ok(!(await p.eval(`!!document.querySelector('.building')`)), 'Close shuts it')
+  await p.eval(`${O}.noa.entities.setPosition(${O}.noa.playerEntity, [0.5, 1, -6.6])`); await sleep(500)
+  ok(/Museum \(coming soon\)/.test(await promptText()), 'the Museum says it is coming soon')
+  // E no longer places a block; the right button still does
+  await p.tap(640, 360); await sleep(300)
+  // out of town on open grass: stand on the ground there, look a little down
+  await p.eval(`(() => { let y = 12; while (${O}.world.get(30, y - 1, 2) === 0) y--
+    ${O}.digger.stock = 5; ${O}.noa.entities.setPosition(${O}.noa.playerEntity, [30.5, y, 2.5]); ${O}.noa.camera.heading = 0; ${O}.noa.camera.pitch = 0.7 })()`); await sleep(1500)
+  console.log('    aiming at', JSON.stringify(await p.eval(`${O}.noa.targetedBlock && [...${O}.noa.targetedBlock.position]`)))
+  await p.hold('KeyE', 80); await sleep(300)
+  ok((await p.eval(`${O}.digger.stock`)) === 5, 'E places nothing')
+  await p.mouseHold(640, 360, 80, 'right'); await sleep(300)
+  ok((await p.eval(`${O}.digger.stock`)) === 4, 'the right button still places rubble')
+  // the town cannot be dug
+  // aim beside the doorway, at the front wall (looking through the door reaches the far wall, out of reach)
+  await p.eval(`${O}.noa.entities.setPosition(${O}.noa.playerEntity, [2.5, 1, 7.4]); ${O}.noa.camera.heading = 0; ${O}.noa.camera.pitch = 0.2`); await sleep(800)
+  const t = await p.eval(`${O}.noa.targetedBlock && [...${O}.noa.targetedBlock.position]`)
+  await p.mouseHold(640, 360, 2500); await sleep(300)
+  ok(t && (await p.eval(`${O}.world.get(${t.join(',')})`)) !== 0, `the Market's wall cannot be dug (${t})`)
+  ok(p.errors.length === 0, 'console clean ' + JSON.stringify(p.errors.slice(0, 3)))
+  await p.close()
+  console.log(fails ? `${fails} failed` : 'all ok'); process.exit(fails ? 1 : 0)
+})()

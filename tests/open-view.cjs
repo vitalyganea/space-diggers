@@ -10,6 +10,8 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
      'no countdown, no clock, no race board')
   ok(await p.eval('__open.digger.enabled'), 'you can dig straight away')
   await p.tap(640, 360); await sleep(400)
+  // out of town (its square cannot be dug), onto the flat grass east of it
+  await p.eval('__open.noa.entities.setPosition(__open.noa.playerEntity, [26.5, 1, 0.5])'); await sleep(1500)
   const start = await p.eval('__open.state()')
   await p.eval('__open.noa.camera.pitch = 1.55'); await sleep(200)
   await p.mouseHold(640, 360, 2600); await sleep(600)

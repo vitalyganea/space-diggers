@@ -15,6 +15,7 @@
    first version repeated the whole world every LANE_GAP blocks so the
    lanes were identical; it read as wallpaper and was dropped.) */
 import { ID } from './blocks.js'
+import { townVoxel, TOWN_R } from './town.js'
 
 export const LANE_GAP = 10
 export const LANES = 6
@@ -83,19 +84,22 @@ function noise3(seed, x, y, z, cell) {
   return 0.65 * value3(seed, x, y, z, cell) + 0.35 * value3(seed + 101, x + 17, y, z - 9, cell / 2.3)
 }
 
-export function makeWorld(seed = 1) {
+/* { town: true } puts the town at the spawn (the open game); the race has none. */
+export function makeWorld(seed = 1, { town = false } = {}) {
+  const inTown = (x, z) => town && Math.abs(x) <= TOWN_R + 4 && Math.abs(z) <= TOWN_R + 4
   function above(x, y, z) {
-    const h = surfaceHeight(seed, x, z)
+    if (town) { const t = townVoxel(x, y, z); if (t !== -1) return t }
+    const h = inTown(x, z) ? 0 : surfaceHeight(seed, x, z)
     if (y < h) return ID.dirt
     if (y === h) return ID.grass
     // trees: a trunk here, or leaves from a trunk within two blocks
-    const trunk = treeAt(seed, x, z)
+    const trunk = inTown(x, z) ? 0 : treeAt(seed, x, z)
     if (trunk && y > h && y <= h + trunk) return ID.log
     if (y > h + 6 + 3) return 0
     for (let dx = -2; dx <= 2; dx++) for (let dz = -2; dz <= 2; dz++) {
-      const t = treeAt(seed, x + dx, z + dz)
+      const t = inTown(x + dx, z + dz) ? 0 : treeAt(seed, x + dx, z + dz)
       if (!t) continue
-      const top = surfaceHeight(seed, x + dx, z + dz) + t
+      const top = (inTown(x + dx, z + dz) ? 0 : surfaceHeight(seed, x + dx, z + dz)) + t
       const r = y > top ? 1 : 2                       // the cap narrows at the top
       if (y >= top - 1 && y <= top + 1 && Math.abs(dx) <= r && Math.abs(dz) <= r &&
           !(Math.abs(dx) === 2 && Math.abs(dz) === 2) && !(dx === 0 && dz === 0 && y <= top)) return ID.leaves

@@ -18,6 +18,8 @@ import { ITEMS, Backpack, dropFor } from './items.js'
 import { Battery } from './battery.js'
 import { Rescue, rechargeCost, FREE_CHARGE, SURFACE_DEPTH } from './stranded.js'
 import { StrandedCard } from './ui/stranded.js'
+import { doorNear } from './town.js'
+import { nameBoards, DoorPrompt, buildingCard } from './ui/townui.js'
 import { OpenHud } from './ui/openhud.js'
 import { clickToPlay } from './ui/hud.js'
 import { addCrosshair } from './ui/crosshair.js'
@@ -34,7 +36,7 @@ export function start(platform) {
 
   const noa = createEngine({ playerStart: kept && kept.pos ? kept.pos : SPAWN })
   registerBlocks(noa)
-  const world = new World(seed)
+  const world = new World(seed, { town: true })
   if (kept) world.edits = kept.edits
   world.attach(noa)
 
@@ -103,7 +105,24 @@ export function start(platform) {
       }
     })
   const openCard = () => { if (document.pointerLockElement) document.exitPointerLock(); card.show() }
-  clickToPlay(() => !card.open, noa.container.element)
+
+  // the town: boards over the doors, the prompt, E to go in. E was noa's
+  // second binding for placing a block; that stays on the right button only.
+  nameBoards(noa)
+  const prompt = new DoorPrompt()
+  let inside = null
+  noa.inputs.unbind('alt-fire')
+  noa.inputs.bind('alt-fire', 'Mouse3')
+  noa.inputs.bind('use', 'KeyE')
+  const enter = door => {
+    if (document.pointerLockElement) document.exitPointerLock()
+    const html = door.ready ? `<p>The ${door.name} opens its doors soon.</p>` : `<p>Coming soon!</p>`
+    inside = buildingCard(door.name, html, () => { inside = null })
+    sound.play('place')
+  }
+  noa.inputs.down.on('use', () => { const d = doorNear(noa.entities.getPosition(noa.playerEntity)); if (d && !inside) enter(d) })
+  clickToPlay(() => !card.open && !inside, noa.container.element, 'Click to play',
+    'WASD move · Space jump and climb · hold left mouse to dig · E to go in')
 
   const bombs = new Bombs(noa, world, {
     onFuse: () => sound.play('fuse'),
@@ -176,7 +195,8 @@ export function start(platform) {
     sinceSave += dt / 1000
     if (sinceSave >= AUTOSAVE) { sinceSave = 0; persist() }
     hud.update({ coins: digger.coins, depth: depth(), bag, battery, blocksLeft: battery.blocksLeft(lastHard) })
+    prompt.show(inside ? null : doorNear(noa.entities.getPosition(noa.playerEntity)))
   })
 
-  if (import.meta.env.DEV) window.__open = { noa, world, digger, save, sound, bombs, persist, bag, battery, rescue, card, state: () => playerState(noa), depth }
+  if (import.meta.env.DEV) window.__open = { noa, world, digger, save, sound, bombs, persist, bag, battery, rescue, card, inside: () => inside, state: () => playerState(noa), depth }
 }

@@ -82,3 +82,9 @@
 .stranded .wait em s { display: block; height: 100%; background: #6ee7b7; }
 .stranded .pick { display: flex; flex-direction: column; gap: 8px; margin: 8px 0 14px; }
 .fake-ad { z-index: 60; background: #000; }
+.door-prompt { inset: auto 0 96px 0; text-align: center; pointer-events: none; }
+.door-prompt .panel { display: inline-block; padding: 10px 20px; font-size: 22px; font-weight: 800; }
+.door-prompt kbd { display: inline-block; min-width: 26px; padding: 2px 8px; border-radius: 6px; background: #fff; color: #222;
+  text-shadow: none; font: 900 18px inherit; box-shadow: 0 2px 0 #999; margin-right: 6px; }
+.building .card { min-width: 420px; max-width: 620px; }
+.building .body { margin: 6px 0 16px; font-size: 18px; }

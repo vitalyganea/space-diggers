@@ -8,9 +8,9 @@ import { makeWorld } from './worldgen.js'
 const key = (x, y, z) => `${x},${y},${z}`
 
 export class World {
-  constructor(seed = 1) {
+  constructor(seed = 1, opts = {}) {
     this.seed = seed
-    this.gen = makeWorld(seed)
+    this.gen = makeWorld(seed, opts)
     this.edits = new Map()
     this.noa = null
   }

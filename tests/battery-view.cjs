@@ -9,6 +9,8 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   await p.navigate('http://localhost:5181/'); await sleep(6000)
   await p.tap(640, 360); await sleep(300)
   const O = '__open'
+  // out of town (its square cannot be dug), onto the flat grass east of it
+  await p.eval(`${O}.noa.entities.setPosition(${O}.noa.playerEntity, [26.5, 1, 0.5])`); await sleep(1500)
   ok((await p.eval(`${O}.battery.charge`)) === 100 && /100%/.test(await p.eval(`document.querySelector('.hud .batt').textContent`)), 'a new player starts with a full battery on the HUD')
   await p.eval(`${O}.noa.camera.pitch = 1.55`)
   await p.mouseHold(640, 360, 2000); await sleep(300)
@@ -34,6 +36,9 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   await p.hold('Space', 3500); await sleep(500)
   const top = (await p.eval(`${O}.state()`)).y
   ok(bottom <= -10.9 && top > bottom + 8, `Space against the shaft wall climbs it (y ${bottom} -> ${top})`)
+  // back down the shaft, out of the sun (at the surface it would charge), then save and reload
+  await p.eval(`(() => { const s = ${O}.state(); ${O}.noa.entities.setPosition(${O}.noa.playerEntity, [s.x, -11, s.z]); ${O}.battery.charge = 0 })()`)
+  await sleep(1000)
   await p.eval(`${O}.persist()`); await p.reload(); await sleep(6500)
   ok((await p.eval(`${O}.battery.flat`)), 'a flat battery is still flat after a reload')
   ok(p.errors.length === 0, 'console clean ' + JSON.stringify(p.errors.slice(0, 3)))
