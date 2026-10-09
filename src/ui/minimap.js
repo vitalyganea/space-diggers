@@ -6,11 +6,11 @@
    coloured squares with a letter; if the town is off the map an arrow at
    the edge points home. You are the white arrow, turned the way you look.
 
-   The meter beside it is the way down to the Core, its layers coloured,
+   The meter beside it is the way down through the Moon to the Core, its layers coloured,
    with a marker where you are. Redrawn five times a second. */
 import { byId, ID } from '../blocks.js'
 import { BUILDINGS, PORTAL } from '../town.js'
-import { LAYERS, CORE_Y } from '../worldgen.js'
+import { MOON, CORE_Y } from '../worldgen.js'
 
 const RANGE = 24
 const PX = 4                                  // pixels per block
@@ -22,8 +22,8 @@ const COLORS = {
   [ID.rubble]: '#7a7a80', [ID.deck]: '#454c58', [ID.floor]: '#6b7280', [ID.hull]: '#dde3ea',
 }
 const SHOP_COLORS = { market: '#2fbf71', workshop: '#f5c518', bombs: '#e63946', museum: '#3b82f6', robots: '#8b5cf6', portal: '#a78bfa' }
-const BAND = [['Dust', 0, LAYERS.dirt, '#8b8780'], ['Moon rock', LAYERS.dirt, LAYERS.stone, '#76777e'], ['Dark rock', LAYERS.stone, LAYERS.deep, '#454c62'],
-  ['Basalt', LAYERS.deep, LAYERS.basalt, '#2e2d35'], ['Crystal', LAYERS.basalt, LAYERS.crystal, '#7c5ce6'], ['Core', LAYERS.crystal, CORE_Y - 2, '#fbbf24']]
+const BAND = [['Dust', 0, MOON.dust, '#8b8780'], ['Moon rock', MOON.dust, MOON.rock, '#76777e'], ['Dark rock', MOON.rock, MOON.dark, '#454c62'],
+  ['Ice caves', MOON.dark, MOON.ice, '#7fbde4'], ['Crystal', MOON.ice, MOON.crystal, '#7c5ce6'], ['Core', MOON.crystal, CORE_Y - 2, '#fbbf24']]
 
 export class Minimap {
   constructor(world) {

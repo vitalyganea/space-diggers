@@ -8,8 +8,8 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
 ;(async () => {
   const p = await launch({ w: 1280, h: 720, port: 9377 })
   await p.navigate('http://localhost:5181/?dev=dig')
-  await sleep(6000)
   const D = 'window.__dev'
+  await p.waitFor(`window.__dev && ${D}.block(0, 0, 0) === 1 && ${D}.block(2, 1, 3) > 0`); await sleep(1000)
   await p.tap(640, 360); await sleep(400)          // lock the mouse first
 
   // straight down onto the grass under his feet

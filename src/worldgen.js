@@ -1,4 +1,5 @@
-/* The round's world, as a pure function of (seed, x, y, z) -> block id.
+/* The worlds, as pure functions of (seed, x, y, z) -> block id: the race's
+   (makeWorld) and, for the open game, the Moon (makeMoon, row 27, below).
 
    Layers by depth, from the surface at y = 0 down to the Core:
      grass, dirt to y -4, stone to -35, deep stone to -65, a basalt band
@@ -22,8 +23,8 @@ export const LANES = 6
 export const CORE_Y = -100
 export const LAYERS = { dirt: -4, stone: -35, deep: -65, basalt: -85, crystal: -99 }
 export const SHAFT_R = 3
-/* The race arena: flat grass, no trees. Outside it the land rolls into low
-   hills with trees, so the start looks like a place and not a test grid. */
+/* The race arena: flat regolith. Outside it the land rolls into low hills
+   with boulders, so the start looks like a place and not a test grid. */
 export const ARENA = { x: 34, z: 10 }
 /* The designed lava pockets under every lane: centre (relative to the lane
    centre), and radii. */
@@ -71,12 +72,21 @@ export function surfaceHeight(seed, x, z) {
   return Math.round(ramp * (value3(seed + 9, x, 0, z, 9) * 6 + value3(seed + 19, x, 0, z, 4) * 2 - 1.2))
 }
 
-/* A tree stands at (x, z) if the dice say so, outside the arena on level-ish
-   ground. Trunk 4 or 5 logs, a leafy cap two blocks wide each side. */
-function treeAt(seed, x, z) {
-  if (Math.abs(x) <= ARENA.x + 2 && Math.abs(z) <= ARENA.z + 2) return 0
-  if (hash(seed + 31, x, 0, z) > 0.009) return 0
-  return 4 + Math.floor(hash(seed + 37, x, 1, z) * 2)
+/* A boulder sits at (x, z) if the dice say so, outside `clear(x, z)`:
+   a lump of moon rock 1–3 blocks high, rounded off at the top. Its centre
+   column is the tallest; neighbours within its radius are a block lower
+   per block out. Returns the boulder's top above the ground, 0 for none. */
+function boulderAt(seed, x, z, clear) {
+  // the clear areas are convex: if all four corners of the reach are in one, so is the rest
+  if (clear(x - 2, z - 2) && clear(x + 2, z + 2) && clear(x - 2, z + 2) && clear(x + 2, z - 2)) return 0
+  for (let dx = -2; dx <= 2; dx++) for (let dz = -2; dz <= 2; dz++) {
+    const cx = x + dx, cz = z + dz
+    if (clear(cx, cz) || hash(seed + 31, cx, 0, cz) > 0.006) continue
+    const size = 1 + Math.floor(hash(seed + 37, cx, 1, cz) * 3)            // 1..3
+    const d = Math.max(Math.abs(dx), Math.abs(dz))
+    if (d < size) return size - d
+  }
+  return 0
 }
 
 /* Two scales together, so shapes come out rounded instead of boxy. */
@@ -84,26 +94,17 @@ function noise3(seed, x, y, z, cell) {
   return 0.65 * value3(seed, x, y, z, cell) + 0.35 * value3(seed + 101, x + 17, y, z - 9, cell / 2.3)
 }
 
-/* { town: true } puts the town at the spawn (the open game); the race has none. */
+/* The race's world; { town: true } asks for the open game's, which is the
+   Moon with the base at the spawn. */
 export function makeWorld(seed = 1, { town = false } = {}) {
-  const inTown = (x, z) => town && Math.abs(x) <= TOWN_R + 4 && Math.abs(z) <= TOWN_R + 4
+  if (town) return makeMoon(seed)
+  const clear = (x, z) => Math.abs(x) <= ARENA.x + 2 && Math.abs(z) <= ARENA.z + 2
   function above(x, y, z) {
-    if (town) { const t = townVoxel(x, y, z); if (t !== -1) return t }
-    const h = inTown(x, z) ? 0 : surfaceHeight(seed, x, z)
+    const h = surfaceHeight(seed, x, z)
     if (y < h) return ID.dust
     if (y === h) return ID.regolith
-    // trees: a trunk here, or leaves from a trunk within two blocks
-    const trunk = inTown(x, z) ? 0 : treeAt(seed, x, z)
-    if (trunk && y > h && y <= h + trunk) return ID.ice
-    if (y > h + 6 + 3) return 0
-    for (let dx = -2; dx <= 2; dx++) for (let dz = -2; dz <= 2; dz++) {
-      const t = inTown(x + dx, z + dz) ? 0 : treeAt(seed, x + dx, z + dz)
-      if (!t) continue
-      const top = (inTown(x + dx, z + dz) ? 0 : surfaceHeight(seed, x + dx, z + dz)) + t
-      const r = y > top ? 1 : 2                       // the cap narrows at the top
-      if (y >= top - 1 && y <= top + 1 && Math.abs(dx) <= r && Math.abs(dz) <= r &&
-          !(Math.abs(dx) === 2 && Math.abs(dz) === 2) && !(dx === 0 && dz === 0 && y <= top)) return ID.frost
-    }
+    const b = y <= h + 3 ? boulderAt(seed, x, z, clear) : 0
+    if (b && y <= h + b) return ID.moonrock
     return 0
   }
 
@@ -146,6 +147,134 @@ export function makeWorld(seed = 1, { town = false } = {}) {
       return ID.basalt
     }
     if (r < 0.03) return ID.stargem_ore
+    return ID.crystal
+  }
+}
+
+/* ------------------------------------------------------------------ the Moon
+
+   The open game's world (row 27). The base sits on a flat plain at the
+   spawn; past it the ground rolls gently and is pocked with craters, with
+   boulders lying about. Under it, from the top:
+     regolith, dust to y -4, moon rock to -35, dark rock to -65, the ice
+     caves to -85 (caves walled in ice and frost, helium ore in the walls),
+     crystal to -99, and the Core from -100: the bottom, for now.
+   No lava (the race's lava pockets got in the way eight times in eight
+   minutes of the first playtest, for no reward).
+
+   Ore comes in veins of 3–8 blocks: the rock is cut into 4×4×4 cells and
+   most cells hold one vein, a short random walk kept inside its cell, of
+   an ore that suits the depth. They show in tunnel walls and are worth
+   turning aside for. tests/moon.mjs measures how much a straight shaft
+   meets and how much shows in its walls. (A first try, ore where a fine
+   noise ran high, gave single blocks and blobs of over a hundred.) */
+export const MOON = { dust: -4, rock: -35, dark: -65, ice: -85, crystal: -99, plain: TOWN_R + 14 }
+/* Each ore: the depths it is found at (y from, y to) and how often, against
+   the others there. Copper near the top, titanium through the rock, gold
+   and star gems deep, helium in the ice. */
+const VEINS = [
+  { id: ID.copper_ore, from: -2, to: -40, weight: 5 },
+  { id: ID.titanium_ore, from: -12, to: -66, weight: 4 },
+  { id: ID.gold_ore, from: -34, to: -90, weight: 3 },
+  { id: ID.stargem_ore, from: -55, to: -99, weight: 1.5 },
+  { id: ID.helium_ore, from: -64, to: -88, weight: 3 },
+]
+export const VEIN_CELL = 4
+const VEIN_CHANCE = 0.85
+const STEPS = [[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1], [1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1], [0, 1, 0], [0, -1, 0]]   // flatter than tall
+
+/* The vein in cell (i, j, k), as 64 block ids (0 for none), or null. */
+function veinCell(seed, i, j, k) {
+  if (hash(seed + 81, i, j, k) > VEIN_CHANCE) return null
+  const N = VEIN_CELL, y0 = j * N + N / 2
+  const here = VEINS.filter(v => y0 <= v.from && y0 >= v.to)
+  if (!here.length) return null
+  let pick = hash(seed + 82, i, j, k) * here.reduce((a, v) => a + v.weight, 0), ore = here[0]
+  for (const v of here) { if (pick < v.weight) { ore = v; break } pick -= v.weight }
+  const cells = new Uint8Array(N * N * N)
+  const len = 3 + Math.floor(hash(seed + 83, i, j, k) * 6)                 // 3..8
+  let x = 1 + Math.floor(hash(seed + 84, i, j, k) * 2), y = 1 + Math.floor(hash(seed + 85, i, j, k) * 2), z = 1 + Math.floor(hash(seed + 86, i, j, k) * 2)
+  let n = 0
+  for (let s = 0; n < len && s < 40; s++) {
+    const at = (y * N + z) * N + x
+    if (!cells[at]) { cells[at] = ore.id; n++ }
+    const [dx, dy, dz] = STEPS[Math.floor(hash(seed + 87 + s, i, j, k) * STEPS.length)]
+    x = Math.max(0, Math.min(N - 1, x + dx)); y = Math.max(0, Math.min(N - 1, y + dy)); z = Math.max(0, Math.min(N - 1, z + dz))
+  }
+  return cells
+}
+const CRATER_CELL = 26
+
+/* The crater whose cell holds (x, z), if any: { cx, cz, r }. One at most
+   per cell, kept off the plain round the base. */
+function craterIn(seed, i, j) {
+  if (hash(seed + 61, i, 0, j) > 0.55) return null
+  const cx = Math.floor((i + 0.2 + hash(seed + 62, i, 1, j) * 0.6) * CRATER_CELL)
+  const cz = Math.floor((j + 0.2 + hash(seed + 63, i, 2, j) * 0.6) * CRATER_CELL)
+  const r = 4 + hash(seed + 64, i, 3, j) * 6
+  if (Math.hypot(cx, cz) < MOON.plain + r + 2) return null
+  return { cx, cz, r }
+}
+
+/* Ground height on the Moon: flat on the plain, gentle rolls past it, and
+   craters pressed in, a bowl a third as deep as it is wide with a raised rim. */
+export function moonHeight(seed, x, z) {
+  const out = Math.hypot(x, z) - MOON.plain
+  if (out <= 0) return 0
+  const ramp = Math.min(1, out / 10)
+  let h = ramp * (value3(seed + 9, x, 0, z, 11) * 4 + value3(seed + 19, x, 0, z, 5) * 1.5 - 1.6)
+  const i = Math.floor(x / CRATER_CELL), j = Math.floor(z / CRATER_CELL)
+  for (let di = -1; di <= 1; di++) for (let dj = -1; dj <= 1; dj++) {
+    const c = craterIn(seed, i + di, j + dj)
+    if (!c) continue
+    const d = Math.hypot(x - c.cx, z - c.cz) / c.r
+    if (d < 1) h -= c.r * 0.38 * (1 - d * d)                     // the bowl
+    else if (d < 1.4) h += 1.2 * (1 - Math.abs(d - 1.15) / 0.25) // the rim
+  }
+  return Math.round(h)
+}
+
+export function makeMoon(seed = 1) {
+  const onPlain = (x, z) => Math.hypot(x, z) <= MOON.plain + 3     // a boulder reaches 2 blocks from its centre
+  const heights = new Map()
+  const ground = (x, z) => {
+    const k = x * 100003 + z
+    let h = heights.get(k)
+    if (h === undefined) { h = moonHeight(seed, x, z); if (heights.size > 200000) heights.clear(); heights.set(k, h) }
+    return h
+  }
+  const veinCache = new Map()
+  const veinAt = (x, y, z) => {
+    const N = VEIN_CELL, i = Math.floor(x / N), j = Math.floor(y / N), k = Math.floor(z / N)
+    const key = (i * 4099 + j) * 4099 + k
+    let c = veinCache.get(key)
+    if (c === undefined) { c = veinCell(seed, i, j, k); if (veinCache.size > 100000) veinCache.clear(); veinCache.set(key, c) }
+    return c ? c[((y - j * N) * N + (z - k * N)) * N + (x - i * N)] : 0
+  }
+  const caveAt = (x, y, z) => y < MOON.dust - 3 && y > MOON.crystal + 2 &&
+    noise3(seed + 3, x, y, z, y < MOON.dark ? 8 : 7) > (y < MOON.dark && y > MOON.ice ? 0.68 : 0.75)
+
+  return function voxel(x, y, z) {
+    if (y <= CORE_Y) return ID.core
+    const t = townVoxel(x, y, z)
+    if (t !== -1 && y >= 0) return t
+    const h = ground(x, z)
+    if (y > h) {
+      const b = y <= h + 3 ? boulderAt(seed, x, z, onPlain) : 0
+      return b && y <= h + b ? ID.moonrock : 0
+    }
+    if (y === h) return ID.regolith
+    const wob = Math.floor(noise3(seed + 1, x, 0, z, 5) * 3) - 1   // -1..1, so the lines do not look ruled
+    if (y > Math.min(h, 0) + MOON.dust + wob) return ID.dust
+    const iceLayer = y <= MOON.dark + wob && y > MOON.ice + wob
+    if (caveAt(x, y, z)) return 0
+    // walls of the ice caves: ice, frost on the floors
+    if (iceLayer && (caveAt(x, y + 1, z) || caveAt(x + 1, y, z) || caveAt(x - 1, y, z) || caveAt(x, y, z + 1) || caveAt(x, y, z - 1)))
+      return caveAt(x, y + 1, z) && hash(seed + 71, x, y, z) < 0.6 ? ID.frost : ID.ice
+    if (y < Math.min(h, 0) - 1) { const v = veinAt(x, y, z); if (v) return v }
+    if (y > MOON.rock + wob) return ID.moonrock
+    if (y > MOON.dark + wob) return ID.darkrock
+    if (iceLayer) return hash(seed + 7, x, y, z) < 0.08 ? ID.ice : ID.darkrock
     return ID.crystal
   }
 }

@@ -6,7 +6,12 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   const p = await launch({ w: 1280, h: 720, port: 9382 })
   await p.navigate('http://localhost:5181/?dev=animals'); await sleep(6000)
   const read = () => p.eval(`window.__dev.crew.map(c => {
-    const r = c.a.root, kids = r.getChildMeshes(false), bb = r.getHierarchyBoundingVectors(true, m => m !== c.a.tag)
+    const r = c.a.root, kids = r.getChildMeshes(false)
+    // measured with the model turned square to the world: the beaver walks a circle, and a box
+    // round it turned 45 degrees is wider than the beaver
+    const turn = r.rotation.y; r.rotation.y = 0; r.computeWorldMatrix(true); kids.forEach(m => m.computeWorldMatrix(true))
+    const bb = r.getHierarchyBoundingVectors(true, m => m !== c.a.tag)
+    r.rotation.y = turn; r.computeWorldMatrix(true)
     const leg = kids.find(m => m.name === 'footL').parent, arm = kids.find(m => m.name === 'drillBody').parent
     return { kind: c.kind, parts: kids.length, height: +(bb.max.y - bb.min.y).toFixed(2), width: +(bb.max.x - bb.min.x).toFixed(2),
       helmet: kids.some(m => m.name === 'helmet'), lamp: kids.some(m => m.name === 'lamp'),
