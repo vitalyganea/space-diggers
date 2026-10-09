@@ -27,8 +27,12 @@ export const SETS = {
   fossils: { name: 'Space Fossils', from: 30, to: 90, reward: 600, finds: [
     ['starshell', 'Star shell', 'uncommon', '🐚'], ['fern', 'Alien fern', 'rare', '🌿'], ['trilobite', 'Space trilobite', 'rare', '🦐'],
     ['bone', 'Giant moon bone', 'epic', '🦴'], ['helmet', 'Dino astronaut helmet', 'legendary', '🦖']] },
+  // the Ice Moon's (row 58)
+  frozen: { name: 'Frozen Wonders', planet: 'ice', from: 0, to: 100, reward: 1200, finds: [
+    ['snowflake', 'Fossil snowflake', 'common', '❄️'], ['fish', 'Frozen space fish', 'uncommon', '🐟'], ['tusk', 'Ice mammoth tusk', 'rare', '🦣'],
+    ['footprint', 'Yeti footprint cast', 'epic', '👣'], ['frozenstar', 'Frozen star', 'legendary', '⭐']] },
   crystals: { name: 'Crystal Wonders', from: 60, to: 100, reward: 1000, finds: [
-    ['icecrystal', 'Ice crystal', 'uncommon', '❄️'], ['bubble', 'Helium bubble', 'rare', '🫧'], ['geode', 'Glowing geode', 'epic', '💠'],
+    ['icecrystal', 'Ice crystal', 'uncommon', '🧊'], ['bubble', 'Helium bubble', 'rare', '🫧'], ['geode', 'Glowing geode', 'epic', '💠'],
     ['comet', 'Comet heart', 'legendary', '☄️'], ['heart', 'Heart of the Moon', 'mythic', '💖']] },
 }
 
@@ -41,9 +45,9 @@ export const FIND_CHANCE = 0.025          // a find in one dug block in forty
 /* What a dug block at `depth` holds, if anything: a find's key or null.
    rnd() is 0..1. First the chance, then a rarity by weight among the finds
    that can be found at this depth. */
-export function rollFind(depth, rnd = Math.random) {
+export function rollFind(depth, rnd = Math.random, planet = 'moon') {
   if (rnd() >= FIND_CHANCE) return null
-  const here = Object.values(FINDS).filter(f => depth >= SETS[f.set].from && depth <= SETS[f.set].to)
+  const here = Object.values(FINDS).filter(f => (SETS[f.set].planet || 'moon') === planet && depth >= SETS[f.set].from && depth <= SETS[f.set].to)
   if (!here.length) return null
   const total = here.reduce((a, f) => a + RARITY[f.rarity].weight / countOf(here, f.rarity), 0)
   let r = rnd() * total

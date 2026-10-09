@@ -16,11 +16,13 @@ import {
 import { makeSky } from './sky.js'
 
 const DARK_AT = -40
-const SKY_LOW = [0.03, 0.04, 0.09]           // the fog colour at the surface: space at the horizon
+const SKY_LOW_MOON = [0.03, 0.04, 0.09]      // the fog colour at the surface: space at the horizon
 const DEEP = [0.03, 0.03, 0.05]
 const mix = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t)
 
-export function applyLook(noa, { drill = true } = {}) {
+/* planet: a planet's look (src/planets.js .sky), the Moon's by default */
+export function applyLook(noa, { drill = true, planet = null } = {}) {
+  const SKY_LOW = planet && planet.fog ? planet.fog : SKY_LOW_MOON
   const scene = noa.rendering.getScene()
   const cam = noa.rendering.camera
 
@@ -35,7 +37,7 @@ export function applyLook(noa, { drill = true } = {}) {
   scene.fogEnd = 72
 
   // the sky (src/sky.js)
-  const sky = makeSky(noa)
+  const sky = makeSky(noa, planet || {})
   const dome = sky.dome
 
   // the miner's lamp

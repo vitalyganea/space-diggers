@@ -28,15 +28,18 @@ const COLORS = {
   [ID.regolith]: '#b4b3ae', [ID.dust]: '#8b8780', [ID.moonrock]: '#76777e', [ID.darkrock]: '#454c62', [ID.basalt]: '#2e2d35',
   [ID.lava]: '#f97316', [ID.crystal]: '#7c5ce6', [ID.copper_ore]: '#d9773a', [ID.titanium_ore]: '#e2e8f0', [ID.gold_ore]: '#f5c518',
   [ID.stargem_ore]: '#f472b6', [ID.helium_ore]: '#4ade80', [ID.core]: '#fbbf24', [ID.ice]: '#9fd3f0', [ID.frost]: '#e3f0f9',
-  [ID.rubble]: '#7a7a80', [ID.meteorite]: '#2a1d16', [ID.meteor_ore]: '#cbd5e1', [ID.charger]: '#22d3ee', [ID.deck]: '#454c58', [ID.floor]: '#6b7280', [ID.hull]: '#dde3ea',
+  [ID.rubble]: '#7a7a80', [ID.snow]: '#f3f8fc', [ID.packed_ice]: '#6fa8dc', [ID.coldsilver_ore]: '#e2e8f0', [ID.frostgem_ore]: '#2563eb', [ID.meteorite]: '#2a1d16', [ID.meteor_ore]: '#cbd5e1', [ID.charger]: '#22d3ee', [ID.deck]: '#454c58', [ID.floor]: '#6b7280', [ID.hull]: '#dde3ea',
 }
-const SHOP_COLORS = { market: '#2fbf71', workshop: '#f5c518', bombs: '#e63946', museum: '#3b82f6', robots: '#8b5cf6', portal: '#a78bfa', pad: '#e5e7eb' }
-const BAND = [['Dust', 0, MOON.dust, '#8b8780'], ['Moon rock', MOON.dust, MOON.rock, '#76777e'], ['Dark rock', MOON.rock, MOON.dark, '#454c62'],
+const SHOP_COLORS = { market: '#2fbf71', workshop: '#f5c518', bombs: '#e63946', museum: '#3b82f6', robots: '#8b5cf6', portal: '#a78bfa', pad: '#e5e7eb', outpost: '#2fbf71' }
+const BAND_MOON = [['Dust', 0, MOON.dust, '#8b8780'], ['Moon rock', MOON.dust, MOON.rock, '#76777e'], ['Dark rock', MOON.rock, MOON.dark, '#454c62'],
   ['Ice caves', MOON.dark, MOON.ice, '#7fbde4'], ['Crystal', MOON.ice, MOON.crystal, '#7c5ce6'], ['Core', MOON.crystal, CORE_Y - 2, '#fbbf24']]
 
 export class Minimap {
-  constructor(world) {
+  /* opts: { layers (the planet's, for the depth meter), meteors (draw the Moon's meteorite craters) } */
+  constructor(world, opts = {}) {
     this.world = world
+    this.showMeteors = opts.meteors !== false
+    const BAND = opts.layers || BAND_MOON
     this.el = document.createElement('div')
     this.el.className = 'hud minimap'
     this.el.innerHTML = `<div class="meter panel"><div class="bands"></div><i class="you"></i></div>
@@ -88,7 +91,7 @@ export class Minimap {
     // the town: a square per building, or an arrow home at the edge
     const c = SIZE / 2
     let townSeen = false
-    for (const b of [...BUILDINGS, PORTAL, PAD]) {
+    for (const b of [...BUILDINGS, PORTAL, PAD].filter(Boolean)) {
       const x = (b.at[0] - px + RANGE) * PX, z = (RANGE - (b.at[1] - pz)) * PX + PX
       if (x < 0 || z < 0 || x > SIZE || z > SIZE) continue
       townSeen = true
@@ -105,7 +108,7 @@ export class Minimap {
     // meteorite craters (row 39): an orange ring round each on the map, and an
     // orange arrow at the edge towards the nearest one off it (within 90 blocks)
     let nearest = null
-    for (const m of meteorCraters(w.seed, px, pz, 90)) {
+    for (const m of this.showMeteors ? meteorCraters(w.seed, px, pz, 90) : []) {
       const x = (m.cx - px + RANGE) * PX, z = (RANGE - (m.cz - pz)) * PX
       if (x > -m.r * PX && z > -m.r * PX && x < SIZE + m.r * PX && z < SIZE + m.r * PX) {
         g.strokeStyle = '#f97316'; g.lineWidth = 2; g.beginPath(); g.arc(x, z, m.r * PX * 0.8, 0, Math.PI * 2); g.stroke()

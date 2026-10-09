@@ -99,6 +99,15 @@ no punishment, clear hints, the robot explaining.
 | 53 | Settings: music, sound, mouse sensitivity; Esc pauses with them | pending | |
 | 54 | CrazyGames: SDK calls for the open game (gameplay, happytime, ads), the build, covers and videos | building | In: gameplayStart/Stop with the mouse lock, loading, rewarded ads (stranded recharge, double sale), happytime at a set complete, a legendary or mythic find and the laser. build-crazygames.sh builds (1000K zip, 62 files). Still to do: covers and preview videos. |
 
+## Stage 4 (start): the rocket and the Ice Moon (2026-10-09)
+
+| #  | System | Status | Test notes |
+|----|--------|--------|------------|
+| 55 | Planets: each its own world (saved apart), ground, ores, finds, sky, gravity and music; coins, gear, robot and Museum go with you | testing | src/planets.js (name, price, gravity, slip, music, sky, depth layers); `save.planet`, `save.planetsOpen`; a world save per planet (the Moon's under the old key); town.js `setPlanet` swaps the whole base for an outpost; sky options (the ringed planet larger and higher, a tinted nebula, no Earth); finds by planet; the depth meter's layers by planet; meteors only on the Moon. A trip reloads the page into the other planet. |
+| 56 | The Launch Pad's pilot: unlock a planet with coins, then fly free; lift-off, the trip, the landing | testing | Captain Nova (a person in a suit) on the pad; her card lists the planets: You are here / Open · 500 / Fly! 🚀. Fly: this world saved, then a countdown, Lift-off!, the rocket shaking up through streaking stars as the planet grows, "Flying to …"; reload; a "You landed on …" banner and the robot's welcome, no title screen. Screenshots of the whole trip. |
+| 57 | An outpost on each planet: a charging pad, a Trade Hub with its own keeper, the rocket home | testing | A deck 19 wide, the charging pad in the middle (tickets land there), a Trade Hub module with Frosty (buys like Rita), the launch pad and rocket 13 blocks west with Captain Nova. |
+| 58 | The Ice Moon: snow and ice, cold silver and frost gems, ice caves, low gravity, a little slippery, its own sky, tune and finds | testing | src/icemoon.js: snow dunes, crevasses, ice spikes; snow, frost, clear ice to -20, packed blue ice to -50, dark rock with ice-walled caves, crystal. Veins of cold silver, frost gems, titanium, helium, gold. Blocks 31–34. Gravity -6.5, ground grip 40%. Music ice (E major, glassy) and icedeep. Finds: Frozen Wonders (fossil snowflake … frozen star), reward 1200; the Museum's cases now three rows a wall. Opening it: 500 coins. |
+
 Later, with the rocket (stage 4): the rings as a level of floating
 asteroids; the ringed planet's moons as new planets. Kept for later as
 rare events: eclipses. Dropped, too hard on children: tides changing

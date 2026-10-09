@@ -16,7 +16,7 @@ export const SPAWN = [0.5, 1, 0.5]
 export const TOWN_R = 18          // the base's deck reaches about this far
 export const SQUARE_R = 16
 
-export const BUILDINGS = [
+const MOON_BUILDINGS = [
   { key: 'market', name: 'Trade Hub', at: [0, 9], face: [0, -1], band: ID.light_green, ready: true },
   { key: 'workshop', name: 'Workshop', at: [9, 0], face: [-1, 0], band: ID.light_yellow, ready: true },
   { key: 'bombs', name: 'Bomb Shop', at: [-9, 0], face: [1, 0], band: ID.light_red, ready: true },
@@ -24,10 +24,25 @@ export const BUILDINGS = [
   { key: 'robots', name: 'Robot Bay', at: [-9, 12], face: [1, 0], band: ID.light_purple, ready: true },
 ]
 /* The race portal: a metal frame round a purple gateway, not a building. */
-export const PORTAL = { key: 'portal', name: 'Race portal', at: [9, -12], face: [-1, 0], ready: true }
+const MOON_PORTAL = { key: 'portal', name: 'Race portal', at: [9, -12], face: [-1, 0], ready: true }
+/* Planets (row 55): the Moon has the whole base; anywhere else the rocket
+   lands at a small outpost: a Trade Hub with its own keeper, a charging pad,
+   the launch pad close by. setPlanet() picks one, once, as the game starts
+   (a trip by rocket reloads the page). */
+export let PLANET = 'moon'
+const OUTPOST = { key: 'outpost', name: 'Trade Hub', at: [0, 7], face: [0, -1], band: ID.light_green, ready: true, shop: 'market' }
+export const BUILDINGS = [...MOON_BUILDINGS]
+export let PORTAL = MOON_PORTAL
+let square = 16
 /* The launch pad, west on the plain: a round pad with the rocket on it.
    Other planets, by rocket, are stage 4; its door is round its east side. */
-export const PAD = { key: 'pad', name: 'Launch Pad', at: [-26, 0], r: 5, door: [-19.5, 1, 0.5], ready: false }
+export const PAD = { key: 'pad', name: 'Launch Pad', at: [-26, 0], r: 5, door: [-19.5, 1, 0.5], ready: true, face: [1, 0] }
+export function setPlanet(p) {
+  PLANET = p
+  BUILDINGS.length = 0
+  if (p === 'moon') { BUILDINGS.push(...MOON_BUILDINGS); PORTAL = MOON_PORTAL; PAD.at = [-26, 0]; PAD.door = [-19.5, 1, 0.5]; square = 16 }
+  else { BUILDINGS.push(OUTPOST); PORTAL = null; PAD.at = [-13, 0]; PAD.door = [-6.5, 1, 0.5]; square = 9 }
+}
 /* Solar panels: rows of them in the two empty corners of the base. */
 const SOLAR = [{ x: [8, 15], z: [7, 15] }, { x: [-15, -8], z: [-15, -7] }]
 
@@ -80,6 +95,7 @@ function rocketVoxel(x, y, z) {
 }
 
 function solarVoxel(x, y, z) {
+  if (PLANET !== 'moon') return -1
   for (const s of SOLAR) {
     if (x < s.x[0] || x > s.x[1] || z < s.z[0] || z > s.z[1]) continue
     const row = (z - s.z[0]) % 3
@@ -92,6 +108,7 @@ function solarVoxel(x, y, z) {
 }
 
 function portalVoxel(x, y, z) {
+  if (!PORTAL) return -1
   const { u, v } = local(PORTAL, x, z)
   if (v !== 0 || Math.abs(u) > 2 || y < 1 || y > 6) return -1
   if (Math.abs(u) === 2 || y === 1 || y === 6) return ID.hull
@@ -101,7 +118,7 @@ function portalVoxel(x, y, z) {
 /* The base's block at (x, y, z), or -1 where the base has nothing to say. */
 export function townVoxel(x, y, z) {
   if (y < 0 || y > 17) return -1
-  if (x < -TOWN_R - 2) return rocketVoxel(x, y, z)
+  if (Math.abs(x - PAD.at[0]) <= PAD.r + 1 && Math.abs(z - PAD.at[1]) <= PAD.r + 1) { const r = rocketVoxel(x, y, z); if (r !== -1) return r }
   if (Math.abs(x) > TOWN_R + 2 || Math.abs(z) > TOWN_R + 2 || y > 10) return -1
   for (const b of BUILDINGS) { const id = buildingVoxel(b, x, y, z); if (id !== -1) return id }
   const p = portalVoxel(x, y, z)
@@ -109,15 +126,15 @@ export function townVoxel(x, y, z) {
   const sol = solarVoxel(x, y, z)
   if (sol !== -1) return sol
   if (y === 0 && Math.abs(x) <= 1 && Math.abs(z) <= 1) return ID.charger      // the charging pad, where tickets land
-  if (y === 0 && Math.abs(x) <= SQUARE_R && Math.abs(z) <= SQUARE_R) return ID.deck
+  if (y === 0 && Math.abs(x) <= square && Math.abs(z) <= square) return ID.deck
   return -1
 }
 
 /* Where to stand to use each place: in a module, in front of its counter,
    facing the shopkeeper (row 46); the portal and the pad, one block out. */
 export function doors() {
-  return [...BUILDINGS, PORTAL, PAD].map(b => ({
-    key: b.key, name: b.name, ready: b.ready, keeper: BUILDINGS.includes(b),
+  return [...BUILDINGS, PORTAL, PAD].filter(Boolean).map(b => ({
+    key: b.key, name: b.name, ready: b.ready, keeper: BUILDINGS.includes(b) || b === PAD,
     pos: b.door || (BUILDINGS.includes(b)
       ? [b.at[0] - b.face[0] * 2 + 0.5, 1, b.at[1] - b.face[1] * 2 + 0.5]
       : [b.at[0] + b.face[0] * 1.5 + 0.5, 1, b.at[1] + b.face[1] * 1.5 + 0.5]),

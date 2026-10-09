@@ -13,6 +13,9 @@ export const note = n => A4 * Math.pow(2, (n - 69) / 12)      // MIDI number to 
 export const THEMES = {
   surface: { bpm: 72, chords: [[48, 52, 55, 59], [45, 48, 52, 55], [41, 45, 48, 52], [43, 47, 50, 54]], scale: [72, 74, 76, 79, 81, 84], bell: 'triangle', pad: 'triangle', cut: 1400, bells: 0.55 },
   deep: { bpm: 56, chords: [[45, 52, 57, 60], [41, 48, 53, 57], [38, 45, 50, 53], [40, 47, 52, 56]], scale: [57, 60, 62, 64, 67], bell: 'sine', pad: 'sine', cut: 650, bells: 0.3 },
+  // the Ice Moon (row 58): glassy and bright up top, E major; slow and hollow below
+  ice: { bpm: 66, chords: [[52, 56, 59, 63], [49, 52, 56, 59], [45, 49, 52, 56], [47, 51, 54, 57]], scale: [76, 78, 80, 83, 85, 88], bell: 'sine', pad: 'triangle', cut: 1800, bells: 0.6 },
+  icedeep: { bpm: 52, chords: [[40, 47, 52, 55], [43, 50, 55, 59], [38, 45, 50, 54], [42, 49, 54, 57]], scale: [64, 66, 67, 71, 74], bell: 'sine', pad: 'sine', cut: 700, bells: 0.28 },
   menu: { bpm: 64, chords: [[50, 57, 62, 66], [43, 50, 55, 59], [45, 52, 57, 61], [47, 54, 59, 62]], scale: [74, 76, 78, 81, 83], bell: 'sine', pad: 'triangle', cut: 1000, bells: 0.4 },
 }
 const VOLUME = 0.32

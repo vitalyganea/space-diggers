@@ -19,6 +19,8 @@ import { Battery } from './battery.js'
 import { Rescue, rechargeCost, FREE_CHARGE, SURFACE_DEPTH } from './stranded.js'
 import { chargeRate, onPad } from './charging.js'
 import { tip } from './tips.js'
+import { PLANETS } from './planets.js'
+import { planetsCard, launchShow, arriveBanner } from './ui/rocket.js'
 import { loadSettings, settingsCard } from './ui/settings.js'
 import { openDay, claim, progress, dayString, questReward, questText } from './daily.js'
 import { dailyCard, QuestList } from './ui/daily.js'
@@ -36,7 +38,7 @@ import { direction } from './companion.js'
 import { meteorCraters } from './worldgen.js'
 import { robotPanel } from './ui/robotpanel.js'
 import { StrandedCard } from './ui/stranded.js'
-import { doorNear, SPAWN, BUILDINGS } from './town.js'
+import { doorNear, SPAWN, BUILDINGS, PAD, setPlanet } from './town.js'
 import { nameBoards, DoorPrompt, buildingCard, shopCard } from './ui/townui.js'
 import { market, workshop, bombShop, museumShop, robotBay } from './ui/shops.js'
 import { loadRobotGear, robotStats, rgBuy, rgNext, SWAP_PRICE } from './robotgear.js'
@@ -57,13 +59,20 @@ export function start(platform) {
   platform.loadingStart()
   const store = platform.storage
   const save = meta.load(store)
-  const kept = loadWorld(store)
+  // which planet we are on (row 55): the Moon unless the rocket took you elsewhere
+  const planetKey = PLANETS[save.planet] && save.planetsOpen.includes(save.planet) ? save.planet : 'moon'
+  const P = PLANETS[planetKey]
+  setPlanet(planetKey)
+  const kept = loadWorld(store, planetKey)
   // a new world's seed: random, or ?seed= (tests and playtests want the same world)
-  const seed = kept ? kept.seed : (+new URLSearchParams(location.search).get('seed') || Math.floor(Math.random() * 1e6) + 1)
+  const seed = kept ? kept.seed : ((planetKey === 'moon' && +new URLSearchParams(location.search).get('seed')) || Math.floor(Math.random() * 1e6) + 1)
 
   const noa = createEngine({ playerStart: kept && kept.pos ? kept.pos : SPAWN })
   registerBlocks(noa)
-  const world = new World(seed, { town: true })
+  const world = new World(seed, { town: true, planet: planetKey })
+  // its pull, and how the ground grips (the Ice Moon: light and a little slippery)
+  noa.physics.gravity = [0, P.gravity, 0]
+  if (P.slip) { const mv = noa.entities.getMovement(noa.playerEntity); mv.standingFriction *= 1 - P.slip; mv.responsiveness *= 1 - P.slip * 0.5 }
   if (kept) world.edits = kept.edits
   world.attach(noa)
 
@@ -106,7 +115,7 @@ export function start(platform) {
   const findIn = () => {
     const d = depth()
     if (d < 1) return
-    const key = rollFind(d)
+    const key = rollFind(d, Math.random, planetKey)
     if (!key) return
     if (!bag.add(key)) { hud.toast('Something shiny! But the backpack is full'); return }
     const f = FINDS[key], isNew = !save.found.includes(key)
@@ -160,7 +169,7 @@ export function start(platform) {
   let robot = save.robot, buddy = null, talk = null
   const robotGear = loadRobotGear(save.robotGear)            // the Robot Bay's upgrades (row 51)
   const say = text => talk && talk.say(text)
-  const look = applyLook(noa)
+  const look = applyLook(noa, { planet: P.sky })
   // the Workshop's upgrades, kept for good
   const gear = loadGear(save.gear)
   const applyGear = () => {
@@ -212,7 +221,7 @@ export function start(platform) {
   // second binding for placing a block; that stays on the right button only.
   nameBoards(noa)
   const prompt = new DoorPrompt()
-  const minimap = new Minimap(world)
+  const minimap = new Minimap(world, { layers: P.layers, meteors: planetKey === 'moon' })
   let inside = null
   noa.inputs.unbind('alt-fire')
   noa.inputs.bind('alt-fire', 'Mouse3')
@@ -294,10 +303,10 @@ export function start(platform) {
     say(`Hi again! It's me, ${robot.name}, in a new body!`)
     persist()
   }
-  const SHOPS = { market: market(shop), workshop: workshop(shop), bombs: bombShop(shop), museum: museumShop(shop), robots: robotBay(shop) }
+  const SHOPS = { market: market(shop), outpost: market(shop), workshop: workshop(shop), bombs: bombShop(shop), museum: museumShop(shop), robots: robotBay(shop) }
   // the shopkeepers (row 46): one behind each module's counter; you buy from them
   let lastSale = 0
-  const keepers = BUILDINGS.map(b => {
+  const keepers = [...BUILDINGS, PAD].map(b => {
     const K = KEEPERS[b.key], spot = keeperSpots(b)
     const a = makeAstronaut(noa.rendering.getScene(), K.look, m => noa.rendering.addMeshToScene(m))
     noa.rendering.addMeshToScene(a.root, false, spot.keeper)
@@ -310,6 +319,7 @@ export function start(platform) {
     return { bag: bag.items, bagCount: bag.count, coins: digger.coins, cheapest: costs.length ? Math.min(...costs) : null,
       laser: gear.laser || 0, bombs: digger.bombs, tickets, justSold: lastSale, best,
       canGive: wanted(save, bag).length > 0, gave: museumNews.gave, setDone: museumNews.setDone,
+      canOpen: Object.entries(PLANETS).some(([k, Q]) => !save.planetsOpen.includes(k) && digger.coins >= Q.price),
       robotNews, robotCheapest: (() => { const c = Object.keys(robotGear).map(k => rgNext(robotGear, k)).filter(x => x !== null); return c.length ? Math.min(...c) : null })() }
   }
   const keeperHead = key => {
@@ -329,6 +339,24 @@ export function start(platform) {
       inside = buildingCard(door.name, `<p>Race five diggers down to the Core! The faster you get there, the more coins you win.</p>
         <p>Your coins come with you, and back.</p><div class="row"><button class="btn race">Race!</button></div>`, close)
       inside.querySelector('.race').addEventListener('click', () => { persist(); location.href = `${location.pathname}?mode=race&from=moon` })
+      sound.play('place'); return
+    }
+    if (door.key === 'pad') {
+      // the rocket (row 56): Captain Nova opens planets for coins, then flies you free
+      inside = shopCard(door.name, () => keeperHead('pad') + planetsCard({ here: planetKey, open: save.planetsOpen, coins: digger.coins }), (kind, arg) => {
+        const Q = PLANETS[arg]
+        if (kind === 'unlock' && Q && !save.planetsOpen.includes(arg) && digger.coins >= Q.price) {
+          digger.coins -= Q.price; save.planetsOpen.push(arg); sound.play('win'); platform.happytime()
+          say(`${Q.name} is open! Let's fly!`); persist()
+        }
+        if (kind === 'fly' && Q && save.planetsOpen.includes(arg) && arg !== planetKey) {
+          inside.remove(); inside = null; titling = true
+          persist()                                                  // this planet's world, kept
+          save.planet = arg; save.arriving = true; meta.store(store, save)
+          music.stop(); sound.play('whoosh')
+          launchShow(Q, () => location.reload())                       // lift-off, the trip, then the new world
+        }
+      }, close)
       sound.play('place'); return
     }
     if (s) inside = shopCard(door.name, () => keeperHead(door.key) + s.render(), s.act, close)
@@ -392,6 +420,13 @@ export function start(platform) {
     if (look.hand) { if (on) { look.hand.root.setEnabled(false); look.hand.laser.setEnabled(false) } else look.hand.setTool(hand.tool) }
   }
   showcase(true)
+  const arrived = !!save.arriving
+  if (save.arriving) {                                          // just landed (row 56): no title, straight onto the planet
+    save.arriving = false
+    showcase(false); titling = false
+    arriveBanner(P)
+    setTimeout(() => say(planetKey === 'moon' ? 'Home sweet Moon!' : `Welcome to ${P.name}! Everything is new here. Let's dig!`), 1500)
+  }
   /* Into the game from the start screen, on a click: the daily reward first
      if there is one today (its Claim is then the click that takes the mouse),
      and today's quests on the screen (row 50). */
@@ -415,7 +450,8 @@ export function start(platform) {
       say(r.streakDay === 7 ? 'Seven days in a row! A rare treasure for you!' : `Day ${r.streakDay}! Come back tomorrow for more.`)
     })
   }
-  if (robot) {
+  if (robot && arrived) { meet(robot); quests.show(save.daily.quests) }
+  else if (robot) {
     meet(robot)
     titling = true
     showTitle(robot, () => startPlaying(),
@@ -475,7 +511,7 @@ export function start(platform) {
     save.bombs = digger.bombs
     save.tickets = tickets
     meta.store(store, save)
-    return saveWorld(store, world, noa.entities.getPosition(noa.playerEntity))
+    return saveWorld(store, world, noa.entities.getPosition(noa.playerEntity), planetKey)
   }
   let sinceSave = 0, loaded = false
   window.addEventListener('pagehide', persist)
@@ -592,7 +628,7 @@ export function start(platform) {
     hud.update({ coins: digger.coins, depth: depth(), bag, battery, blocksLeft: battery.blocksLeft(lastHard), tickets })
     prompt.show(inside ? null : doorNear(noa.entities.getPosition(noa.playerEntity)))
     // the robot: follow, and Sonar's scouting every 2.5 s
-    meteors.update(dt)
+    if (planetKey === 'moon') meteors.update(dt)                // they fall from the rings onto the Moon
     {
       const q = noa.entities.getPosition(noa.playerEntity)
       for (const k of keepers) {
@@ -607,7 +643,7 @@ export function start(platform) {
     }
     if (!choosing && !titling) creatures.update(dt)
     if (choosing || titling) noa.camera.heading += dt / 1000 * 0.07         // the start screen's slow circle
-    music.play(choosing || titling ? 'menu' : depth() > 4 ? 'deep' : 'surface')
+    music.play(choosing || titling ? 'menu' : depth() > 4 ? P.music[1] : P.music[0])
     // the tool picks itself when what you aim at changes kind
     const aimed = noa.targetedBlock ? noa.targetedBlock.blockID : null
     const was = hand.tool

@@ -220,3 +220,31 @@ body.showcase .hud { display: none !important; }
 .settings input[type=range] { flex: 1; accent-color: #f5c518; }
 .click-to-play .gear { margin-top: 12px; }
 .title-screen .row { gap: 10px; }
+/* the rocket (row 56) */
+.building .planets { text-align: left; }
+.building .planet { display: flex; align-items: center; gap: 12px; padding: 10px 12px; margin: 8px 0; border-radius: 14px; background: rgba(255,255,255,0.07); }
+.building .planet.here { background: rgba(56, 189, 248, 0.16); }
+.building .planet .picon { font-size: 40px; }
+.building .planet b { display: block; font-size: 20px; } .building .planet small { opacity: 0.85; }
+.building .planet .btn, .building .planet .here { margin-left: auto; white-space: nowrap; }
+.building .planet .here { font-weight: 900; color: #7dd3fc; }
+.building .planets .more { text-align: center; opacity: 0.7; }
+.launch { z-index: 60; background: #020309; flex-direction: column; overflow: hidden; }
+.launch .stars { position: absolute; inset: 0; background-image: radial-gradient(2px 2px at 20% 30%, #fff, transparent), radial-gradient(2px 2px at 70% 60%, #fff, transparent),
+  radial-gradient(1px 1px at 40% 80%, #fff, transparent), radial-gradient(1px 1px at 85% 20%, #fff, transparent), radial-gradient(2px 2px at 55% 10%, #bfdbfe, transparent); background-size: 300px 300px; }
+.launch.go .stars { animation: streak 0.4s linear infinite; }
+@keyframes streak { from { background-position: 0 0; } to { background-position: 0 300px; } }
+.launch .count { font-size: 96px; font-weight: 900; color: #fde047; text-shadow: 0 0 30px #f59e0b; z-index: 1; }
+.launch .ship { font-size: 120px; transform: rotate(-45deg); z-index: 1; transition: transform 3s ease-in; }
+.launch.go .ship { transform: rotate(-45deg) translate(0, -40px) scale(1.1); animation: rumble 0.12s linear infinite; }
+@keyframes rumble { 0%, 100% { margin-left: 0; } 50% { margin-left: 4px; } }
+.launch .dest { position: absolute; top: 8%; font-size: 30px; opacity: 0; transition: all 3s ease-in; }
+.launch.go .dest { font-size: 220px; opacity: 1; top: -2%; }
+.launch .to { font-size: 26px; font-weight: 900; color: #e0f2fe; margin-top: 20px; z-index: 1; opacity: 0; transition: opacity 0.6s; }
+.launch.go .to { opacity: 1; }
+.launch.go .count { animation: fadeup 1s forwards; }
+@keyframes fadeup { to { opacity: 0; transform: translateY(-40px); } }
+.arrive { inset: 90px auto auto 50%; transform: translateX(-50%); display: flex; gap: 14px; align-items: center; padding: 12px 24px; border-radius: 18px;
+  background: rgba(10, 14, 30, 0.85); border: 3px solid #7dd3fc; box-shadow: 0 0 24px #38bdf8; transition: opacity 1s; }
+.arrive span { font-size: 48px; } .arrive small { display: block; opacity: 0.8; font-weight: 800; } .arrive b { font-size: 30px; font-weight: 900; color: #fff; }
+.arrive.off { opacity: 0; }

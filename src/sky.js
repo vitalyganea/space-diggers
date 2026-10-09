@@ -34,7 +34,8 @@ export function planetAt(time) {
 }
 export const EARTH = { heading: 1.05, elev: 0.68, size: 26 }
 
-export function makeSky(noa) {
+/* opts (a planet's sky, src/planets.js): { planetSize, planetElev, nebula, earth } */
+export function makeSky(noa, opts = {}) {
   const scene = noa.rendering.getScene()
   let seed = 11
   const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647
@@ -44,7 +45,7 @@ export function makeSky(noa) {
   const dome = add(MeshBuilder.CreateSphere('sky', { diameter: 400, segments: 24, sideOrientation: Mesh.BACKSIDE }, scene))
   const domeMat = new StandardMaterial('skyMat', scene)
   domeMat.disableLighting = true
-  domeMat.emissiveTexture = paintNebula(scene, rnd)
+  domeMat.emissiveTexture = paintNebula(scene, rnd, opts.nebula)
   domeMat.diffuseColor = new Color3(0, 0, 0)
   domeMat.specularColor = new Color3(0, 0, 0)
   domeMat.fogEnabled = false
@@ -87,8 +88,10 @@ export function makeSky(noa) {
     m.position.copyFrom(m.home)
     return add(m)
   }
-  const planet = billboard('planet', PLANET, drawRinged, 1024)
+  // seen from one of its own moons, the ringed planet looms larger (row 55)
+  const planet = billboard('planet', { ...PLANET, size: opts.planetSize || PLANET.size }, drawRinged, 1024)
   const earth = billboard('earth', EARTH, drawEarth, 256)
+  if (opts.earth === false) earth.visibility = 0
 
   // shooting stars: one at a time, every 6–16 s, a streak that fades in 0.8 s
   const streakPts = [Vector3.Zero(), Vector3.Zero()]
@@ -109,7 +112,7 @@ export function makeSky(noa) {
       for (const m of [dome, faint.mesh, bright.mesh, planet, earth, streak]) m.setEnabled(on)
       if (!on) return
       for (const m of [dome, faint.mesh, bright.mesh, streak]) m.position.setAll(0)   // undo noa's origin shifts
-      const pa = planetAt(t)
+      const pa = planetAt(t); pa.elev += opts.planetElev || 0
       planet.home = skyDir(pa.heading, pa.elev).scale(R - 15)
       this.planetHigh = (pa.elev - LOW) / (HIGH - LOW)                // 0 low on the horizon, 1 at its highest
       planet.position.copyFrom(planet.home); earth.position.copyFrom(earth.home)
@@ -148,7 +151,7 @@ export function makeSky(noa) {
    horizon, clouds of nebula along a band that climbs across the sky. A 2:1
    canvas, u round the horizon, painted flipped (the dome shows v upside
    down), the nebula wrapped so the seam does not show. */
-function paintNebula(scene, rnd) {
+function paintNebula(scene, rnd, tint = null) {
   const W = 1024, H = 512
   const tex = new DynamicTexture('skyTex', { width: W, height: H }, scene, true)
   const g = tex.getContext()
@@ -159,7 +162,8 @@ function paintNebula(scene, rnd) {
   for (let k = 0; k < 46; k++) {
     const x = rnd() * W, y = yOf(25 + 35 * Math.sin(x / W * Math.PI * 2)) + (rnd() - 0.5) * 80
     const r = 30 + rnd() * 85
-    const col = ['168,85,247', '236,72,153', '56,189,248', '99,102,241'][k % 4]
+    const hex = tint && k % 2 === 0 ? tint : null               // a planet's own tint in half the clouds
+    const col = hex ? [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16)).join(',') : ['168,85,247', '236,72,153', '56,189,248', '99,102,241'][k % 4]
     const n = g.createRadialGradient(x, y, 0, x, y, r)
     n.addColorStop(0, `rgba(${col},${0.10 + rnd() * 0.08})`); n.addColorStop(1, `rgba(${col},0)`)
     g.fillStyle = n

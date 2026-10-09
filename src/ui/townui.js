@@ -8,7 +8,7 @@ import { KEEPERS } from '../shopkeepers.js'
 
 export function nameBoards(noa) {
   const scene = noa.rendering.getScene()
-  for (const b of [...BUILDINGS, PORTAL, PAD]) {
+  for (const b of [...BUILDINGS, PORTAL, PAD].filter(Boolean)) {
     const tex = new DynamicTexture('board_' + b.key, { width: 512, height: 128 }, scene, false, Texture.TRILINEAR_SAMPLINGMODE)
     const g = tex.getContext()
     g.fillStyle = '#7dd3fc'; g.fillRect(0, 0, 512, 128)                       // a lit edge

@@ -231,6 +231,28 @@ T.meteor_ore = () => {                              // and lumps of shining mete
   t.ore(4, '#a5b4c8', '#f1f5f9', '#475569')
   return t.specks(4, ['#c4b5fd', '#99f6e4'], 1)       // a shimmer of colour on the metal
 }
+// the Ice Moon (row 58)
+const SNOW = ['#f3f8fc', '#e8f1f8', '#fbfdff', '#dde9f3', '#ffffff']
+T.snow_top = () => new Tex(31).noise(SNOW, 1.6).specks(6, ['#cfe2f1', '#ffffff'], 1)
+T.packed_ice = () => {
+  const t = new Tex(32).noise(['#6fa8dc', '#6399cf', '#7bb4e3', '#5a8fc6'], 1.4)
+  for (let k = 0; k < 4; k++) t.vein('#a7d0f0', 6)
+  return t.specks(3, ['#d6ecfb'], 1)
+}
+T.snow_side = () => {
+  const t = T.packed_ice(), g = new Tex(33).noise(SNOW)
+  for (let x = 0; x < N; x++) { const d = 3 + Math.floor(g.r() * 3); for (let y = 0; y < d; y++) t.set(x, y, g.get(x, y)) }
+  return t
+}
+T.coldsilver_ore = () => T.packed_ice().ore(4, '#e2e8f0', '#ffffff', '#94a3b8')
+T.frostgem_ore = () => {
+  const t = T.packed_ice()
+  for (const [cx, cy] of [[4, 5], [11, 9], [6, 12]]) {
+    for (const [i, j] of [[0, -2], [-1, -1], [0, -1], [1, -1], [-2, 0], [-1, 0], [0, 0], [1, 0], [2, 0], [-1, 1], [0, 1], [1, 1], [0, 2]]) t.set(cx + i, cy + j, '#2563eb')
+    t.set(cx, cy, '#e0f2fe'); t.set(cx - 1, cy - 1, '#93c5fd')
+  }
+  return t
+}
 T.charger = () => {                                 // the charging pad: a dark plate, a glowing ring and a bolt
   const t = new Tex(27).noise(['#1f2937', '#232d3d', '#1b2431'], 1.4)
   for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {

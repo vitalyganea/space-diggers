@@ -1,5 +1,6 @@
 /* The worlds, as pure functions of (seed, x, y, z) -> block id: the race's
-   (makeWorld) and, for the open game, the Moon (makeMoon, row 27, below).
+   (makeWorld) and, for the open game, the Moon (makeMoon, row 27, below)
+   and the Ice Moon (makeIce, src/icemoon.js, row 58).
 
    Layers by depth, from the surface at y = 0 down to the Core:
      grass, dirt to y -4, stone to -35, deep stone to -65, a basalt band
@@ -17,6 +18,7 @@
    lanes were identical; it read as wallpaper and was dropped.) */
 import { ID } from './blocks.js'
 import { townVoxel, TOWN_R } from './town.js'
+import { makeIce } from './icemoon.js'
 
 export const LANE_GAP = 10
 export const LANES = 6
@@ -43,14 +45,14 @@ function nearLane(x, z) {
   return { dx: x - cx, dist: Math.max(Math.abs(x - cx), Math.abs(z)) }
 }
 
-function hash(seed, x, y, z) {
+export function hash(seed, x, y, z) {
   let h = seed ^ Math.imul(x, 374761393) ^ Math.imul(y, 668265263) ^ Math.imul(z, 2147483647)
   h = Math.imul(h ^ (h >>> 13), 1274126177)
   return ((h ^ (h >>> 16)) >>> 0) / 4294967296
 }
 
 /* Value noise on a lattice of `cell` blocks. */
-function value3(seed, x, y, z, cell) {
+export function value3(seed, x, y, z, cell) {
   const fx = x / cell, fy = y / cell, fz = z / cell
   const x0 = Math.floor(fx), y0 = Math.floor(fy), z0 = Math.floor(fz)
   const tx = fx - x0, ty = fy - y0, tz = fz - z0
@@ -76,7 +78,7 @@ export function surfaceHeight(seed, x, z) {
    a lump of moon rock 1–3 blocks high, rounded off at the top. Its centre
    column is the tallest; neighbours within its radius are a block lower
    per block out. Returns the boulder's top above the ground, 0 for none. */
-function boulderAt(seed, x, z, clear) {
+export function boulderAt(seed, x, z, clear) {
   // the clear areas are convex: if all four corners of the reach are in one, so is the rest
   if (clear(x - 2, z - 2) && clear(x + 2, z + 2) && clear(x - 2, z + 2) && clear(x + 2, z - 2)) return 0
   for (let dx = -2; dx <= 2; dx++) for (let dz = -2; dz <= 2; dz++) {
@@ -90,13 +92,14 @@ function boulderAt(seed, x, z, clear) {
 }
 
 /* Two scales together, so shapes come out rounded instead of boxy. */
-function noise3(seed, x, y, z, cell) {
+export function noise3(seed, x, y, z, cell) {
   return 0.65 * value3(seed, x, y, z, cell) + 0.35 * value3(seed + 101, x + 17, y, z - 9, cell / 2.3)
 }
 
 /* The race's world; { town: true } asks for the open game's, which is the
    Moon with the base at the spawn. */
-export function makeWorld(seed = 1, { town = false } = {}) {
+export function makeWorld(seed = 1, { town = false, planet = 'moon' } = {}) {
+  if (town && planet === 'ice') return makeIce(seed)
   if (town) return makeMoon(seed)
   const clear = (x, z) => Math.abs(x) <= ARENA.x + 2 && Math.abs(z) <= ARENA.z + 2
   function above(x, y, z) {
@@ -187,10 +190,10 @@ const VEIN_CHANCE = 0.85
 const STEPS = [[1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1], [1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1], [0, 1, 0], [0, -1, 0]]   // flatter than tall
 
 /* The vein in cell (i, j, k), as 64 block ids (0 for none), or null. */
-function veinCell(seed, i, j, k) {
+export function veinCell(seed, i, j, k, veins = VEINS) {
   if (hash(seed + 81, i, j, k) > VEIN_CHANCE) return null
   const N = VEIN_CELL, y0 = j * N + N / 2
-  const here = VEINS.filter(v => y0 <= v.from && y0 >= v.to)
+  const here = veins.filter(v => y0 <= v.from && y0 >= v.to)
   if (!here.length) return null
   let pick = hash(seed + 82, i, j, k) * here.reduce((a, v) => a + v.weight, 0), ore = here[0]
   for (const v of here) { if (pick < v.weight) { ore = v; break } pick -= v.weight }

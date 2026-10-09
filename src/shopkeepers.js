@@ -19,6 +19,8 @@ export const KEEPERS = {
   workshop: { name: 'Gizmo', look: { skin: '#c68e63', hair: '#1f2937', hairStyle: 'short', accent: '#f5c518', beard: true } },
   bombs: { name: 'Boomer', look: { skin: '#f6d2b0', hair: '#f59e0b', hairStyle: 'curly', accent: '#e63946', eyes: '#1e3a8a' } },
   museum: { name: 'Professor Hoot', look: { skin: '#e9b98f', hair: '#d1d5db', hairStyle: 'bald', accent: '#3b82f6', glasses: true, beard: true } },
+  outpost: { name: 'Frosty', look: { skin: '#f5d0b5', hair: '#e5e7eb', hairStyle: 'short', accent: '#2fbf71', eyes: '#0369a1', beard: true } },
+  pad: { name: 'Captain Nova', look: { skin: '#a8714f', hair: '#111827', hairStyle: 'long', accent: '#f97316', eyes: '#1f2937' } },
   robots: { name: 'Sprocket', look: { skin: '#8d5a3b', hair: '#111827', hairStyle: 'bun', accent: '#8b5cf6' } },
 }
 
@@ -32,6 +34,11 @@ const pick = (a, r) => a[Math.floor(r * a.length) % a.length]
    bombs, tickets, justSold (coins from a sale just made, or 0), best
    (the dearest item in the bag, or null) }. r: 0..1 for variety. */
 export function lineFor(key, s, r = 0) {
+  if (key === 'outpost') key = 'market'                              // the outposts' Trade Hubs buy like Rita's
+  if (key === 'pad') {
+    if (s.canOpen) return 'You have enough coins to open a new planet! Where to?'
+    return pick(['Ready for take-off? Pick a planet!', 'Buckle up, digger! The stars are waiting.'], r)
+  }
   if (key === 'market') {
     if (s.justSold > 0) return pick([`${s.justSold} coins! Pleasure doing business.`, `There you go: ${s.justSold} coins. Come back soon!`], r)
     if (s.best === 'meteor' || s.best === 'stargem') return pick(['Wow! Is that what I think it is? Let me see!', 'Ooh, that one sparkles! It is worth a lot.'], r)
@@ -67,6 +74,8 @@ export function lineFor(key, s, r = 0) {
    b (src/town.js): behind the counter, and in front of it. */
 export function keeperSpots(b) {
   const [fx, fz] = b.face
+  // the pilot stands on the launch pad, two blocks from where you talk
+  if (b.door) return { keeper: [b.door[0] - 2, 1, b.door[2]], talk: [...b.door] }
   return {
     keeper: [b.at[0] - fx * 4 + 0.5, 1, b.at[1] - fz * 4 + 0.5],
     talk: [b.at[0] - fx * 2 + 0.5, 1, b.at[1] - fz * 2 + 0.5],

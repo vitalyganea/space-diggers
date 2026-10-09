@@ -39,6 +39,11 @@ export const BLOCKS = [
   // meteorite craters (row 39): very hard, rich
   { id: 29, name: 'meteorite', tex: 'meteorite', hard: 4, coins: 0 },
   { id: 30, name: 'meteor_ore', tex: 'meteor_ore', hard: 4.5, coins: 0 },
+  // the Ice Moon (row 58)
+  { id: 31, name: 'snow', tex: ['snow_top', 'packed_ice', 'snow_side'], hard: 0.3, coins: 0 },
+  { id: 32, name: 'packed_ice', tex: 'packed_ice', hard: 1.0, coins: 0 },
+  { id: 33, name: 'coldsilver_ore', tex: 'coldsilver_ore', hard: 1.1, coins: 0 },
+  { id: 34, name: 'frostgem_ore', tex: 'frostgem_ore', hard: 1.6, coins: 0 },
 ]
 export const ID = Object.fromEntries(BLOCKS.map(b => [b.name, b.id]))
 

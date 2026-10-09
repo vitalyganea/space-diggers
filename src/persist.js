@@ -49,16 +49,18 @@ export function decodeEdits(s) {
   return edits
 }
 
-export function saveWorld(storage, world, pos) {
+/* each planet keeps its own world (row 55); the Moon's under the old key */
+export const worldKey = planet => !planet || planet === 'moon' ? WORLD_KEY : `spacediggers-world-${planet}-v1`
+export function saveWorld(storage, world, pos, planet = 'moon') {
   const data = JSON.stringify({ v: 1, seed: world.seed, pos: pos.map(v => +v.toFixed(2)), edits: encodeEdits(world.edits) })
-  try { storage.setItem(WORLD_KEY, data) } catch (e) { /* full or private: play on */ }
+  try { storage.setItem(worldKey(planet), data) } catch (e) { /* full or private: play on */ }
   return data.length
 }
 
 /* { seed, pos, edits } or null for a new world */
-export function loadWorld(storage) {
+export function loadWorld(storage, planet = 'moon') {
   try {
-    const o = JSON.parse(storage.getItem(WORLD_KEY) || 'null')
+    const o = JSON.parse(storage.getItem(worldKey(planet)) || 'null')
     if (!o || typeof o !== 'object' || !Number.isFinite(o.seed)) return null
     const pos = Array.isArray(o.pos) && o.pos.length === 3 && o.pos.every(Number.isFinite) ? o.pos : null
     return { seed: o.seed, pos, edits: decodeEdits(String(o.edits || '')) }
