@@ -14,6 +14,10 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   ok(top.sky.every(v => v < 0.12) && top.dome && top.stars && top.light > 0.95, `at the surface: the black sky of space with its starfield, and hard sunlight ${JSON.stringify(top)}`)
   await p.shot(OUT + '/look-sky.png')
   ok(top.drill, 'the drill is in hand')
+  // the sky (row 36): real points for stars, the planets as their own crisp objects
+  const sky = await p.eval(`(() => { const S = window.__dev.look.sky
+    return { stars: S.stars.getTotalVertices() + S.brightStars.getTotalVertices(), points: S.stars.material.pointsCloud, planet: S.planet.isEnabled() && S.planet.billboardMode === 7 } })()`)
+  ok(sky.stars > 1500 && sky.points && sky.planet, `the stars are ${sky.stars} points of light, the ringed planet a billboard of its own`)
   await p.eval('window.__dev.at(-20, 0.3)'); await sleep(1500)
   const mid = await read()
   ok(mid.fog[1] < top.fog[1] && mid.light < top.light && mid.lamp > top.lamp, `halfway to dark: closer fog, dimmer daylight, brighter lamp ${JSON.stringify(mid)}`)
@@ -29,6 +33,11 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   await p.shot(OUT + '/look-digging.png')
   await p.pointer('up', 640, 360)
   ok(busy > rest + 0.02, `the drill pushes in while digging (z ${rest} -> ${busy})`)
+  // far from the start, noa has shifted the world's origin several times: the sky must still be round the camera
+  await p.eval('window.__dev.noa.entities.getPhysics(window.__dev.noa.playerEntity).body.gravityMultiplier = 0; window.__dev.noa.entities.setPosition(window.__dev.noa.playerEntity, [420.5, 20, -310.5]); 1')
+  await sleep(2500)
+  const far = await p.eval(`(() => { const S = window.__dev.look.sky; return { dome: S.dome.position.length(), planet: +S.planet.position.subtract(S.planet.home).length().toFixed(2), on: S.planet.isEnabled() } })()`)
+  ok(far.dome < 0.01 && far.planet < 0.01 && far.on, `400 blocks away the sky is still in place round you (${JSON.stringify(far)})`)
   ok(p.errors.length === 0, 'console clean ' + JSON.stringify(p.errors.slice(0, 3)))
   await p.close()
   console.log(fails ? `${fails} failed` : 'all ok'); process.exit(fails ? 1 : 0)
