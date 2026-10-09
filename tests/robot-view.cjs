@@ -6,10 +6,13 @@ let fails = 0
 const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fails++ }
 ;(async () => {
   const p = await launch({ w: 1280, h: 720, port: 9409 })
-  await p.navigate('http://localhost:5181/?fakeads=1'); await sleep(6500)
+  await p.navigate('http://localhost:5181/?fakeads=1')
   const O = '__open'
+  await p.waitFor(`!!document.querySelector('.choose-robot')`)
+  // checked the moment the chooser appears: "Click to play" used to lie over it for its first 300 ms
+  ok(await p.eval(`getComputedStyle(document.querySelector('.click-to-play')).display === 'none'`), '"Click to play" waits until the choice is made, from the first moment')
+  await sleep(5000)
   ok(await p.eval(`!!document.querySelector('.choose-robot') && document.querySelectorAll('.robot-card').length === 3`), 'a new player is asked to choose one of three robots')
-  ok(await p.eval(`getComputedStyle(document.querySelector('.click-to-play')).display === 'none'`), '"Click to play" waits until the choice is made')
   await p.shot(OUT + '/rb1-choose.png')
   await p.eval(`document.querySelector('.robot-card[data-k="sonar"]').click()`); await sleep(200)
   await p.eval(`document.querySelector('.choose-robot input').value = 'Beep<b>!'`)

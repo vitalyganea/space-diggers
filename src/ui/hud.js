@@ -120,6 +120,9 @@ export function clickToPlay(isRacing, lockEl, title = 'Click to dig', help = 'WA
   el.style.cursor = 'pointer'
   document.body.appendChild(el)
   const refresh = () => { el.style.display = !document.pointerLockElement && isRacing() ? 'flex' : 'none' }
+  // decided at once: shown by default until the first tick, it lay over the
+  // robot chooser for 300 ms and a quick click locked the mouse behind it
+  refresh()
   document.addEventListener('pointerlockchange', refresh)
   el.addEventListener('click', () => lockMouse(lockEl))
   setInterval(refresh, 300)
