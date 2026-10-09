@@ -6,6 +6,7 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
 ;(async () => {
   const p = await launch({ w: 1280, h: 720, port: 9399 })
   await p.navigate('http://localhost:5181/'); await sleep(6000)
+  await p.eval(`(() => { const b = document.querySelector('.choose-robot .go'); if (b) b.click() })()`); await sleep(900)   // first start: the default robot, then "Click to play" shows
   ok(await p.eval(`!document.querySelector('.hud .timer') && !document.querySelector('.hud .count') && !document.querySelector('.hud .board')`),
      'no countdown, no clock, no race board')
   ok(await p.eval('__open.digger.enabled'), 'you can dig straight away')

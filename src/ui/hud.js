@@ -121,7 +121,13 @@ export function clickToPlay(isRacing, lockEl, title = 'Click to dig', help = 'WA
   document.body.appendChild(el)
   const refresh = () => { el.style.display = !document.pointerLockElement && isRacing() ? 'flex' : 'none' }
   document.addEventListener('pointerlockchange', refresh)
-  el.addEventListener('click', () => lockEl.requestPointerLock())
+  el.addEventListener('click', () => lockMouse(lockEl))
   setInterval(refresh, 300)
   return el
+}
+
+/* Ask for the mouse; a refusal (no real click behind it, the browser busy)
+   is quiet: "Click to play" is there to try again. */
+export function lockMouse(el) {
+  try { const r = el.requestPointerLock(); if (r && r.catch) r.catch(() => {}) } catch (e) { /* refused */ }
 }

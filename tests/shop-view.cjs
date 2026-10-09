@@ -5,7 +5,8 @@ let fails = 0
 const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fails++ }
 ;(async () => {
   const p = await launch({ w: 1280, h: 720, port: 9388 })
-  await p.navigate('http://localhost:5181/?mode=race&seed=42'); await sleep(5500)
+  await p.navigate('http://localhost:5181/?mode=race&seed=42')
+  await p.waitFor(`window.__game && __game.round.phase === 'race'`)
   await p.tap(640, 360); await sleep(400)
   const st = () => p.eval('({ c: __game.digger.coins, lv: __game.digger.drillLevel, sp: __game.digger.speed, b: __game.digger.bombs, toast: document.querySelector(".hud .toast").textContent, drill: document.querySelector(".shop .drill").className })')
   let s = await st()

@@ -127,6 +127,24 @@ async function launch(opts) {
     await sleep(ms);
     await cdp.send('Input.dispatchMouseEvent', { type: 'mouseReleased', x: x, y: y, button: button, buttons: 0, clickCount: 1 }, sid);
   };
+  /* Hold the left button until `cond` (a page expression) is true, or
+     `ms` pass. Digging tests use it instead of fixed durations: on a
+     software GPU the game's clock runs slower than the wall's, by how much
+     depends on what is drawn. Returns whether cond came true. */
+  page.holdUntil = async function (cond, ms = 10000, x = 640, y = 360) {
+    await page.pointer('down', x, y)
+    const end = Date.now() + ms
+    let met = false
+    while (Date.now() < end) { if (await page.eval(cond)) { met = true; break } await sleep(120) }
+    await page.pointer('up', x, y)
+    return met
+  }
+  /* Wait until `cond` (a page expression) is true, or `ms` pass. */
+  page.waitFor = async function (cond, ms = 20000) {
+    const end = Date.now() + ms
+    while (Date.now() < end) { try { if (await page.eval(cond)) return true } catch (e) {} await sleep(150) }
+    return false
+  }
   page.shot = async function (file) {
     var r = await cdp.send('Page.captureScreenshot', { format: 'png' }, sid);
     fs.mkdirSync(path.dirname(file), { recursive: true });

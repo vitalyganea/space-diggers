@@ -6,15 +6,17 @@ let fails = 0
 const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fails++ }
 ;(async () => {
   const p = await launch({ w: 1280, h: 720, port: 9395 })
-  await p.navigate('http://localhost:5181/?mode=race&seed=42'); await sleep(800)
-  await p.tap(640, 360); await sleep(4500)          // the click starts the sound and locks the mouse
+  await p.navigate('http://localhost:5181/?mode=race&seed=42')
+  await p.waitFor('!!window.__game')                 // the game is listening for the first click
+  await p.tap(640, 360)                              // the click starts the sound and locks the mouse
+  await p.waitFor(`window.__game && __game.round.phase === 'race'`); await sleep(400)
   const log = () => p.eval('__game.sound.log.slice()')
   const ctx = await p.eval('__game.sound.ctx && __game.sound.ctx.state')
   ok(ctx === 'running', `the first click starts the audio (${ctx})`)
   let l = await log()
   ok(l.filter(x => x === 'beep').length >= 2 && l.includes('go'), `the countdown beeps and the race starts with a go (${l.join(' ')})`)
   await p.eval('__game.noa.camera.pitch = 1.55'); await sleep(200)
-  await p.mouseHold(640, 360, 1200); await sleep(200)
+  await p.holdUntil('__game.digger.broken >= 1'); await sleep(200)
   l = await log()
   ok(l.includes('crack') && l.includes('break'), 'digging crackles and the block breaks with a pop')
   await p.eval('__game.digger.coins = 0'); await p.hold('Digit1', 60); await sleep(150)

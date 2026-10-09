@@ -27,7 +27,7 @@ import { Companion } from './companion.js'
 import { chooseRobot, Talk } from './ui/robotui.js'
 import { loadGear, value, buy as buyGear, BOMB_PRICE, BOMB_CARRY, TICKET_PRICE, TICKET_CARRY } from './gear.js'
 import { OpenHud } from './ui/openhud.js'
-import { clickToPlay } from './ui/hud.js'
+import { clickToPlay, lockMouse } from './ui/hud.js'
 import { addCrosshair } from './ui/crosshair.js'
 
 export const SPAWN = [0.5, 1, 0.5]
@@ -207,6 +207,8 @@ export function start(platform) {
   if (robot) meet(robot)
   else chooseRobot(r => {
     meet(r)
+    // that click was "Let's dig!": go straight in, no second "Click to play"
+    lockMouse(noa.container.element)
     persist()                                  // chosen on a click, long after persist exists
     say(`Hi, I'm ${r.name}! Hold the left mouse button to dig down.`)
     say('Space against a wall climbs back up.')

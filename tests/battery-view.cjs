@@ -7,22 +7,25 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
 ;(async () => {
   const p = await launch({ w: 1280, h: 720, port: 9402 })
   await p.navigate('http://localhost:5181/'); await sleep(6000)
+  await p.eval(`(() => { const b = document.querySelector('.choose-robot .go'); if (b) b.click() })()`); await sleep(900)   // first start: the default robot, then "Click to play" shows
   await p.tap(640, 360); await sleep(300)
   const O = '__open'
   // out of town (its square cannot be dug), onto the flat grass east of it
   await p.eval(`${O}.noa.entities.setPosition(${O}.noa.playerEntity, [26.5, 1, 0.5])`); await sleep(1500)
   ok((await p.eval(`${O}.battery.charge`)) === 100 && /100%/.test(await p.eval(`document.querySelector('.hud .batt').textContent`)), 'a new player starts with a full battery on the HUD')
-  await p.eval(`${O}.noa.camera.pitch = 1.55`)
-  await p.mouseHold(640, 360, 2000); await sleep(300)
+  // below the sun's reach (at the surface it would top the battery straight back up)
+  await p.eval(`(() => { for (let y = 0; y > -6; y--) ${O}.world.set(26, y, 0, 0); ${O}.noa.entities.setPosition(${O}.noa.playerEntity, [26.5, -5, 0.5]); ${O}.noa.camera.pitch = 1.55 })()`)
+  await sleep(1000)
+  await p.holdUntil(`${O}.digger.broken >= 3`); await sleep(300)
   const c1 = await p.eval(`${O}.battery.charge`)
   ok(c1 < 100 && c1 > 95, `digging a few blocks drains it a little (${c1.toFixed(2)})`)
   // nearly empty: the warnings, then flat
   await p.eval(`${O}.battery.charge = 25.1; ${O}.battery.warned = []`)
-  await p.mouseHold(640, 360, 1200); await sleep(300)
+  await p.holdUntil(`${O}.battery.fraction <= 0.25`); await sleep(400)
   ok((await p.eval(`${O}.sound.log`)).includes('low') && /Battery 25%/.test(await p.eval(`document.querySelector('.hud .toast').textContent`)), 'crossing 25% beeps and says so')
   ok(await p.eval(`document.querySelector('.hud .batt').classList.contains('amber')`), 'and the battery turns amber')
   await p.eval(`${O}.battery.charge = 0.2`)
-  await p.mouseHold(640, 360, 1500); await sleep(300)
+  await p.holdUntil(`${O}.battery.flat`); await sleep(400)
   const flat = await p.eval(`({ flat: ${O}.battery.flat, enabled: ${O}.digger.enabled, log: ${O}.sound.log.slice(-6) })`)
   ok(flat.flat && !flat.enabled && flat.log.includes('flat'), 'flat: the drill stops, with its own sound')
   const n = await p.eval(`${O}.digger.broken`)
@@ -33,7 +36,7 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
     for (let y = 0; y > -12; y--) ${O}.world.set(x, y, z, 0)
     ${O}.noa.entities.setPosition(${O}.noa.playerEntity, [x + 0.5, -11, z + 0.5]) })()`); await sleep(1200)
   const bottom = (await p.eval(`${O}.state()`)).y
-  await p.hold('Space', 3500); await sleep(500)
+  await p.keyDown('Space'); for (let i = 0; i < 60 && (await p.eval(`${O}.state().y`)) < -2.5; i++) await sleep(150); await p.keyUp('Space'); await sleep(300)
   const top = (await p.eval(`${O}.state()`)).y
   ok(bottom <= -10.9 && top > bottom + 8, `Space against the shaft wall climbs it (y ${bottom} -> ${top})`)
   // back down the shaft, out of the sun (at the surface it would charge), then save and reload
