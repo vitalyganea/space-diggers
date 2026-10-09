@@ -1,5 +1,5 @@
 /* Dev: digging. The real round world at lane 0, plus a row of known blocks
-   standing on the grass at z = 3 (x -2..2: coal, iron, gold, lava, Core).
+   standing on the grass at z = 3 (x -2..2: copper, titanium, gold, lava, Core).
    Hold the left button to dig. window.__dev.aim(x, z, pitch) stands the
    player at (x, z) on the surface looking +z with that pitch. */
 import { createEngine, playerState } from '../engine.js'

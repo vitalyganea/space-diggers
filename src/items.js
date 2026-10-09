@@ -1,16 +1,17 @@
 /* Things you carry and sell. A block that breaks may drop one; it goes into
-   the backpack, and turns into coins only at the Market (row 20). Stage 2
+   the backpack, and turns into coins only at the Trade Hub (row 20). Stage 2
    adds finds (junk to mythic) to this same table.
 
-   value: coins at the Market. drop: the block id that gives it, and the
+   value: coins at the Trade Hub. drop: the block id that gives it, and the
    chance it does. */
 import { ID } from './blocks.js'
 
 export const ITEMS = {
-  coal: { name: 'Coal', value: 2, color: '#2b2b2e', from: ID.copper_ore, chance: 1 },
-  iron: { name: 'Iron', value: 5, color: '#d8a77a', from: ID.titanium_ore, chance: 1 },
-  gold: { name: 'Gold', value: 12, color: '#f5c518', from: ID.gold_ore, chance: 1 },
-  gem: { name: 'Gem', value: 25, color: '#2dd4bf', from: ID.stargem_ore, chance: 1 },
+  copper: { name: 'Copper', value: 3, color: '#d9773a', from: ID.copper_ore, chance: 1 },
+  titanium: { name: 'Titanium', value: 6, color: '#e2e8f0', from: ID.titanium_ore, chance: 1 },
+  gold: { name: 'Moon gold', value: 12, color: '#f5c518', from: ID.gold_ore, chance: 1 },
+  helium: { name: 'Helium-3', value: 15, color: '#4ade80', from: ID.helium_ore, chance: 1 },
+  stargem: { name: 'Star gem', value: 30, color: '#f472b6', from: ID.stargem_ore, chance: 1 },
   shard: { name: 'Crystal shard', value: 6, color: '#a78bfa', from: ID.crystal, chance: 0.3 },
 }
 

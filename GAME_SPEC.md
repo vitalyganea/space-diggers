@@ -138,6 +138,19 @@ Full small game, built in stages. Each stage ends playable:
 - No assets, names or look copied from Bloxd.io, Minecraft, Crazy Miners or
   the Roblox games researched.
 
+## After the user's first playtest (2026-10-09)
+
+The game is mostly for children: nothing may make it harder to play. The
+user agreed a list (SYSTEMS.md stage S2): bug fixes; a fast charging
+station at the base and a slow trickle elsewhere; a ground robot like
+Wall-E and the drone kept out of your view; the robot's help made clear
+(R); a sky of real stars with effects; the ringed planet moving across
+the sky, lighting the Moon and dropping meteors from its rings; hard,
+rich meteorite craters and a laser tool for them; music; a live 3D scene
+behind the start screen; a comic for new players; creatures without
+fighting (weapons would push out the digging). Later, by rocket: the
+rings as a level of floating asteroids, and the planet's moons.
+
 ## Space (the theme, decided 2026-10-09)
 
 - **Name:** Space Diggers.

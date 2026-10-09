@@ -53,9 +53,37 @@ the way eight times in eight minutes.
 | 26 | Space textures and the sky: regolith, moon rock, basalt, ice, crystal, new ores, base materials; black sky with stars, nebula and a ringed planet; no clouds or trees | done | Block ids kept, names and looks new (regolith, dust, moon rock, dark rock, copper, titanium, gold, star gem, ice, frost; base: deck, floor, hull, solar, glass, light bands) plus helium ore (27). Sky: a 2048×1024 painted dome, no mipmaps (they washed the stars out), painted flipped (the dome shows v upside down), nebula wrapped so the seam does not show. Earth-blue fog is now the dark of space. look.cjs rewritten for it; all of tests/run.sh passes (three race checks moved from fixed waits to the round's phase: the bigger sky texture loads slower). The ice "trees" still standing are row 27's to replace. |
 | 27 | The Moon: surface with craters and boulders, layers to the crystal depths, ore in veins that show in walls, no race lava | done | `makeMoon` in worldgen.js (makeWorld with town). Flat plain 32 blocks round the base, then gentle rolls, craters (bowl a third as deep as wide, raised rim) and boulders. Layers dust, moon rock, dark rock, ice caves (-65..-85, caves walled in ice and frost, helium ore), crystal, Core at -100. No lava. Veins: a 4³ cell, 85% hold a 3–8 block walk of a depth-suited ore (a noise threshold first gave single blocks and 160-block blobs). tests/moon.mjs over three seeds: veins p10 3 / p90 8; a straight 60 m shaft digs through ore ~4 times (Earth world: ~1) with ~16 ore faces in its walls; a chunk in under 150 ms. Race world: boulders replace trees (worldgen.mjs). Fixed along the way: dig.cjs waits for its world; animals.cjs measures the walking beaver square to the world (it failed on its turn before this row too). All of tests/run.sh passes. |
 | 28 | The space base: domes and metal buildings with the same doors and shops, a landing pad with a rocket | done | Modules of white hull with a lit band in their colour over the door and round the top, a glass dome on each (hollow), metal floors; deck plates for the square; two rows of solar panels on legs in the empty corners; a launch pad west on the plain (-26, 0) with a 17-block rocket (round body, red bands, pointed nose, four fins, a window to the east), its own door and a "coming soon: new planets" card. Lit name panels instead of wooden boards; the pad on the minimap. Names: Trade Hub, Workshop, Bomb Shop, Museum, Robot Bay (keys unchanged). town.mjs checks modules, domes, rocket, panels, seven doors; moon.mjs lets the base stand on the plain. stranded-view waits for the card instead of a fixed press (it failed under load). All of tests/run.sh passes. |
-| 29 | Items and prices for the Moon's ores; pacing measured by the playtest bot | pending | |
-| 30 | Low gravity, the suit, solar charging at the base; space helmets on the animals | pending | |
-| 31 | Playtest of the space loop (the stage 1 bot, re-run) | pending | |
+| 29 | Items and prices for the Moon's ores; pacing measured by the playtest bot | building | Prices in (copper 3, titanium 6, gold 12, helium 15, star gem 30). The bot fills its backpack by ~47 m; full trip timing still to measure (it got stuck under ledges; fixed). |
+
+## Stage S2: the user's first playtest of Space Diggers (2026-10-09)
+
+Asked for by the user after playing; agreed the same day. **The game is
+mostly for children: nothing here may make it harder to play.** Few keys,
+no punishment, clear hints, the robot explaining.
+
+| #  | System | Status | Test notes |
+|----|--------|--------|------------|
+| 30 | Bug: closing a shop asks for another click ("back to game"); Close should go straight back in | pending | |
+| 31 | Bug: the minimap turns the wrong way with the mouse | pending | |
+| 32 | Bug: building signs turn with you and sink into walls; fixed panels over the doors | pending | |
+| 33 | Charging: a fast charging station at the base; everywhere else a very slow trickle (the surface too) | pending | |
+| 34 | Robots: Bolt becomes a ground robot on tracks (Wall-E-like); the drone flies by your shoulder, not in front, coming forward only to speak | pending | |
+| 35 | The robot made clear: R opens its panel (send to sell, Sonar's search, its light), and it says what it is doing | pending | |
+| 36 | The sky remade: real point stars (no stretched picture at any angle), twinkling, shooting stars, drifting nebula, the ringed planet glowing | pending | |
+| 37 | The ringed planet moves across the sky (a 20–30 min day) and tints the Moon's light | pending | |
+| 38 | Meteor showers from the rings: a streak, an impact, a fresh crater of rare ore marked on the minimap | pending | |
+| 39 | Meteorite craters: very hard rock, rich in meteoric iron and gems, seen from afar and on the minimap | pending | |
+| 40 | A second tool, the laser: slow in soft rock, the only good one in meteorite rock and crystal; 1/2 or the wheel to switch, and it picks itself when you aim at rock that needs it; both upgraded at the Workshop | pending | |
+| 41 | Background music: calm space themes for the surface, underground and the menu (synthesised; obeys the platform's mute) | pending | |
+| 42 | The start screen over a live 3D scene: the camera circling the base, the rocket and the ringed planet | pending | |
+| 43 | A comic for new players: 4–5 panels, skippable (landed, dig, collect, climb, sell and upgrade), then short hints when they matter | pending | |
+| 44 | Creatures, no fighting: space bats that pinch a coin and flee the lamp; a rock worm you go round or scare with a bomb; a friendly one that digs a little if fed crystals | pending | |
+| 45 | The space-loop playtest re-run with all of the above | pending | |
+
+Later, with the rocket (stage 4): the rings as a level of floating
+asteroids; the ringed planet's moons as new planets. Kept for later as
+rare events: eclipses. Dropped, too hard on children: tides changing
+gravity.
 
 ## Later stages (rows to be split when each starts)
 

@@ -1,4 +1,4 @@
-/* System 20 check in the open game: sell at the Market, upgrade at the
+/* System 20 check in the open game: sell at the Trade Hub, upgrade at the
    Workshop, buy bombs, and it all keeps.   node tests/shops-view.cjs */
 const { launch, sleep } = require('../tools/cdp.cjs')
 const OUT = process.env.OUT || '/tmp/boom-tests'
@@ -12,18 +12,18 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   const O = '__open'
   const click = sel => p.eval(`(() => { const b = document.querySelector('${sel}'); if (!b || b.disabled) return false; b.click(); return true })()`)
   const goIn = async (pos) => { await p.eval(`${O}.noa.entities.setPosition(${O}.noa.playerEntity, ${JSON.stringify(pos)})`); await sleep(500); await p.hold('KeyE', 80); await sleep(400) }
-  // the Market
-  await p.eval(`${O}.bag.add('coal', 6); ${O}.bag.add('iron', 4); ${O}.bag.add('gold', 1)`)
+  // the Trade Hub
+  await p.eval(`${O}.bag.add('copper', 6); ${O}.bag.add('titanium', 4); ${O}.bag.add('gold', 1)`)
   await goIn([0.5, 1, 7.4])
   const rows = await p.eval(`document.querySelectorAll('.building table.goods tr').length`)
-  ok(rows === 3 && /Sell everything · 44/.test(await p.eval(`document.querySelector('[data-act="sellAll"]').textContent`)), `the Market lists the backpack (3 kinds) and offers 44 for all of it`)
+  ok(rows === 3 && /Sell everything · 54/.test(await p.eval(`document.querySelector('[data-act="sellAll"]').textContent`)), `the Trade Hub lists the backpack (3 kinds) and offers 54 for all of it`)
   await p.shot(OUT + '/sh1-market.png')
   ok(await click('[data-act="sell"][data-arg="gold"]'), 'selling just the gold')
   await sleep(300)
   ok((await p.eval(`${O}.digger.coins`)) === 12 && !(await p.eval(`${O}.bag.items.gold`)), '12 coins, no gold left')
   ok(await click('[data-act="sellDouble"]'), 'sell the rest with an ad, for double')
   await sleep(2400)
-  ok((await p.eval(`${O}.digger.coins`)) === 12 + 64 && (await p.eval(`${O}.bag.count`)) === 0, `the stand-in ad doubles it: 32 -> 64 (${await p.eval(`${O}.digger.coins`)} coins)`)
+  ok((await p.eval(`${O}.digger.coins`)) === 12 + 84 && (await p.eval(`${O}.bag.count`)) === 0, `the stand-in ad doubles it: 42 -> 84 (${await p.eval(`${O}.digger.coins`)} coins)`)
   await click('.building .close'); await sleep(300)
   // the Workshop
   await goIn([8.4, 1, 0.5])
@@ -31,8 +31,8 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   await p.shot(OUT + '/sh2-workshop.png')
   ok(await click('[data-act="buy"][data-arg="drill"]'), 'upgrade the drill (50)')
   await sleep(300)
-  ok(await p.eval(`${O}.gear.drill === 1 && ${O}.digger.speed === 1.3 && ${O}.digger.coins === 26`), 'drill 2: faster, 26 coins left')
-  ok(!(await click('[data-act="buy"][data-arg="battery"]')) || (await p.eval(`${O}.gear.battery`)) === 0, 'the battery (40) is too dear now')
+  ok(await p.eval(`${O}.gear.drill === 1 && ${O}.digger.speed === 1.3 && ${O}.digger.coins === 46`), 'drill 2: faster, 46 coins left')
+  ok(!(await click('[data-act="buy"][data-arg="drill"]')) && (await p.eval(`${O}.gear.drill`)) === 1, 'drill 3 (150) is too dear now')
   await p.eval(`${O}.digger.coins = 500`); await sleep(100)
   await click('.building .close'); await goIn([8.4, 1, 0.5])
   await click('[data-act="buy"][data-arg="battery"]'); await sleep(200)

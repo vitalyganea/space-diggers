@@ -5,7 +5,7 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
 ok(rechargeCost(0) === 10 && rechargeCost(50) === 35 && rechargeCost(99) === 59, 'a recharge costs more the deeper you are (10, 35 at 50, 59 at 99)')
 ok(tripTime(10) < tripTime(80) && tripTime(80, 2) === tripTime(80) / 2, 'the robot\'s trip is longer deeper, shorter with a faster robot')
 const r = new Rescue()
-ok(r.sendRobot('gold', 12, 60) && !r.sendRobot('coal', 2, 60) && !r.callFree(), 'one job at a time')
+ok(r.sendRobot('gold', 12, 60) && !r.sendRobot('copper', 2, 60) && !r.callFree(), 'one job at a time')
 let done = null
 for (let t = 0; t < tripTime(60) - 0.1; t += 0.1) if (r.tick(0.1)) done = 'early'
 ok(done === null && r.left() > 0, `the robot is away ${tripTime(60).toFixed(0)} s`)

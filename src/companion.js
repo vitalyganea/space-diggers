@@ -1,12 +1,12 @@
 /* Your robot friend in the world: it floats beside your shoulder, faces
    where you face, lights the tunnel with a small lamp of its own, and
-   flies off up out of sight when it goes to the Market (and back when the
+   flies off up out of sight when it goes to the Trade Hub (and back when the
    trip is done). Sonar scouts for gold and gems nearby. */
 import { PointLight, Vector3, Color3 } from '@babylonjs/core'
 import { makeRobot, ROBOTS } from './robots.js'
 import { ID } from './blocks.js'
 
-const SHINY = new Set([ID.gold_ore, ID.stargem_ore])
+const SHINY = new Set([ID.gold_ore, ID.helium_ore, ID.stargem_ore])
 
 export class Companion {
   constructor(noa, kind) {
@@ -19,7 +19,7 @@ export class Companion {
     noa.rendering.addMeshToScene(this.model.root, false, [0, 0, 0])
     this.pos = [...noa.entities.getPosition(noa.playerEntity)]
     this.pos[1] += 1.6
-    this.away = false           // off on a trip to the Market
+    this.away = false           // off on a trip to the Trade Hub
     this.light = new PointLight('robotLight', new Vector3(0, 0, 0), scene)
     this.light.diffuse = new Color3(0.5, 0.95, 1)
     this.light.specular = new Color3(0, 0, 0)
@@ -62,7 +62,7 @@ export class Companion {
     this.pos = [p[0], p[1] + 8, p[2]]
   }
 
-  /* Sonar: the nearest gold or gem within `r` blocks, as { dir, dist } in
+  /* Sonar: the nearest gold, helium or star gem within `r` blocks, as { dir, dist } in
      words relative to where you look, or null. */
   scan(world, r = 6) {
     if (!this.R.sonar) return null

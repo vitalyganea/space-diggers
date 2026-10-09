@@ -17,6 +17,6 @@ while (buy(g, 'lamp', rich)) {}
 ok(nextCost(g, 'lamp') === null && value(g, 'lamp') === 24, 'the lamp tops out at 24')
 ok(JSON.stringify(loadGear({ drill: 99, battery: -3, lamp: 'x' })) === JSON.stringify({ drill: 5, battery: 0, backpack: 0, lamp: 0 }), 'a save is clamped to what exists')
 // pacing: a full backpack of mixed early ore pays about the first upgrade
-const early = 20 * (0.6 * ITEMS.coal.value + 0.4 * ITEMS.iron.value)
+const early = 20 * (0.6 * ITEMS.copper.value + 0.4 * ITEMS.titanium.value)
 ok(early >= GEAR.drill.cost[1] * 0.8 && early <= GEAR.drill.cost[1] * 2, `a first full backpack (~${early.toFixed(0)}) about pays the second drill (${GEAR.drill.cost[1]})`)
 console.log(fails ? fails + ' failed' : 'all ok'); process.exit(fails ? 1 : 0)
