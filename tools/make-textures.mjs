@@ -104,31 +104,50 @@ class Tex {
 }
 
 /* ------------------------------------------------------------ palettes */
-const DIRT = ['#86603f', '#79553a', '#93694a', '#6b4a31', '#a07756']
-const GRASS = ['#5aa83c', '#56a239', '#5fae41', '#51993a', '#66b748']
-const STONE = ['#8a8a8e', '#7e7e83', '#96969a', '#727277', '#a3a3a7']
-const DEEP = ['#4f5566', '#474c5c', '#575d70', '#3f4452', '#626a7e']
-const BASALT = ['#2c2628', '#352d2f', '#241f21', '#3d3436']
+// Space Diggers (row 26): the Moon's ground, its ores, and the space base
+const REGOLITH = ['#a9a8a3', '#9f9e99', '#b4b3ae', '#94938e', '#bebdb8']
+const DUST = ['#8b8780', '#827e77', '#96928a', '#77736c', '#a19d95']
+const ROCK = ['#76777e', '#6c6d74', '#80818a', '#62636a', '#8b8c95']
+const DARK = ['#3f4558', '#394052', '#474e63', '#323848', '#525a71']
+const BASALT = ['#26252c', '#2e2d35', '#1f1e24', '#37353f']
+
+/* a little crater: a dark bowl with a light rim on the side the sun is on */
+function crater(t, cx, cy, r) {
+  for (let y = -r - 1; y <= r + 1; y++) for (let x = -r - 1; x <= r + 1; x++) {
+    const d = Math.hypot(x, y)
+    if (d <= r - 0.5) t.set(cx + x, cy + y, x + y > 0 ? '#7f7e79' : '#8c8b86')
+    else if (d <= r + 0.6) t.set(cx + x, cy + y, x + y < 0 ? '#d2d1cc' : '#868580')
+  }
+}
+/* a four-pointed star, for star gems */
+function star(t, cx, cy, mid, tip) {
+  t.set(cx, cy, '#ffffff')
+  for (const [i, j] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) { t.set(cx + i, cy + j, mid); t.set(cx + 2 * i, cy + 2 * j, tip) }
+}
 
 const T = {}
-T.dirt = () => new Tex(1).noise(DIRT).specks(5, ['#5e412b', '#a88063'], 2)
-T.grass_top = () => new Tex(2).noise(GRASS, 2.2).specks(4, ['#4a8f33', '#74c457'], 1)
-T.grass_side = () => {
-  const t = T.dirt()
-  const g = new Tex(3).noise(GRASS)
+T.dust = () => new Tex(1).noise(DUST).specks(5, ['#6a665f', '#b0aca3'], 2)
+T.regolith_top = () => {
+  const t = new Tex(2).noise(REGOLITH, 2).specks(5, ['#8a8984', '#c9c8c3'], 1)
+  crater(t, 4, 5, 2); crater(t, 11, 11, 1.4); crater(t, 12, 3, 1)
+  return t
+}
+T.regolith_side = () => {
+  const t = T.dust()
+  const g = new Tex(3).noise(REGOLITH)
   for (let x = 0; x < N; x++) {
-    const d = 3 + Math.floor(g.r() * 3)    // a ragged fringe 3–5 pixels deep
+    const d = 2 + Math.floor(g.r() * 3)    // a ragged layer of loose dust 2–4 pixels deep
     for (let y = 0; y < d; y++) t.set(x, y, g.get(x, y))
   }
   return t
 }
-T.stone = () => new Tex(4).noise(STONE).specks(4, ['#66666b'], 3).vein('#6b6b70', 6)
-T.deepstone = () => {
-  const t = new Tex(5).noise(DEEP)
-  for (let y = 2; y < N; y += 5) for (let x = 0; x < N; x++) if (t.r() < 0.7) t.set(x, y, '#3a3e4b')
-  return t.specks(3, ['#6e7790'], 1)
+T.moonrock = () => new Tex(4).noise(ROCK).specks(4, ['#5a5b62'], 3).vein('#595a61', 6).specks(3, ['#9a9ba4'], 1)
+T.darkrock = () => {
+  const t = new Tex(5).noise(DARK)
+  for (let y = 2; y < N; y += 5) for (let x = 0; x < N; x++) if (t.r() < 0.7) t.set(x, y, '#2c3141')
+  return t.specks(3, ['#6b7594'], 1)
 }
-T.basalt = () => new Tex(6).noise(BASALT).vein('#c2410c', 10).vein('#f97316', 7).specks(3, ['#fbbf24'], 1)
+T.basalt = () => new Tex(6).noise(BASALT).vein('#3b3946', 8).specks(4, ['#6d5bd0', '#8f7cf0'], 1)   // glints of glassy rock
 T.lava = () => {
   const t = new Tex(7).noise(['#f97316', '#ea580c', '#fb923c', '#dc2626'], 1.2)
   return t.specks(8, ['#fde047', '#facc15'], 2).specks(4, ['#b91c1c'], 2)
@@ -138,70 +157,77 @@ T.crystal = () => {
   for (let k = 0; k < 4; k++) t.vein('#c4b5fd', 5)
   return t.specks(5, ['#e9d5ff', '#ffffff'], 1)
 }
-T.coal_ore = () => T.stone().ore(4, '#2b2b2e', '#4a4a4f', '#18181a')
-T.iron_ore = () => T.stone().ore(4, '#d8a77a', '#efc9a3', '#a8724a')
-T.gold_ore = () => T.deepstone().ore(4, '#f5c518', '#fff1a1', '#b8860b')
-T.gem_ore = () => T.deepstone().ore(4, '#2dd4bf', '#a7f3eb', '#0f766e')
-T.log_side = () => {
-  const t = new Tex(12).noise(['#6b4a2b', '#5e4026', '#7a5533', '#523720'])
-  for (let x = 1; x < N; x += 3) for (let y = 0; y < N; y++) if (t.r() < 0.75) t.set(x, y, '#4a311c')
+T.copper_ore = () => T.moonrock().ore(4, '#d9773a', '#f6ad73', '#8a4115')
+T.titanium_ore = () => T.moonrock().ore(4, '#cbd5e1', '#ffffff', '#64748b')
+T.gold_ore = () => T.darkrock().ore(4, '#f5c518', '#fff1a1', '#b8860b')
+T.stargem_ore = () => {
+  const t = T.darkrock()
+  star(t, 4, 4, '#f472b6', '#9d174d'); star(t, 11, 7, '#38bdf8', '#075985'); star(t, 5, 12, '#f472b6', '#9d174d')
   return t
 }
-T.log_top = () => {
-  const t = new Tex(13).noise(['#b08a5a', '#a37d4f', '#bb9665'])
-  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
-    const d = Math.hypot(x - 7.5, y - 7.5)
-    if (d > 7) t.set(x, y, '#5e4026'); else if (Math.round(d) % 3 === 0) t.set(x, y, '#8a6a40')
-  }
-  return t
+T.helium_ore = () => {
+  const t = T.darkrock()
+  for (let k = 0; k < 3; k++) t.vein('#4ade80', 6)
+  return t.specks(5, ['#bbf7d0', '#86efac'], 2)
 }
-T.leaves = () => new Tex(14).noise(['#3f8f2f', '#357d28', '#4aa236', '#2c6a22', '#5bb544'], 1.3).specks(6, ['#245a1c'], 2)
+T.ice = () => {
+  const t = new Tex(12).noise(['#9fd3f0', '#8ec8ea', '#b2e0f6', '#7fbde4'], 1.3)
+  for (let k = 0; k < 3; k++) t.vein('#e0f4ff', 6)
+  return t.specks(4, ['#ffffff'], 1)
+}
+T.frost = () => new Tex(14).noise(['#e3f0f9', '#d4e8f5', '#eef6fc', '#c6e0f2'], 1.4).specks(6, ['#ffffff', '#b9d8ee'], 1)
 T.rubble = () => {
-  const t = new Tex(15).noise(['#7d7468', '#6f665b', '#8a8174', '#5f574d'])
-  for (let k = 0; k < 7; k++) {                    // cobbles with dark joints between
+  const t = new Tex(15).noise(['#7a7a80', '#6e6e74', '#86868c', '#606066'])
+  for (let k = 0; k < 7; k++) {                    // broken rock with dark joints between
     const x = Math.floor(t.r() * 13), y = Math.floor(t.r() * 13)
-    for (let i = 0; i < 4; i++) { t.set(x + i, y, '#4a433b'); t.set(x, y + i, '#4a433b') }
+    for (let i = 0; i < 4; i++) { t.set(x + i, y, '#45454b'); t.set(x, y + i, '#45454b') }
   }
   return t
 }
-// the town (system 19)
-T.planks = () => {
-  const t = new Tex(20).noise(['#b8864e', '#a9784a', '#c4925a', '#9e6f40'], 1.4)
-  for (const y of [3, 7, 11, 15]) for (let x = 0; x < N; x++) t.set(x, y, '#7a5230')     // board joints
-  for (const [x, y] of [[5, 0], [11, 4], [3, 8], [9, 12]]) for (let k = 0; k < 3; k++) t.set(x, y + k, '#7a5230')
+// the space base (row 28 builds it)
+/* a square metal panel: `pal` noise, a dark seam round the edge, a rivet in each corner */
+function panel(seed, pal, seam, rivet) {
+  const t = new Tex(seed).noise(pal, 1.6)
+  for (let i = 0; i < N; i++) { t.set(i, 15, seam); t.set(15, i, seam) }
+  for (let i = 0; i < N; i++) { t.set(i, 0, rivet === '#ffffff' ? '#f1f5f9' : pal[2]) }
+  for (const [x, y] of [[2, 2], [13, 2], [2, 13], [13, 13]]) t.set(x, y, rivet)
   return t
 }
-T.bricks = () => {
-  const t = new Tex(21).noise(['#b5523b', '#a84a35', '#c25e44', '#9c432f'], 1.4)
-  for (const y of [3, 7, 11, 15]) for (let x = 0; x < N; x++) t.set(x, y, '#d9cfc0')     // mortar
-  for (let r = 0; r < 4; r++) for (const x of r % 2 ? [3, 11] : [7, 15]) for (let k = 0; k < 3; k++) t.set(x, r * 4 + k, '#d9cfc0')
+T.floor = () => {                                   // tread plate: raised diagonal dashes
+  const t = panel(20, ['#6b7280', '#656c79', '#737b88'], '#3f4550', '#9ca3af')
+  for (let y = 1; y < 15; y += 3) for (let x = (y % 2) + 1; x < 15; x += 4) { t.set(x, y, '#8b93a1'); t.set(x + 1, y + 1, '#4b515d') }
   return t
 }
-T.roof = () => {
-  const t = new Tex(22).noise(['#8f2f2a', '#a3362f', '#7d2823'], 1.3)
-  for (let y = 0; y < N; y += 4) for (let x = 0; x < N; x++) t.set(x, y + 3, '#5e1c18')
-  for (let y = 0; y < N; y += 4) for (let x = (y / 4) % 2 ? 2 : 6; x < N; x += 8) for (let k = 0; k < 3; k++) t.set(x, y + k, '#5e1c18')
+T.hull = () => {                                    // the white wall panels of the base
+  const t = panel(21, ['#dde3ea', '#d3dae2', '#e6eaef', '#c9d1da'], '#8b95a3', '#9aa4b2')
+  for (let x = 0; x < N; x++) t.set(x, 7, '#b8c1cc')
   return t
 }
-T.glass = () => {
-  const t = new Tex(23).noise(['#a9d8f0', '#9fd0ea', '#b4e0f5'], 1.2)
-  for (let i = 0; i < N; i++) { t.set(i, 0, '#e8f0f4'); t.set(i, 15, '#e8f0f4'); t.set(0, i, '#e8f0f4'); t.set(15, i, '#e8f0f4'); t.set(7, i, '#e8f0f4') }
-  for (let k = 0; k < 4; k++) t.set(3 + k, 3 + k, '#ffffff')                               // a glint
+T.solar = () => {                                   // roof: solar cells in a silver frame
+  const t = new Tex(22).noise(['#1e3a8a', '#1d4ed8', '#1e40af', '#2348b8'], 1.4)
+  for (let i = 0; i < N; i++) for (const k of [0, 5, 10, 15]) { t.set(i, k, '#c0c7d1'); t.set(k, i, '#c0c7d1') }
+  for (let k = 0; k < 3; k++) t.set(2 + k, 2 + k, '#60a5fa')                              // a glint
   return t
 }
-T.cobble = () => {
-  const t = new Tex(24).noise(['#9a9890', '#8c8a82', '#a7a59d', '#7f7d76'], 1.4)
-  for (const [x, y, w, h] of [[0, 0, 6, 5], [6, 0, 10, 4], [0, 5, 4, 6], [4, 4, 7, 7], [11, 4, 5, 7], [0, 11, 8, 5], [8, 11, 8, 5]]) {
-    for (let i = 0; i < w; i++) { t.set(x + i, y, '#5f5d57') }
-    for (let j = 0; j < h; j++) { t.set(x, y + j, '#5f5d57') }
-  }
+T.glass = () => {                                   // dome glass: a pale blue with a bright frame
+  const t = new Tex(23).noise(['#7fb6d8', '#76aed2', '#89bfdf'], 1.2)
+  for (let i = 0; i < N; i++) { t.set(i, 0, '#e2e8f0'); t.set(i, 15, '#e2e8f0'); t.set(0, i, '#e2e8f0'); t.set(15, i, '#e2e8f0') }
+  for (let k = 0; k < 4; k++) t.set(3 + k, 3 + k, '#f0f9ff')
   return t
 }
-for (const [name, col] of [['green', '#2fbf71'], ['red', '#e63946'], ['blue', '#3b82f6'], ['yellow', '#f5c518'], ['purple', '#8b5cf6']]) {
-  T['awning_' + name] = () => {
+T.deck = () => {                                    // the base's ground: dark plates with seams
+  const t = new Tex(24).noise(['#454c58', '#3e4550', '#4c5360', '#393f4a'], 1.4)
+  for (let i = 0; i < N; i++) { t.set(i, 7, '#2b3039'); t.set(7, i, '#2b3039'); t.set(i, 15, '#2b3039'); t.set(15, i, '#2b3039') }
+  for (const [x, y] of [[2, 2], [10, 2], [2, 10], [10, 10]]) t.set(x, y, '#6b7280')
+  return t
+}
+for (const [name, col, glow] of [['green', '#2fbf71', '#a7f3d0'], ['red', '#e63946', '#fecaca'], ['blue', '#3b82f6', '#bfdbfe'],
+  ['yellow', '#f5c518', '#fef9c3'], ['purple', '#8b5cf6', '#ddd6fe']]) {
+  T['light_' + name] = () => {                      // a lit sign band over a door
     const t = new Tex(25)
-    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) t.set(x, y, Math.floor(x / 4) % 2 ? '#f4f1ea' : col)
-    for (let x = 0; x < N; x++) t.set(x, 15, '#3a3a3a')                                       // a dark hem
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) t.set(x, y, col)
+    for (let x = 0; x < N; x++) { t.set(x, 0, '#2b3039'); t.set(x, 15, '#2b3039'); t.set(x, 7, glow); t.set(x, 8, glow) }
+    for (let x = 1; x < N; x += 4) for (let y = 3; y < 13; y++) if (y < 7 || y > 8) t.set(x, y, glow)
     return t
   }
 }

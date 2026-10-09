@@ -16,14 +16,14 @@ function census(y0, y1) {
 }
 const show = c => Object.entries(c).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${k} ${(v * 100).toFixed(1)}%`).join(', ')
 
-ok(w(0, 1, 0) === 0 && w(0, 0, 0) === ID.grass, 'air above, grass on the surface')
+ok(w(0, 1, 0) === 0 && w(0, 0, 0) === ID.regolith, 'air above, grass on the surface')
 const dirt = census(-1, -3); console.log('    dirt band:', show(dirt))
-ok(dirt.dirt > 0.85, 'dirt under the grass (its bottom wobbles a block, so some stone shows by y -3)')
+ok(dirt.dust > 0.85, 'dirt under the grass (its bottom wobbles a block, so some stone shows by y -3)')
 const stone = census(-8, -33); console.log('    stone band:', show(stone))
-ok(stone.stone > 0.7 && stone.coal_ore > 0.015 && stone.iron_ore > 0.005 && !stone.gold_ore, 'stone with coal and iron, no gold')
+ok(stone.moonrock > 0.7 && stone.copper_ore > 0.015 && stone.titanium_ore > 0.005 && !stone.gold_ore, 'stone with coal and iron, no gold')
 ok(stone.air > 0.01 && stone.air < 0.15, `caves open in the stone, but not much of it (${(stone.air * 100).toFixed(1)}%)`)
 const deep = census(-38, -63); console.log('    deep band:', show(deep))
-ok(deep.deepstone > 0.7 && deep.gold_ore > 0.008 && deep.gem_ore > 0.002, 'deep stone with gold and gems')
+ok(deep.darkrock > 0.7 && deep.gold_ore > 0.008 && deep.stargem_ore > 0.002, 'deep stone with gold and gems')
 const bas = census(-68, -83); console.log('    basalt band:', show(bas))
 ok(bas.basalt > 0.5 && bas.lava > 0.03 && bas.lava < 0.3, 'basalt with lava pockets you must dig around')
 const cry = census(-88, -98); console.log('    crystal band:', show(cry))
@@ -51,7 +51,7 @@ ok(spread('coins') < 0.8, `ore on the way comparable (${(spread('coins') * 100).
 ok(new Set(Array.from({ length: LANES }, (_, i) => laneX(i) - laneX(0))).size === LANES &&
    (laneX(1) - laneX(0)) === LANE_GAP, `${LANES} lanes, ${LANE_GAP} apart`)
 // layer boundaries are where the spec says, give or take the wobble
-const firstStone = (() => { for (let y = 0; y > -20; y--) if (w(3, y, 3) !== ID.dirt && w(3, y, 3) !== ID.grass) return y })()
+const firstStone = (() => { for (let y = 0; y > -20; y--) if (w(3, y, 3) !== ID.dust && w(3, y, 3) !== ID.regolith) return y })()
 ok(firstStone <= LAYERS.dirt + 2 && firstStone >= LAYERS.dirt - 2, `stone starts near y ${LAYERS.dirt} (here ${firstStone})`)
 ok(makeWorld(42)(5, -40, 7) === w(5, -40, 7) && makeWorld(43)(5, -40, 7) !== undefined, 'same seed, same world')
 // the surface: a flat arena, hills and trees outside it
@@ -61,7 +61,7 @@ for (let x = -90; x <= 90; x++) for (let z = -60; z <= 60; z++) {
   const inArena = Math.abs(x) <= ARENA.x && Math.abs(z) <= ARENA.z
   const h = surfaceHeight(42, x, z); maxH = Math.max(maxH, h)
   if (inArena && (h !== 0 || w(x, 1, z) !== 0)) flat = false
-  if (w(x, h + 1, z) === ID.log) { trees++; if (inArena) treesIn++ }
+  if (w(x, h + 1, z) === ID.ice) { trees++; if (inArena) treesIn++ }
 }
 ok(flat, 'the arena is flat open grass')
 ok(trees > 40 && treesIn === 0, `trees outside the arena (${trees}), none in it`)

@@ -90,11 +90,11 @@ export function makeWorld(seed = 1, { town = false } = {}) {
   function above(x, y, z) {
     if (town) { const t = townVoxel(x, y, z); if (t !== -1) return t }
     const h = inTown(x, z) ? 0 : surfaceHeight(seed, x, z)
-    if (y < h) return ID.dirt
-    if (y === h) return ID.grass
+    if (y < h) return ID.dust
+    if (y === h) return ID.regolith
     // trees: a trunk here, or leaves from a trunk within two blocks
     const trunk = inTown(x, z) ? 0 : treeAt(seed, x, z)
-    if (trunk && y > h && y <= h + trunk) return ID.log
+    if (trunk && y > h && y <= h + trunk) return ID.ice
     if (y > h + 6 + 3) return 0
     for (let dx = -2; dx <= 2; dx++) for (let dz = -2; dz <= 2; dz++) {
       const t = inTown(x + dx, z + dz) ? 0 : treeAt(seed, x + dx, z + dz)
@@ -102,7 +102,7 @@ export function makeWorld(seed = 1, { town = false } = {}) {
       const top = (inTown(x + dx, z + dz) ? 0 : surfaceHeight(seed, x + dx, z + dz)) + t
       const r = y > top ? 1 : 2                       // the cap narrows at the top
       if (y >= top - 1 && y <= top + 1 && Math.abs(dx) <= r && Math.abs(dz) <= r &&
-          !(Math.abs(dx) === 2 && Math.abs(dz) === 2) && !(dx === 0 && dz === 0 && y <= top)) return ID.leaves
+          !(Math.abs(dx) === 2 && Math.abs(dz) === 2) && !(dx === 0 && dz === 0 && y <= top)) return ID.frost
     }
     return 0
   }
@@ -115,7 +115,7 @@ export function makeWorld(seed = 1, { town = false } = {}) {
     const r = hash(seed + 7, x, y, z)                              // per-block dice
     const lane = nearLane(x, z), inShaft = lane.dist <= SHAFT_R
 
-    if (y > LAYERS.dirt + wob) return ID.dirt
+    if (y > LAYERS.dirt + wob) return ID.dust
 
     // caves: hollow where a slow noise runs high, only in stone and deep stone,
     // and never in the top of anyone's shaft
@@ -124,15 +124,15 @@ export function makeWorld(seed = 1, { town = false } = {}) {
       if (c > 0.74) return 0
     }
     if (y > LAYERS.stone + wob) {
-      if (r < 0.03) return ID.coal_ore
-      if (y < -15 && r < 0.045) return ID.iron_ore
-      return ID.stone
+      if (r < 0.03) return ID.copper_ore
+      if (y < -15 && r < 0.045) return ID.titanium_ore
+      return ID.moonrock
     }
     if (y > LAYERS.deep + wob) {
       if (r < 0.015) return ID.gold_ore
-      if (y < -50 && r < 0.023) return ID.gem_ore
-      if (r < 0.04) return ID.iron_ore
-      return ID.deepstone
+      if (y < -50 && r < 0.023) return ID.stargem_ore
+      if (r < 0.04) return ID.titanium_ore
+      return ID.darkrock
     }
     if (y > LAYERS.basalt + wob) {
       // lava pockets: blobs you have to dig around
@@ -142,10 +142,10 @@ export function makeWorld(seed = 1, { town = false } = {}) {
           if (u * u + v * v + w * w <= 1) return ID.lava
         }
       } else if (noise3(seed + 5, x, y, z, 6) > 0.7) return ID.lava
-      if (r < 0.02) return ID.gem_ore
+      if (r < 0.02) return ID.stargem_ore
       return ID.basalt
     }
-    if (r < 0.03) return ID.gem_ore
+    if (r < 0.03) return ID.stargem_ore
     return ID.crystal
   }
 }

@@ -315,7 +315,7 @@ export function start(platform) {
     if (buddy && sonarT > 2.5) {
       sonarT = 0
       const found = buddy.scan(world)
-      if (found && (!ping || found.at.join() !== ping.join())) say(`I feel ${found.id === ID.gem_ore ? 'a gem' : 'gold'} ${found.dir}, ${found.dist} blocks away!`)
+      if (found && (!ping || found.at.join() !== ping.join())) say(`I feel ${found.id === ID.stargem_ore ? 'a gem' : 'gold'} ${found.dir}, ${found.dist} blocks away!`)
       ping = found ? found.at : null
     }
     if (!deepTip && depth() > 6) { deepTip = true; say('Deep enough? Space against a wall takes you back up.') }

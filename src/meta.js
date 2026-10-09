@@ -80,7 +80,7 @@ export function choose(save, kind) {
 /* The chosen animal's perk, as numbers the game applies. */
 export function perk(kind) {
   return {
-    digSpeed: id => (kind === 'mole' && [ID.grass, ID.dirt, ID.stone].includes(id)) ? 1.15 : 1,
+    digSpeed: id => (kind === 'mole' && [ID.regolith, ID.dust, ID.moonrock].includes(id)) ? 1.15 : 1,
     coinMult: kind === 'hamster' ? 1.5 : 1,
     startBombs: kind === 'beaver' ? 1 : 0,
     startStock: kind === 'beaver' ? 10 : 0,

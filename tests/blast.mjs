@@ -16,7 +16,7 @@ ok(w.get(101, -20, 100) === ID.lava && w.get(100, -21, 101) === ID.core, 'lava a
 ok(w.get(100, -19 + 3, 100) !== 0 || w.gen(100, -16, 100) === 0, 'nothing beyond its radius goes')
 const near = { pos: [100.5, -20, 102.5] }, far = { pos: [100.5, -20, 105.5] }
 ok(knocked([100.5, -19.5, 100.5], [near, far]).length === 1, `racers within ${KNOCK_R} are knocked, further ones not`)
-ok(stocks(ID.stone) && stocks(ID.dirt) && !stocks(ID.gold_ore) && !stocks(ID.leaves), 'digging earth and rock stocks rubble; ore and leaves do not')
+ok(stocks(ID.moonrock) && stocks(ID.dust) && !stocks(ID.gold_ore) && !stocks(ID.frost), 'digging earth and rock stocks rubble; ore and leaves do not')
 
 // a knocked bot is dazed and does nothing for DAZE seconds
 const w2 = new World(42)

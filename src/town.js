@@ -12,11 +12,11 @@ export const TOWN_R = 18          // the town is flat, cobbled and treeless with
 export const SQUARE_R = 16
 
 export const BUILDINGS = [
-  { key: 'market', name: 'Market', at: [0, 9], face: [0, -1], wall: ID.planks, awning: ID.awning_green, ready: true },
-  { key: 'workshop', name: 'Workshop', at: [9, 0], face: [-1, 0], wall: ID.bricks, awning: ID.awning_yellow, ready: true },
-  { key: 'bombs', name: 'Bomb shop', at: [-9, 0], face: [1, 0], wall: ID.bricks, awning: ID.awning_red, ready: true },
-  { key: 'museum', name: 'Museum', at: [0, -9], face: [0, 1], wall: ID.cobble, awning: ID.awning_blue, ready: false },
-  { key: 'robots', name: 'Robot shop', at: [-9, 12], face: [1, 0], wall: ID.planks, awning: ID.awning_purple, ready: false },
+  { key: 'market', name: 'Market', at: [0, 9], face: [0, -1], wall: ID.floor, awning: ID.light_green, ready: true },
+  { key: 'workshop', name: 'Workshop', at: [9, 0], face: [-1, 0], wall: ID.hull, awning: ID.light_yellow, ready: true },
+  { key: 'bombs', name: 'Bomb shop', at: [-9, 0], face: [1, 0], wall: ID.hull, awning: ID.light_red, ready: true },
+  { key: 'museum', name: 'Museum', at: [0, -9], face: [0, 1], wall: ID.deck, awning: ID.light_blue, ready: false },
+  { key: 'robots', name: 'Robot shop', at: [-9, 12], face: [1, 0], wall: ID.floor, awning: ID.light_purple, ready: false },
 ]
 /* The race portal: a frame of bricks round a purple gateway, not a building. */
 export const PORTAL = { key: 'portal', name: 'Race portal', at: [9, -12], face: [-1, 0], ready: false }
@@ -33,9 +33,9 @@ function buildingVoxel(b, x, y, z) {
   const { u, v } = local(b, x, z)
   if (v === -1 && Math.abs(u) <= 1 && y === 3) return b.awning               // over the door
   if (Math.abs(u) > W || v < 0 || v > D) return -1
-  if (y === 0) return ID.cobble
-  if (y === H + 1) return ID.roof
-  if (y === H + 2) return Math.abs(u) <= 1 ? ID.roof : 0                       // a ridge along the top
+  if (y === 0) return ID.deck
+  if (y === H + 1) return ID.solar
+  if (y === H + 2) return Math.abs(u) <= 1 ? ID.solar : 0                       // a ridge along the top
   if (y > H + 2) return 0
   const front = v === 0, back = v === D, side = Math.abs(u) === W
   if (!(front || back || side)) return 0                                      // inside
@@ -47,7 +47,7 @@ function buildingVoxel(b, x, y, z) {
 function portalVoxel(x, y, z) {
   const { u, v } = local(PORTAL, x, z)
   if (v !== 0 || Math.abs(u) > 2 || y < 1 || y > 6) return -1
-  if (Math.abs(u) === 2 || y === 1 || y === 6) return ID.bricks
+  if (Math.abs(u) === 2 || y === 1 || y === 6) return ID.hull
   return ID.portal
 }
 
@@ -57,7 +57,7 @@ export function townVoxel(x, y, z) {
   for (const b of BUILDINGS) { const id = buildingVoxel(b, x, y, z); if (id !== -1) return id }
   const p = portalVoxel(x, y, z)
   if (p !== -1) return p
-  if (y === 0 && Math.abs(x) <= SQUARE_R && Math.abs(z) <= SQUARE_R) return ID.cobble
+  if (y === 0 && Math.abs(x) <= SQUARE_R && Math.abs(z) <= SQUARE_R) return ID.deck
   return -1
 }
 

@@ -16,13 +16,14 @@ const RANGE = 24
 const PX = 4                                  // pixels per block
 const SIZE = (RANGE * 2 + 1) * PX
 const COLORS = {
-  [ID.grass]: '#5aa83c', [ID.dirt]: '#86603f', [ID.stone]: '#8a8a8e', [ID.deepstone]: '#565c6e', [ID.basalt]: '#3a3133',
-  [ID.lava]: '#f97316', [ID.crystal]: '#7c5ce6', [ID.coal_ore]: '#3b3b3f', [ID.iron_ore]: '#c99a70', [ID.gold_ore]: '#f5c518',
-  [ID.gem_ore]: '#2dd4bf', [ID.core]: '#fbbf24', [ID.log]: '#6b4a2b', [ID.leaves]: '#3f8f2f', [ID.rubble]: '#7d7468', [ID.cobble]: '#9a9890',
+  [ID.regolith]: '#b4b3ae', [ID.dust]: '#8b8780', [ID.moonrock]: '#76777e', [ID.darkrock]: '#454c62', [ID.basalt]: '#2e2d35',
+  [ID.lava]: '#f97316', [ID.crystal]: '#7c5ce6', [ID.copper_ore]: '#d9773a', [ID.titanium_ore]: '#e2e8f0', [ID.gold_ore]: '#f5c518',
+  [ID.stargem_ore]: '#f472b6', [ID.helium_ore]: '#4ade80', [ID.core]: '#fbbf24', [ID.ice]: '#9fd3f0', [ID.frost]: '#e3f0f9',
+  [ID.rubble]: '#7a7a80', [ID.deck]: '#454c58', [ID.floor]: '#6b7280', [ID.hull]: '#dde3ea',
 }
 const SHOP_COLORS = { market: '#2fbf71', workshop: '#f5c518', bombs: '#e63946', museum: '#3b82f6', robots: '#8b5cf6', portal: '#a78bfa' }
-const BAND = [['Earth', 0, LAYERS.dirt, '#86603f'], ['Stone', LAYERS.dirt, LAYERS.stone, '#8a8a8e'], ['Deep stone', LAYERS.stone, LAYERS.deep, '#565c6e'],
-  ['Lava', LAYERS.deep, LAYERS.basalt, '#c2410c'], ['Crystal', LAYERS.basalt, LAYERS.crystal, '#7c5ce6'], ['Core', LAYERS.crystal, CORE_Y - 2, '#fbbf24']]
+const BAND = [['Dust', 0, LAYERS.dirt, '#8b8780'], ['Moon rock', LAYERS.dirt, LAYERS.stone, '#76777e'], ['Dark rock', LAYERS.stone, LAYERS.deep, '#454c62'],
+  ['Basalt', LAYERS.deep, LAYERS.basalt, '#2e2d35'], ['Crystal', LAYERS.basalt, LAYERS.crystal, '#7c5ce6'], ['Core', LAYERS.crystal, CORE_Y - 2, '#fbbf24']]
 
 export class Minimap {
   constructor(world) {

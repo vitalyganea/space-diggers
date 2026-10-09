@@ -6,7 +6,7 @@ import { PointLight, Vector3, Color3 } from '@babylonjs/core'
 import { makeRobot, ROBOTS } from './robots.js'
 import { ID } from './blocks.js'
 
-const SHINY = new Set([ID.gold_ore, ID.gem_ore])
+const SHINY = new Set([ID.gold_ore, ID.stargem_ore])
 
 export class Companion {
   constructor(noa, kind) {

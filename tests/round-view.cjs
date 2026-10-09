@@ -9,12 +9,13 @@ const text = (p, sel) => p.eval(`(document.querySelector('${sel}') || {}).textCo
 ;(async () => {
   // 1: a round the player wins
   let p = await launch({ w: 1280, h: 720, port: 9385 })
-  await p.navigate('http://localhost:5181/?mode=race&seed=42&speed=2'); await sleep(2200)
+  await p.navigate('http://localhost:5181/?mode=race&seed=42&speed=2')
+  await p.waitFor(`window.__game && __game.round.phase === 'countdown' && /[123]/.test(document.querySelector('.hud .count') && document.querySelector('.hud .count').textContent)`)
   const c = await text(p, '.hud .count')
   ok(['1', '2', '3'].includes(c.trim()), `the round opens with a countdown (${c})`)
   ok(!(await p.eval('__game.digger.enabled')), 'nobody can dig during it')
   await p.shot(OUT + '/r1-countdown.png')
-  await sleep(2500)
+  await p.waitFor(`__game.round.phase === 'race'`, 15000)
   ok((await p.eval('__game.round.phase')) === 'race' && (await p.eval('__game.digger.enabled')), 'then the race: digging allowed')
   const ctp = await p.eval(`getComputedStyle(document.querySelector('.click-to-play')).display`)
   ok(ctp === 'flex', 'with the mouse not locked, "Click to dig" shows')

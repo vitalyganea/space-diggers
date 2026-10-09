@@ -50,7 +50,7 @@ the way eight times in eight minutes.
 | #  | System | Status | Test notes |
 |----|--------|--------|------------|
 | 25 | Name and title: Space Diggers everywhere (page, saves, texts) | done | Page title, console tag, save keys `spacediggers-*` (a new world: old Earth saves are not loaded), CrazyGames zip `space-diggers-crazygames.zip`, a SPACE DIGGERS logo on the start screen. meta-view, crazygames, ticket-view, robot-view pass. |
-| 26 | Space textures and the sky: regolith, moon rock, basalt, ice, crystal, new ores, base materials; black sky with stars, nebula and a ringed planet; no clouds or trees | pending | |
+| 26 | Space textures and the sky: regolith, moon rock, basalt, ice, crystal, new ores, base materials; black sky with stars, nebula and a ringed planet; no clouds or trees | done | Block ids kept, names and looks new (regolith, dust, moon rock, dark rock, copper, titanium, gold, star gem, ice, frost; base: deck, floor, hull, solar, glass, light bands) plus helium ore (27). Sky: a 2048×1024 painted dome, no mipmaps (they washed the stars out), painted flipped (the dome shows v upside down), nebula wrapped so the seam does not show. Earth-blue fog is now the dark of space. look.cjs rewritten for it; all of tests/run.sh passes (three race checks moved from fixed waits to the round's phase: the bigger sky texture loads slower). The ice "trees" still standing are row 27's to replace. |
 | 27 | The Moon: surface with craters and boulders, layers to the crystal depths, ore in veins that show in walls, no race lava | pending | |
 | 28 | The space base: domes and metal buildings with the same doors and shops, a landing pad with a rocket | pending | |
 | 29 | Items and prices for the Moon's ores; pacing measured by the playtest bot | pending | |

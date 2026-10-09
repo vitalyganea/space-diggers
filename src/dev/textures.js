@@ -10,7 +10,7 @@ export function start() {
   registerBlocks(noa)
   const pillars = BLOCKS
   function voxel(x, y, z) {
-    if (y < 0) return y === -1 ? ID.grass : ID.dirt
+    if (y < 0) return y === -1 ? ID.regolith : ID.dust
     const i = (x + 13) / 2
     if (z === 2 && y < 3 && Number.isInteger(i) && i >= 0 && i < pillars.length) return pillars[i].id
     return 0

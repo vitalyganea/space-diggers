@@ -27,8 +27,8 @@ ok(odd.coins === 0 && odd.owned.join() === 'mole,hamster' && odd.chosen === 'mol
 st.setItem(KEY, '{nope'); ok(load(st).coins === 0, 'a broken save starts fresh')
 
 const m = perk('mole'), b = perk('beaver'), h = perk('hamster')
-ok(m.digSpeed(ID.stone) === 1.15 && m.digSpeed(ID.deepstone) === 1 && m.coinMult === 1, 'mole: earth and stone faster, nothing else')
-ok(b.startBombs === 1 && b.startStock === 10 && b.digSpeed(ID.stone) === 1, 'beaver: a bomb and 10 blocks to start')
-ok(h.coinMult === 1.5 && h.digSpeed(ID.stone) === 1 && h.startBombs === 0, 'hamster: ore pays half again')
+ok(m.digSpeed(ID.moonrock) === 1.15 && m.digSpeed(ID.darkrock) === 1 && m.coinMult === 1, 'mole: earth and stone faster, nothing else')
+ok(b.startBombs === 1 && b.startStock === 10 && b.digSpeed(ID.moonrock) === 1, 'beaver: a bomb and 10 blocks to start')
+ok(h.coinMult === 1.5 && h.digSpeed(ID.moonrock) === 1 && h.startBombs === 0, 'hamster: ore pays half again')
 ok(new Set(SHOP.map(x => x.perk)).size === SHOP.length, 'every animal\'s perk is its own')
 console.log(fails ? fails + ' failed' : 'all ok'); process.exit(fails ? 1 : 0)

@@ -8,14 +8,15 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   await p.navigate('http://localhost:5181/?dev=look'); await sleep(6000)
   const read = () => p.eval(`(() => { const s = window.__dev.noa.rendering.getScene(), L = window.__dev.look;
     return { sky: s.clearColor.asArray().slice(0, 3).map(v => +v.toFixed(2)), light: +window.__dev.noa.rendering.light.intensity.toFixed(2),
-      lamp: +L.lamp.intensity.toFixed(2), dome: L.dome.isEnabled(), clouds: L.clouds.isEnabled(),
+      lamp: +L.lamp.intensity.toFixed(2), dome: L.dome.isEnabled(), stars: !!L.dome.material.emissiveTexture, fog: [s.fogStart, s.fogEnd],
       drill: L.hand.root.getChildMeshes().every(m => m.isEnabled() && m.isVisible), drillZ: +L.hand.root.position.z.toFixed(3) } })()`)
   const top = await read()
-  ok(top.sky[2] > 0.9 && top.dome && top.clouds && top.light > 0.95, `at the surface: blue sky, dome, clouds, full daylight ${JSON.stringify(top)}`)
+  ok(top.sky.every(v => v < 0.12) && top.dome && top.stars && top.light > 0.95, `at the surface: the black sky of space with its starfield, and hard sunlight ${JSON.stringify(top)}`)
+  await p.shot(OUT + '/look-sky.png')
   ok(top.drill, 'the drill is in hand')
   await p.eval('window.__dev.at(-20, 0.3)'); await sleep(1500)
   const mid = await read()
-  ok(mid.sky[2] < top.sky[2] && mid.light < top.light && mid.lamp > top.lamp && !mid.clouds, `halfway to dark: dimmer sky and daylight, brighter lamp, no clouds ${JSON.stringify(mid)}`)
+  ok(mid.fog[1] < top.fog[1] && mid.light < top.light && mid.lamp > top.lamp, `halfway to dark: closer fog, dimmer daylight, brighter lamp ${JSON.stringify(mid)}`)
   await p.eval('window.__dev.at(-60, 0.3)'); await sleep(1500)
   const deep = await read()
   ok(deep.sky.every(v => v < 0.1) && deep.light < 0.2 && deep.lamp > 1.2 && !deep.dome, `deep down: near-black, the lamp does the lighting ${JSON.stringify(deep)}`)

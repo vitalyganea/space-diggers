@@ -24,7 +24,7 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   await sleep(2850); await p.pointer('up', 640, 360); await sleep(300)
   const log = await p.eval(`${D}.log`)
   const first = log[0]
-  ok(first && first.name === 'grass', `the grass breaks (${first && first.name})`)
+  ok(first && first.name === 'regolith', `the regolith breaks (${first && first.name})`)
   const took = first ? (first.t - t0) / 1000 : -1
   ok(took > 0.3 && took < 0.55, `in about its 0.35 s (took ${took.toFixed(2)} s)`)
   const s = await p.eval(`${D}.state()`)
@@ -33,7 +33,7 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
 
   // ores in the row at z = 3
   const coinsBefore = await p.eval(`${D}.digger.coins`)
-  const want = [['coal_ore', -2, 2, 1.4], ['iron_ore', -1, 5, 1.5], ['gold_ore', 0, 12, 1.8]]
+  const want = [['copper_ore', -2, 2, 1.4], ['titanium_ore', -1, 5, 1.5], ['gold_ore', 0, 12, 1.8]]
   let paid = coinsBefore
   for (const [name, x, coins, secs] of want) {
     await p.eval(`${D}.aim(${x + 0.5}, 1.5, 0.55)`); await sleep(300)

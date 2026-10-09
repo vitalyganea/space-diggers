@@ -13,7 +13,7 @@ export function start() {
   const noa = createEngine({ playerStart: [0.5, 1, 0.5] })
   registerBlocks(noa)
   const world = makeWorld(42)
-  const row = [ID.coal_ore, ID.iron_ore, ID.gold_ore, ID.lava, ID.core]
+  const row = [ID.copper_ore, ID.titanium_ore, ID.gold_ore, ID.lava, ID.core]
   const voxel = (x, y, z) => (y === 1 && z === 3 && x >= -2 && x <= 2) ? row[x + 2] : world(x, y, z)
   noa.world.on('worldDataNeeded', (id, data, x, y, z) => {
     for (let i = 0; i < data.shape[0]; i++)

@@ -6,18 +6,18 @@ import { blast } from '../src/blast.js'
 let fails = 0
 const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fails++ }
 const w = new World(5, { town: true }), plain = new World(5)
-ok(w.get(0, 0, 0) === ID.cobble && w.get(0, 1, 0) === 0, 'the spawn stands on cobbles in open air')
-ok(plain.get(0, 0, 0) === ID.grass, 'the race world has no town')
+ok(w.get(0, 0, 0) === ID.deck && w.get(0, 1, 0) === 0, 'the spawn stands on cobbles in open air')
+ok(plain.get(0, 0, 0) === ID.regolith, 'the race world has no town')
 for (const b of BUILDINGS) {
   const [x, z] = b.at, [fx, fz] = b.face
   const door = [w.get(x, 1, z), w.get(x, 2, z)], wall = w.get(x + 2 * -fz, 3, z + 2 * fx)
   const roof = w.get(x - 3 * fx, 5, z - 3 * fz)
-  ok(door.every(v => v === 0) && wall === b.wall && roof === ID.roof && w.get(x + fx, 3, z + fz) === b.awning,
+  ok(door.every(v => v === 0) && wall === b.wall && roof === ID.solar && w.get(x + fx, 3, z + fz) === b.awning,
      `${b.name}: a doorway, walls, a roof, its awning`)
 }
 let trees = 0, unbreakable = true
 for (let x = -TOWN_R; x <= TOWN_R; x++) for (let z = -TOWN_R; z <= TOWN_R; z++) {
-  for (let y = 0; y < 9; y++) { const id = w.get(x, y, z); if (id === ID.log) trees++; if (id && byId[id].hard < 50 && y >= 0 && (Math.abs(x) <= 16 && Math.abs(z) <= 16)) unbreakable = false }
+  for (let y = 0; y < 9; y++) { const id = w.get(x, y, z); if (id === ID.ice) trees++; if (id && byId[id].hard < 50 && y >= 0 && (Math.abs(x) <= 16 && Math.abs(z) <= 16)) unbreakable = false }
 }
 ok(trees === 0, 'no trees in town')
 ok(unbreakable, 'nothing in the town square can be dug')

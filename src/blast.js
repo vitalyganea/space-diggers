@@ -14,7 +14,7 @@ export const DAZE = 2
 export const FUSE = 2
 export const MAX_STOCK = 30
 const KEEP = new Set([ID.lava, ID.core])
-const STOCKABLE = new Set([ID.grass, ID.dirt, ID.stone, ID.deepstone, ID.basalt, ID.crystal, ID.rubble])
+const STOCKABLE = new Set([ID.regolith, ID.dust, ID.moonrock, ID.darkrock, ID.basalt, ID.crystal, ID.rubble])
 
 export function blast(world, c) {
   const broken = []

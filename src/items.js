@@ -7,10 +7,10 @@
 import { ID } from './blocks.js'
 
 export const ITEMS = {
-  coal: { name: 'Coal', value: 2, color: '#2b2b2e', from: ID.coal_ore, chance: 1 },
-  iron: { name: 'Iron', value: 5, color: '#d8a77a', from: ID.iron_ore, chance: 1 },
+  coal: { name: 'Coal', value: 2, color: '#2b2b2e', from: ID.copper_ore, chance: 1 },
+  iron: { name: 'Iron', value: 5, color: '#d8a77a', from: ID.titanium_ore, chance: 1 },
   gold: { name: 'Gold', value: 12, color: '#f5c518', from: ID.gold_ore, chance: 1 },
-  gem: { name: 'Gem', value: 25, color: '#2dd4bf', from: ID.gem_ore, chance: 1 },
+  gem: { name: 'Gem', value: 25, color: '#2dd4bf', from: ID.stargem_ore, chance: 1 },
   shard: { name: 'Crystal shard', value: 6, color: '#a78bfa', from: ID.crystal, chance: 0.3 },
 }
 
