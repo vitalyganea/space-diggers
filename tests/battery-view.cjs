@@ -23,7 +23,9 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   await p.eval(`${O}.battery.charge = 25.1; ${O}.battery.warned = []`)
   await p.holdUntil(`${O}.battery.fraction <= 0.25`); await sleep(400)
   ok((await p.eval(`${O}.sound.log`)).includes('low') && /Battery 25%/.test(await p.eval(`document.querySelector('.hud .toast').textContent`)), 'crossing 25% beeps and says so')
-  ok(await p.eval(`document.querySelector('.hud .batt').classList.contains('amber')`), 'and the battery turns amber')
+  // (set to 21%: right on 25% the slow trickle could lift it back over the line between frames)
+  await p.eval(`${O}.battery.charge = 21; 1`)
+  ok(await p.waitFor(`document.querySelector('.hud .batt').classList.contains('amber')`, 2000), 'and the battery turns amber')
   await p.eval(`${O}.battery.charge = 0.2`)
   await p.holdUntil(`${O}.battery.flat`); await sleep(400)
   const flat = await p.eval(`({ flat: ${O}.battery.flat, enabled: ${O}.digger.enabled, log: ${O}.sound.log.slice(-6) })`)
@@ -39,6 +41,12 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   await p.keyDown('Space'); for (let i = 0; i < 60 && (await p.eval(`${O}.state().y`)) < -2.5; i++) await sleep(150); await p.keyUp('Space'); await sleep(300)
   const top = (await p.eval(`${O}.state()`)).y
   ok(bottom <= -10.9 && top > bottom + 8, `Space against the shaft wall climbs it (y ${bottom} -> ${top})`)
+  // under a ledge (you dug ore out of the wall and stand beside your shaft): climbing slips you round it
+  await p.eval(`(() => { for (let y = 0; y > -16; y--) ${O}.world.set(40, y, 8, 0); for (const y of [-15, -14]) ${O}.world.set(41, y, 8, 0)
+    ${O}.noa.entities.setPosition(${O}.noa.playerEntity, [41.5, -15, 8.5]) })()`); await sleep(1200)
+  await p.keyDown('Space'); for (let i = 0; i < 150 && (await p.eval(`${O}.state().y`)) < -2.5; i++) await sleep(150); await p.keyUp('Space'); await sleep(300)
+  const out = (await p.eval(`${O}.state()`)).y
+  ok(out > -3, `from beside the shaft, under its ledge, Space still climbs out (y -15 -> ${out})`)
   // the charging pad in the middle of the base fills it in seconds; elsewhere it only trickles
   await p.eval(`${O}.noa.entities.setPosition(${O}.noa.playerEntity, [30.5, 1, 0.5]); ${O}.battery.charge = 10; 1`); await sleep(3000)
   const trickled = await p.eval(`${O}.battery.charge`)

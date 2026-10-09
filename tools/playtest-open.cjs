@@ -17,10 +17,10 @@ let fails = 0
 const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fails++ }
 
 // the way between the dig site, the Trade Hub and the Workshop, round the buildings
-const SITE = [26.5, 0.5]
+let SITE = [26.5, 0.5]                       // a fresh spot each trip (the old shaft is dug out)
 const TO_MARKET = [[20, 6], [0.5, 5.5], [0.5, 7.4]]
 const TO_WORKSHOP = [[4, 3], [8.4, 0.5]]
-const TO_SITE = [[4, 5], [20, 6], SITE]
+const TO_SITE = () => [[4, 5], [20, 6], SITE]
 
 ;(async () => {
   const p = await launch({ w: 1280, h: 720, port: 9420 })
@@ -147,7 +147,7 @@ const TO_SITE = [[4, 5], [20, 6], SITE]
   const log = { trips: 0, sold: 0, upgrades: [], stranded: 0, maxDepth: 0, tripTimes: [] }
   let tripStart = Date.now()
   const end = Date.now() + MINUTES * 60000
-  await walk(TO_SITE)                                   // round the Workshop: straight east runs in at its door
+  await walk(TO_SITE())                                   // round the Workshop: straight east runs in at its door
   while (Date.now() < end) {
     // dig down until the backpack is full or the battery is low
     await relock()
@@ -171,7 +171,7 @@ const TO_SITE = [[4, 5], [20, 6], SITE]
       log.maxDepth = Math.max(log.maxDepth, s.depth)
       if (k % 10 === 0) await watch('digging, depth ' + s.depth)
       if (s.card) break
-      if (s.bag >= s.cap || s.batt < 0.3 || Date.now() > end) break
+      if (s.bag >= s.cap || s.batt < 0.3 || s.depth >= 60 || Date.now() > end) break      // 60 m: far enough for a trip, as a child would go
       if (s.onGround && await wallOre()) continue
       // lava below: go round it
       if ((await p.eval(`${O}.world.get(Math.floor(${s.x}), Math.floor(${s.y} + 1e-6) - 1, Math.floor(${s.z}))`)) === 6) {
@@ -220,7 +220,8 @@ const TO_SITE = [[4, 5], [20, 6], SITE]
     await p.shot(`${OUT}/trip-${log.trips}.png`)
     // sun-charge a moment in town if the battery is low, then back to the shaft
     await p.waitFor(`${O}.battery.fraction > 0.8`, 30000)
-    await walk(TO_SITE)
+    SITE = [26.5 + 2 * (log.trips % 4), 0.5 + 2 * Math.floor(log.trips / 4)]
+    await walk(TO_SITE())
   }
   console.log(`    ${MINUTES} min: ${log.trips} trips, ${log.sold} coins from selling, upgrades ${log.upgrades.join(', ') || 'none'}, ` +
               `deepest ${log.maxDepth} m, stranded ${log.stranded}×, ore from the walls ${log.wall || 0}, round lava ${log.lava || 0}×, re-tries ${log.retries || 0}, items per trip ${(log.items || []).join(' ')}, seconds per trip ${log.tripTimes.join(' ')} (climbing out ${(log.climbs || []).join(' ')}, turned ${log.turns || 0}×)`)

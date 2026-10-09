@@ -426,7 +426,20 @@ export function start(platform) {
       battery.recharge(battery.capacity * FREE_CHARGE); card.hide(); sound.play('buy')
       hud.toast('The rescue drone gave you some charge')
     }
-    if (noa.inputs.state.jump && againstWall()) body.velocity[1] = Math.max(body.velocity[1], 4.2)
+    if (noa.inputs.state.jump && againstWall()) {
+      body.velocity[1] = Math.max(body.velocity[1], 4.2)
+      // forgiving for children: rock over your head but open beside it (you dug ore out of the
+      // wall, and are no longer under your shaft): drift towards the open side and climb on
+      const q = noa.entities.getPosition(noa.playerEntity), hx = Math.floor(q[0]), hz = Math.floor(q[2]), hy = Math.floor(q[1] + 2.05)
+      if (world.get(hx, hy, hz) !== 0) {
+        for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+          if (world.get(hx + dx, hy, hz + dz) === 0 && world.get(hx + dx, hy - 1, hz + dz) === 0) {
+            body.velocity[0] = (hx + dx + 0.5 - q[0]) * 4; body.velocity[2] = (hz + dz + 0.5 - q[2]) * 4
+            break
+          }
+        }
+      }
+    }
     if (document.pointerLockElement) platform.gameplayStart(); else platform.gameplayStop()
     sinceSave += dt / 1000
     if (sinceSave >= AUTOSAVE) { sinceSave = 0; persist() }
