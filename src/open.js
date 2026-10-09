@@ -19,6 +19,7 @@ import { Battery } from './battery.js'
 import { Rescue, rechargeCost, FREE_CHARGE, SURFACE_DEPTH } from './stranded.js'
 import { chargeRate, onPad } from './charging.js'
 import { tip } from './tips.js'
+import { Music } from './music.js'
 import { Hand, toolSpeed, hasLaser, LASER_ROCK } from './tools.js'
 import { Meteors } from './meteors.js'
 import { direction } from './companion.js'
@@ -55,6 +56,9 @@ export function start(platform) {
   world.attach(noa)
 
   const sound = new Sound()
+  // music (row 41): the surface theme up top, the deep one underground
+  const music = new Music(sound)
+  music.play('surface')
   let siteMuted = false, userMuted = false
   const applyMute = () => sound.setMuted(siteMuted || userMuted)
   platform.onMute(m => { siteMuted = m; applyMute() })
@@ -393,6 +397,7 @@ export function start(platform) {
     prompt.show(inside ? null : doorNear(noa.entities.getPosition(noa.playerEntity)))
     // the robot: follow, and Sonar's scouting every 2.5 s
     meteors.update(dt)
+    music.play(choosing ? 'menu' : depth() > 4 ? 'deep' : 'surface')
     // the tool picks itself when what you aim at changes kind
     const aimed = noa.targetedBlock ? noa.targetedBlock.blockID : null
     const was = hand.tool
@@ -422,5 +427,5 @@ export function start(platform) {
       { robot: buddy && !buddy.away ? buddy.pos : null, ping, meteors: meteors.marks })
   })
 
-  if (import.meta.env.DEV) window.__open = { noa, world, meteors, digger, save, sound, bombs, persist, bag, battery, rescue, card, gear, look, minimap, inside: () => inside, tickets: () => tickets, robot: () => robot, buddy: () => buddy, talk: () => talk, state: () => playerState(noa), depth }
+  if (import.meta.env.DEV) window.__open = { noa, world, meteors, music, digger, save, sound, bombs, persist, bag, battery, rescue, card, gear, look, minimap, inside: () => inside, tickets: () => tickets, robot: () => robot, buddy: () => buddy, talk: () => talk, state: () => playerState(noa), depth }
 }
