@@ -19,7 +19,9 @@ import { Battery } from './battery.js'
 import { Rescue, rechargeCost, FREE_CHARGE, SURFACE_DEPTH } from './stranded.js'
 import { StrandedCard } from './ui/stranded.js'
 import { doorNear } from './town.js'
-import { nameBoards, DoorPrompt, buildingCard } from './ui/townui.js'
+import { nameBoards, DoorPrompt, buildingCard, shopCard } from './ui/townui.js'
+import { market, workshop, bombShop } from './ui/shops.js'
+import { loadGear, value, buy as buyGear, BOMB_PRICE, BOMB_CARRY } from './gear.js'
 import { OpenHud } from './ui/openhud.js'
 import { clickToPlay } from './ui/hud.js'
 import { addCrosshair } from './ui/crosshair.js'
@@ -73,10 +75,20 @@ export function start(platform) {
     },
   })
   digger.coins = save.coins
+  digger.bombs = Math.max(0, Math.min(5, Math.floor(+save.bombs || 0)))
   const perk = meta.perk(save.chosen)
   digger.digSpeed = perk.digSpeed
   digger.coinMult = perk.coinMult
-  applyLook(noa)
+  const look = applyLook(noa)
+  // the Workshop's upgrades, kept for good
+  const gear = loadGear(save.gear)
+  const applyGear = () => {
+    digger.speed = value(gear, 'drill')
+    battery.capacity = value(gear, 'battery')
+    bag.capacity = Math.max(bag.capacity, value(gear, 'backpack'))
+    look.lamp.range = value(gear, 'lamp')
+  }
+  applyGear()
   addCrosshair()
   // stranded: the card with the ways out (src/stranded.js)
   const rescue = new Rescue()
@@ -114,10 +126,46 @@ export function start(platform) {
   noa.inputs.unbind('alt-fire')
   noa.inputs.bind('alt-fire', 'Mouse3')
   noa.inputs.bind('use', 'KeyE')
+  // what the shops can do to the game
+  const shop = {
+    coins: () => digger.coins, bag, gear, bombs: () => digger.bombs, hasAds: platform.hasAds,
+    sellMult: () => perk.coinMult,
+    sellOne(k) {
+      const n = bag.items[k] || 0
+      if (!n || !bag.take(k, n)) return
+      const c = Math.round(ITEMS[k].value * n * perk.coinMult)
+      digger.coins += c; sound.play('coin', c); persist()
+    },
+    sellAll(mult) {
+      const c = bag.sellAll(perk.coinMult * mult)
+      if (!c) return
+      digger.coins += c; sound.play('coin', c); hud.toast(`Sold for ${c} coins`); persist()
+    },
+    async sellAllAd() {
+      if (!bag.count) return
+      sound.setMuted(true)
+      const ok = await platform.rewardedAd()
+      applyMute()
+      shop.sellAll(ok ? 2 : 1)
+      if (!ok) hud.toast('No ad right now: sold at the normal price')
+    },
+    buyGear(k) {
+      if (!buyGear(gear, k, digger)) { sound.play('denied'); return }
+      applyGear()
+      if (k === 'battery') battery.recharge()
+      sound.play('buy'); hud.toast('Upgraded!'); persist()
+    },
+    buyBomb() {
+      if (digger.bombs >= BOMB_CARRY || digger.coins < BOMB_PRICE) { sound.play('denied'); return }
+      digger.coins -= BOMB_PRICE; digger.bombs++; sound.play('buy'); persist()
+    },
+  }
+  const SHOPS = { market: market(shop), workshop: workshop(shop), bombs: bombShop(shop) }
   const enter = door => {
     if (document.pointerLockElement) document.exitPointerLock()
-    const html = door.ready ? `<p>The ${door.name} opens its doors soon.</p>` : `<p>Coming soon!</p>`
-    inside = buildingCard(door.name, html, () => { inside = null })
+    const close = () => { inside = null }
+    const s = SHOPS[door.key]
+    inside = s ? shopCard(door.name, s.render, s.act, close) : buildingCard(door.name, '<p>Coming soon!</p>', close)
     sound.play('place')
   }
   noa.inputs.down.on('use', () => { const d = doorNear(noa.entities.getPosition(noa.playerEntity)); if (d && !inside) enter(d) })
@@ -156,6 +204,8 @@ export function start(platform) {
     save.coins = digger.coins
     save.backpack = bag.toJSON()
     save.battery = battery.toJSON()
+    save.gear = { ...gear }
+    save.bombs = digger.bombs
     meta.store(store, save)
     return saveWorld(store, world, noa.entities.getPosition(noa.playerEntity))
   }
@@ -198,5 +248,5 @@ export function start(platform) {
     prompt.show(inside ? null : doorNear(noa.entities.getPosition(noa.playerEntity)))
   })
 
-  if (import.meta.env.DEV) window.__open = { noa, world, digger, save, sound, bombs, persist, bag, battery, rescue, card, inside: () => inside, state: () => playerState(noa), depth }
+  if (import.meta.env.DEV) window.__open = { noa, world, digger, save, sound, bombs, persist, bag, battery, rescue, card, gear, look, inside: () => inside, state: () => playerState(noa), depth }
 }

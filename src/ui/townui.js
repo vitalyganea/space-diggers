@@ -54,3 +54,23 @@ export function buildingCard(title, html, onClose) {
   el.querySelector('.close').addEventListener('click', () => { el.remove(); onClose && onClose() })
   return el
 }
+
+/* A shop's card: `render()` gives its body, buttons with data-act (and
+   data-arg) call `act(kind, arg)`, after which it redraws. */
+export function shopCard(title, render, act, onClose) {
+  const el = document.createElement('div')
+  el.className = 'overlay building'
+  const draw = () => {
+    el.innerHTML = `<div class="card panel"><h1>${title}</h1><div class="body">${render()}</div>
+      <button class="btn small alt close">Close</button></div>`
+  }
+  el.addEventListener('click', async e => {
+    const b = e.target.closest('button')
+    if (!b || b.disabled) return
+    if (b.classList.contains('close')) { el.remove(); onClose && onClose(); return }
+    if (b.dataset.act) { await act(b.dataset.act, b.dataset.arg); if (el.isConnected) draw() }
+  })
+  draw()
+  document.body.appendChild(el)
+  return el
+}

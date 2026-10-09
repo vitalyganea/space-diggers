@@ -88,3 +88,12 @@
   text-shadow: none; font: 900 18px inherit; box-shadow: 0 2px 0 #999; margin-right: 6px; }
 .building .card { min-width: 420px; max-width: 620px; }
 .building .body { margin: 6px 0 16px; font-size: 18px; }
+.building .purse { margin: -4px 0 12px; font-size: 18px; font-weight: 800; }
+.building table.goods { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 17px; font-weight: 700; text-align: left; }
+.building table.goods td { padding: 6px 6px; }
+.building table.goods td:last-child { text-align: right; }
+.building table.goods small { font-weight: 600; opacity: .8; }
+.building .dot { display: inline-block; width: 14px; height: 14px; border-radius: 4px; margin-right: 8px; vertical-align: -2px; box-shadow: 0 0 0 2px rgba(0,0,0,.3); }
+.building .row { display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap; margin-bottom: 12px; }
+.building .have { font-size: 17px; font-weight: 800; }
+.building kbd { display: inline-block; padding: 0 6px; border-radius: 5px; background: #fff; color: #222; text-shadow: none; font-weight: 900; }

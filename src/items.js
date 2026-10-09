@@ -43,6 +43,8 @@ export class Backpack {
     if (!this.items[key]) delete this.items[key]
     return true
   }
+  sellValue(mult = 1) { return Math.round(this.value * mult) }
+
   /* Empty it into coins at `mult` (a perk); returns the coins. */
   sellAll(mult = 1) {
     const coins = Math.round(this.value * mult)

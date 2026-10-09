@@ -19,7 +19,7 @@ export const SHOP = [
 ]
 
 export function defaults() {
-  return { v: 1, coins: 0, owned: ['mole'], chosen: 'mole', rounds: 0, wins: 0, bestDepth: 0, backpack: null, battery: null }
+  return { v: 1, coins: 0, owned: ['mole'], chosen: 'mole', rounds: 0, wins: 0, bestDepth: 0, backpack: null, battery: null, gear: null, bombs: 0 }
 }
 
 /* A save from storage, defensively: anything missing or wrong falls back. */
@@ -34,6 +34,8 @@ export function load(storage) {
     for (const k of ['rounds', 'wins', 'bestDepth']) d[k] = Math.max(0, Math.floor(+o[k] || 0))
     if (o.backpack && typeof o.backpack === 'object') d.backpack = o.backpack   // checked by Backpack itself
     if (o.battery && typeof o.battery === 'object') d.battery = o.battery       // and by Battery
+    if (o.gear && typeof o.gear === 'object') d.gear = o.gear                   // and by loadGear
+    d.bombs = Math.max(0, Math.min(5, Math.floor(+o.bombs || 0)))
   } catch (e) { /* a broken save starts fresh */ }
   return d
 }
