@@ -8,6 +8,13 @@
    coloured squares with a letter; if the town is off the map an arrow at
    the edge points home. You are the white arrow, turned the way you look.
 
+   Two layers, so it turns smoothly: the ground, buildings and craters are
+   drawn into a kept picture five times a second (and at once when you
+   step into another block), which is the costly part: some 2,400 blocks
+   read from the World; your arrow, the robot and the markers go over it
+   every frame. (All of it at five a second made the arrow lag behind the
+   mouse, which the user noticed.)
+
    The meter beside it is the way down through the Moon to the Core, its layers coloured,
    with a marker where you are. Redrawn five times a second. */
 import { byId, ID } from '../blocks.js'
@@ -41,23 +48,38 @@ export class Minimap {
     this.el.querySelector('.bands').innerHTML = BAND.map(([name, top, bottom, col]) =>
       `<div style="height:${100 * (top - bottom) / total}%;background:${col}" title="${name}"><span>${name}</span></div>`).join('')
     this.t = 0
+    this.ground = document.createElement('canvas')            // the kept layer
+    this.ground.width = this.ground.height = SIZE
+    this.at = null                                            // the block it was drawn for
+    this.groundDraws = 0
   }
 
-  /* extra: { robot: [x, y, z] | null, ping: [x, y, z] | null } */
+  /* extra: { robot: [x, y, z] | null, ping: [x, y, z] | null, meteors: [[x, y, z]] } */
   update(dt, pos, heading, extra = {}) {
     this.t += dt
-    if (this.t < 0.2) return
-    this.t = 0
-    const g = this.g, w = this.world
     const px = Math.floor(pos[0]), pz = Math.floor(pos[2]), py = Math.floor(pos[1] + 1e-6)
+    const moved = !this.at || this.at[0] !== px || this.at[1] !== py || this.at[2] !== pz
+    if (this.t >= 0.2 || moved) { this.t = 0; this.at = [px, py, pz]; this.drawGround(px, py, pz) }
+    const g = this.g, c = SIZE / 2
+    g.drawImage(this.ground, 0, 0)
+    this.drawMarks(g, px, pz, c, extra)
+    // you: noa's heading 0 looks along +z, which is up the map; turning right (heading up) turns the arrow clockwise
+    g.save(); g.translate(c + PX / 2, c + PX / 2); g.rotate(heading)
+    g.fillStyle = '#fff'; g.strokeStyle = '#000'; g.lineWidth = 2
+    g.beginPath(); g.moveTo(0, -9); g.lineTo(-6, 6); g.lineTo(0, 3); g.lineTo(6, 6); g.closePath(); g.stroke(); g.fill(); g.restore()
+  }
+
+  drawGround(px, py, pz) {
+    this.groundDraws++
+    const g = this.ground.getContext('2d'), w = this.world
     g.fillStyle = '#0d0f16'
     g.fillRect(0, 0, SIZE, SIZE)
     // the slice at your feet (the block under them where you stand on it)
     for (let i = -RANGE; i <= RANGE; i++) for (let j = -RANGE; j <= RANGE; j++) {
       let id = w.get(px + i, py, pz + j)
-      if (id === 0) { const under = w.get(px + i, py - 1, pz + j); if (under !== 0 && py >= 0) id = under }
+      const solid = id !== 0
+      if (!solid && py >= 0) id = w.get(px + i, py - 1, pz + j)
       if (id === 0) continue
-      const solid = w.get(px + i, py, pz + j) !== 0
       g.fillStyle = COLORS[id] || '#777'
       g.globalAlpha = solid ? 1 : 0.45
       g.fillRect((i + RANGE) * PX, (RANGE - j) * PX, PX, PX)
@@ -95,6 +117,14 @@ export class Minimap {
       g.fillStyle = '#f97316'; g.beginPath(); g.moveTo(7, 0); g.lineTo(-5, -5); g.lineTo(-5, 5); g.fill(); g.restore()
     }
     this.meteorNear = nearest
+    // the meter
+    const depth = Math.max(0, -py)
+    this.el.querySelector('.you').style.top = `${Math.min(100, 100 * depth / -(CORE_Y - 2))}%`
+    this.el.querySelector('.where').textContent = py >= 0 ? 'Surface' : `${depth} m down`
+  }
+
+  /* what moves: the robot, fresh meteor craters, Sonar's ping */
+  drawMarks(g, px, pz, c, extra) {
     // your robot (cyan) and what Sonar felt (a gold ring)
     const dot = (q, col, r, ring) => {
       if (!q) return
@@ -109,7 +139,7 @@ export class Minimap {
     for (const m of extra.meteors || []) {
       const x = (m[0] + 0.5 - px + RANGE) * PX, z = (RANGE - (m[2] + 0.5 - pz)) * PX
       if (x >= 0 && z >= 0 && x <= SIZE && z <= SIZE) {
-        const r = 5 + (this.pulse % 4)
+        const r = 5 + 2 * Math.sin(this.pulse / 6)
         g.fillStyle = '#fb923c'; g.beginPath()
         for (let k = 0; k < 10; k++) { const a = k * Math.PI / 5 - Math.PI / 2, rr = k % 2 ? r * 0.45 : r; g.lineTo(x + Math.cos(a) * rr, z + Math.sin(a) * rr) }
         g.fill()
@@ -120,13 +150,5 @@ export class Minimap {
       }
     }
     dot(extra.ping && [extra.ping[0] + 0.5, 0, extra.ping[2] + 0.5], '#f5c518', 6, true)
-    // you: noa's heading 0 looks along +z, which is up the map; turning right (heading up) turns the arrow clockwise
-    g.save(); g.translate(c + PX / 2, c + PX / 2); g.rotate(heading)
-    g.fillStyle = '#fff'; g.strokeStyle = '#000'; g.lineWidth = 2
-    g.beginPath(); g.moveTo(0, -9); g.lineTo(-6, 6); g.lineTo(0, 3); g.lineTo(6, 6); g.closePath(); g.stroke(); g.fill(); g.restore()
-    // the meter
-    const depth = Math.max(0, -py)
-    this.el.querySelector('.you').style.top = `${Math.min(100, 100 * depth / -(CORE_Y - 2))}%`
-    this.el.querySelector('.where').textContent = py >= 0 ? 'Surface' : `${depth} m down`
   }
 }
