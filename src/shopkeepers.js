@@ -49,7 +49,12 @@ export function lineFor(key, s, r = 0) {
     if (!s.tickets) return 'A ticket takes you home from anywhere. Press T!'
     return pick(['Careful with those! Throw them far with Q.', 'Boom-boom! Ready for more?'], r)
   }
-  if (key === 'museum') return 'The museum opens soon! Keep your rarest finds for me.'
+  if (key === 'museum') {
+    if (s.setDone) return `The ${s.setDone} are complete! Here is your reward!`
+    if (s.gave) return pick(['Splendid! It goes straight on show.', 'Marvellous! Thank you, young explorer.'], r)
+    if (s.canGive) return 'Oh my! You have something for my collection!'
+    return pick(['Bring me finds from the deep and I will put them on show.', 'Complete a set and I will reward you well!'], r)
+  }
   if (key === 'robots') return 'Soon I will have robot capsules for you. Keep digging!'
   return 'Hello!'
 }

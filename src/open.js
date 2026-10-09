@@ -19,6 +19,10 @@ import { Battery } from './battery.js'
 import { Rescue, rechargeCost, FREE_CHARGE, SURFACE_DEPTH } from './stranded.js'
 import { chargeRate, onPad } from './charging.js'
 import { tip } from './tips.js'
+import { donate, wanted } from './museum.js'
+import { makeDisplays } from './displays.js'
+import { rollFind, FINDS, RARITY, SETS } from './finds.js'
+import { Reveal } from './ui/reveal.js'
 import { KEEPERS, lineFor, keeperSpots } from './shopkeepers.js'
 import { makeAstronaut } from './people.js'
 import { Music } from './music.js'
@@ -31,7 +35,7 @@ import { robotPanel } from './ui/robotpanel.js'
 import { StrandedCard } from './ui/stranded.js'
 import { doorNear, SPAWN, BUILDINGS } from './town.js'
 import { nameBoards, DoorPrompt, buildingCard, shopCard } from './ui/townui.js'
-import { market, workshop, bombShop } from './ui/shops.js'
+import { market, workshop, bombShop, museumShop } from './ui/shops.js'
 import { Minimap } from './ui/minimap.js'
 import { ROBOTS } from './robots.js'
 import { Companion } from './companion.js'
@@ -73,7 +77,25 @@ export function start(platform) {
   let lastHard = 0.8                     // the last block dug, for "blocks left"
   let fullWarned = 0
   // what a block drops goes into the backpack; a full one loses it, and says so
+  // finds (row 47): a chance at one in any dug block, below the surface
+  const reveal = new Reveal()
+  const findIn = () => {
+    const d = depth()
+    if (d < 1) return
+    const key = rollFind(d)
+    if (!key) return
+    if (!bag.add(key)) { hud.toast('Something shiny! But the backpack is full'); return }
+    const f = FINDS[key], isNew = !save.found.includes(key)
+    if (isNew) save.found.push(key)
+    reveal.show(key, isNew)
+    sound.play('find', RARITIES_N[f.rarity])
+    const line = { legendary: `A ${f.name}! That is legendary!`, mythic: `The ${f.name}!! I can't believe it!`, epic: `Wow, a ${f.name}! Professor Hoot will love that.` }[f.rarity]
+    if (line) say(line)
+    else if (save.found.length === 1) say('A find! Sell it to Rita, or give it to the Museum for a set.')
+  }
+  const RARITIES_N = { common: 0, uncommon: 1, rare: 2, epic: 3, legendary: 4, mythic: 5 }
   const collect = blockId => {
+    findIn()
     const key = dropFor(blockId)
     if (!key) return
     if (bag.add(key)) {
@@ -204,7 +226,24 @@ export function start(platform) {
       digger.coins -= BOMB_PRICE; digger.bombs++; sound.play('buy'); persist()
     },
   }
-  const SHOPS = { market: market(shop), workshop: workshop(shop), bombs: bombShop(shop) }
+  // the Museum (row 48): Professor Hoot takes your finds
+  let museumNews = {}
+  shop.save = save
+  shop.donate = key => {
+    const r = donate(save, bag, key)
+    if (!r) return
+    museumNews = { gave: true }
+    sound.play('find', 2)
+    if (r.done) {
+      digger.coins += r.reward; museumNews.setDone = SETS[r.set].name
+      sound.play('win'); hud.toast(`${SETS[r.set].name} complete! +${r.reward} coins`)
+      say(`We completed the ${SETS[r.set].name}! +${r.reward} coins!`)
+    }
+    displays.refresh()
+    persist()
+  }
+  const displays = makeDisplays(noa, save)                   // the Museum's show cases (row 49)
+  const SHOPS = { market: market(shop), workshop: workshop(shop), bombs: bombShop(shop), museum: museumShop(shop) }
   // the shopkeepers (row 46): one behind each module's counter; you buy from them
   let lastSale = 0
   const keepers = BUILDINGS.map(b => {
@@ -218,7 +257,8 @@ export function start(platform) {
     const costs = Object.keys(gear).map(k => nextCost(gear, k)).filter(c => c !== null)
     const best = Object.keys(bag.items).sort((x, y) => ITEMS[y].value - ITEMS[x].value)[0] || null
     return { bag: bag.items, bagCount: bag.count, coins: digger.coins, cheapest: costs.length ? Math.min(...costs) : null,
-      laser: gear.laser || 0, bombs: digger.bombs, tickets, justSold: lastSale, best }
+      laser: gear.laser || 0, bombs: digger.bombs, tickets, justSold: lastSale, best,
+      canGive: wanted(save, bag).length > 0, gave: museumNews.gave, setDone: museumNews.setDone }
   }
   const keeperHead = key => {
     const K = KEEPERS[key]
@@ -230,7 +270,7 @@ export function start(platform) {
     // Close is a click, so the mouse can be taken straight back: no second "Click to play"
     const close = () => { inside = null; lockMouse(noa.container.element) }
     const s = SHOPS[door.key]
-    lastSale = 0
+    lastSale = 0; museumNews = {}
     const soon = { pad: '<p>Coming soon: the rocket flies you to new planets.</p><p>An ice planet, a red one, one of lava and one of crystal, each with its own treasure.</p>' }
     if (s) inside = shopCard(door.name, () => keeperHead(door.key) + s.render(), s.act, close)
     else if (KEEPERS[door.key]) inside = buildingCard(door.name, keeperHead(door.key), close)
@@ -516,5 +556,5 @@ export function start(platform) {
       { robot: buddy && !buddy.away ? buddy.pos : null, ping, meteors: meteors.marks })
   })
 
-  if (import.meta.env.DEV) window.__open = { noa, world, meteors, music, creatures, digger, save, sound, bombs, persist, bag, battery, rescue, card, gear, look, minimap, inside: () => inside, tickets: () => tickets, robot: () => robot, buddy: () => buddy, talk: () => talk, state: () => playerState(noa), depth }
+  if (import.meta.env.DEV) window.__open = { noa, world, meteors, music, creatures, reveal, displays, digger, save, sound, bombs, persist, bag, battery, rescue, card, gear, look, minimap, inside: () => inside, tickets: () => tickets, robot: () => robot, buddy: () => buddy, talk: () => talk, state: () => playerState(noa), depth }
 }

@@ -175,3 +175,29 @@ body.showcase .hud { display: none !important; }
 .keeper-face i { width: 8px; height: 8px; background: #111; border-radius: 2px; }
 .keeper-face b { position: absolute; left: 50%; bottom: 8px; width: 16px; height: 4px; margin-left: -8px; border-radius: 0 0 6px 6px; background: #9f1239; }   /* a smile */
 .keeper-face { border-radius: 14px; outline: 3px solid rgba(191, 227, 255, 0.7); outline-offset: 2px; }                        /* the helmet's glass */
+/* the reveal of a find (row 47) */
+.reveal { inset: 150px auto auto 50%; transform: translate(-50%, -260%); display: flex; align-items: center; gap: 14px; padding: 10px 20px 10px 12px;
+  background: rgba(10, 14, 30, 0.85); border: 3px solid var(--c); border-radius: 18px; box-shadow: 0 0 22px var(--c); transition: transform 0.35s cubic-bezier(.2,1.4,.4,1); pointer-events: none; }
+.reveal.on { transform: translate(-50%, 0); }
+.reveal .icon { font-size: 40px; width: 58px; height: 58px; display: flex; align-items: center; justify-content: center; border-radius: 14px; background: radial-gradient(var(--c) -30%, transparent 75%); }
+.reveal small { display: block; color: var(--c); font-weight: 900; text-transform: uppercase; letter-spacing: 1px; font-size: 13px; }
+.reveal small b { color: #fde047; }
+.reveal > div > b { font-size: 22px; font-weight: 900; color: #fff; }
+.reveal.big { padding: 16px 28px 16px 18px; }
+.reveal.big .icon { font-size: 58px; width: 80px; height: 80px; animation: shine 0.8s ease-in-out infinite alternate; }
+@keyframes shine { from { filter: brightness(1); } to { filter: brightness(1.6) drop-shadow(0 0 10px var(--c)); } }
+.reveal .spark { position: absolute; left: 50%; top: 50%; width: 8px; height: 8px; border-radius: 50%; background: var(--c); opacity: 0;
+  animation: spark 1.2s ease-out calc(var(--d) * 0.25s) 3; transform: rotate(var(--a)); }
+@keyframes spark { 0% { opacity: 1; transform: rotate(var(--a)) translateX(10px); } 100% { opacity: 0; transform: rotate(var(--a)) translateX(160px); } }
+/* the Museum (row 48) */
+.building .set { text-align: left; margin: 8px 0; padding: 8px 10px; border-radius: 12px; background: rgba(255,255,255,0.06); }
+.building .set.done { background: rgba(74, 222, 128, 0.12); }
+.building .set-head { display: flex; gap: 10px; align-items: baseline; margin-bottom: 6px; }
+.building .set-head b { font-size: 18px; } .building .set-head .reward { margin-left: auto; font-weight: 800; opacity: 0.85; }
+.building .slots { display: flex; gap: 8px; }
+.building .slot { width: 52px; height: 52px; border-radius: 10px; border: 3px solid var(--c); display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-size: 28px; color: var(--c); background: rgba(0,0,0,0.3); opacity: 0.55; font-weight: 900; }
+.building .slot.on { opacity: 1; box-shadow: 0 0 12px var(--c); }
+.building button.slot.give { opacity: 1; cursor: pointer; animation: shine 0.7s ease-in-out infinite alternate; font-family: inherit; }
+.building .slot small { font-size: 10px; color: #fff; }
+.building .ficon { display: inline-block; margin-right: 6px; filter: drop-shadow(0 0 4px var(--c)); }

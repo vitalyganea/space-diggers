@@ -5,6 +5,7 @@
    value: coins at the Trade Hub. drop: the block id that gives it, and the
    chance it does. */
 import { ID } from './blocks.js'
+import { FINDS, RARITY } from './finds.js'
 
 export const ITEMS = {
   copper: { name: 'Copper', value: 3, color: '#d9773a', from: ID.copper_ore, chance: 1 },
@@ -15,6 +16,9 @@ export const ITEMS = {
   meteor: { name: 'Meteor iron', value: 40, color: '#a5b4c8', from: ID.meteor_ore, chance: 1 },
   shard: { name: 'Crystal shard', value: 6, color: '#a78bfa', from: ID.crystal, chance: 0.3 },
 }
+
+// the finds (row 47) are things you carry and sell too, worth their rarity
+for (const f of Object.values(FINDS)) ITEMS[f.key] = { name: f.name, value: f.value, color: RARITY[f.rarity].colour, find: true, icon: f.icon, rarity: f.rarity }
 
 /* What a broken block drops, if anything. `rnd` is 0..1. */
 export function dropFor(blockId, rnd = Math.random()) {
