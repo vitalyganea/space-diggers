@@ -29,11 +29,13 @@ export class Music {
   /* which theme should play; it takes over at the next bar */
   play(name) { this.want = name; if (!this.timer) this.timer = setInterval(() => this.tick(), 200) }
   stop() { this.want = null }
+  /* on or off from the settings (row 53): the music's own volume */
+  setOn(on) { this.on = on; if (this.bus) this.bus.gain.value = on ? VOLUME : 0 }
 
   tick() {
     const c = this.sound.ctx
     if (!c || c.state !== 'running') return
-    if (!this.bus) { this.bus = c.createGain(); this.bus.gain.value = VOLUME; this.bus.connect(this.sound.master); this.nextBar = c.currentTime + 0.1 }
+    if (!this.bus) { this.bus = c.createGain(); this.bus.gain.value = this.on === false ? 0 : VOLUME; this.bus.connect(this.sound.master); this.nextBar = c.currentTime + 0.1 }
     while (this.nextBar < c.currentTime + 1.2) {
       this.theme = this.want
       if (this.theme) this.scheduleBar(THEMES[this.theme], this.nextBar)

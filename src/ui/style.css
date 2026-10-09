@@ -213,3 +213,9 @@ body.showcase .hud { display: none !important; }
 .quests .q { display: flex; gap: 6px; align-items: baseline; margin: 2px 0; }
 .quests .q small { margin-left: auto; padding-left: 10px; opacity: 0.85; white-space: nowrap; }
 .quests .q.done { opacity: 0.55; text-decoration: line-through; }
+/* settings (row 53) */
+.settings { z-index: 45; }
+.settings .opt { display: flex; align-items: center; gap: 14px; justify-content: space-between; min-width: 340px; margin: 10px 0; font-weight: 800; font-size: 18px; }
+.settings input[type=range] { flex: 1; accent-color: #f5c518; }
+.click-to-play .gear { margin-top: 12px; }
+.title-screen .row { gap: 10px; }

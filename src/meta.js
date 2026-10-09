@@ -20,7 +20,7 @@ export const SHOP = [
 ]
 
 export function defaults() {
-  return { v: 1, coins: 0, owned: ['mole'], chosen: 'mole', rounds: 0, wins: 0, bestDepth: 0, backpack: null, battery: null, gear: null, bombs: 0, robot: null, tickets: 0, found: [], museum: {}, setsDone: [], daily: {}, robotGear: null }
+  return { v: 1, coins: 0, owned: ['mole'], chosen: 'mole', rounds: 0, wins: 0, bestDepth: 0, backpack: null, battery: null, gear: null, bombs: 0, robot: null, tickets: 0, found: [], museum: {}, setsDone: [], daily: {}, robotGear: null, settings: null }
 }
 
 /* A save from storage, defensively: anything missing or wrong falls back. */
@@ -43,6 +43,7 @@ export function load(storage) {
     if (o.museum && typeof o.museum === 'object') for (const [k, v] of Object.entries(o.museum)) if (v === true && k.length < 30) d.museum[k] = true
     if (o.daily && typeof o.daily === 'object') d.daily = { last: typeof o.daily.last === 'string' ? o.daily.last : undefined, streak: Math.max(0, Math.min(7, Math.floor(+o.daily.streak || 0))),
       day: typeof o.daily.day === 'string' ? o.daily.day : undefined, quests: Array.isArray(o.daily.quests) ? o.daily.quests.slice(0, 3) : undefined }   // row 50
+    if (o.settings && typeof o.settings === 'object') d.settings = o.settings              // clamped by loadSettings
     if (o.robotGear && typeof o.robotGear === 'object') d.robotGear = o.robotGear        // clamped by loadRobotGear
     if (Array.isArray(o.setsDone)) d.setsDone = o.setsDone.filter(k => typeof k === 'string' && k.length < 30)
     if (o.robot && ROBOTS[o.robot.kind]) d.robot = { kind: o.robot.kind, name: String(o.robot.name || '').replace(/[^\p{L}\p{N} '!?-]/gu, '').slice(0, 12) || ROBOTS[o.robot.kind].name }

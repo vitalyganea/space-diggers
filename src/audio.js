@@ -66,7 +66,7 @@ export class Sound {
   play(name, arg) {
     this.log.push(name)
     if (this.log.length > 50) this.log.shift()
-    if (!this.ctx || this.muted) return
+    if (!this.ctx || this.muted || this.fxOff) return             // fxOff: sounds off in the settings, music may play on
     const S = SOUNDS[name]
     if (S) S(this, arg)
   }

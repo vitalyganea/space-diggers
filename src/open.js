@@ -19,6 +19,7 @@ import { Battery } from './battery.js'
 import { Rescue, rechargeCost, FREE_CHARGE, SURFACE_DEPTH } from './stranded.js'
 import { chargeRate, onPad } from './charging.js'
 import { tip } from './tips.js'
+import { loadSettings, settingsCard } from './ui/settings.js'
 import { openDay, claim, progress, dayString, questReward, questText } from './daily.js'
 import { dailyCard, QuestList } from './ui/daily.js'
 import { donate, wanted } from './museum.js'
@@ -69,6 +70,16 @@ export function start(platform) {
   const sound = new Sound()
   // music (row 41): the surface theme up top, the deep one underground
   const music = new Music(sound)
+  // settings (row 53): music, sounds, mouse speed
+  const settings = loadSettings(save.settings)
+  const applySettings = s => {
+    music.setOn(s.music); sound.fxOff = !s.sounds
+    noa.camera.sensitivityX = noa.camera.sensitivityY = 10 * s.mouse
+    save.settings = { ...s }
+  }
+  applySettings(settings)
+  let settingsOpen = false
+  const openSettings = () => { if (settingsOpen) return; settingsOpen = true; settingsCard(settings, s => applySettings(s), () => { settingsOpen = false; persist() }) }
   music.play('surface')
   let siteMuted = false, userMuted = false
   const applyMute = () => sound.setMuted(siteMuted || userMuted)
@@ -407,7 +418,7 @@ export function start(platform) {
     meet(robot)
     titling = true
     showTitle(robot, () => startPlaying(),
-      () => showComic(robot, () => {}))                                // "How to play" shows the comic again
+      () => showComic(robot, () => {}), openSettings)                  // "How to play" shows the comic again
   } else chooseRobot(r => {
     meet(r)
     persist()                                  // chosen on a click, long after persist exists
@@ -420,8 +431,8 @@ export function start(platform) {
     })
   })
   let deepestToday = 0, sonarT = 0, ping = null, deepTip = false, meteorT = 0, meteorTip = false
-  clickToPlay(() => !card.open && !inside && !choosing && !titling, noa.container.element, 'Click to play',
-    'WASD move · Space jump and climb · hold left mouse to dig · E to go in · R your robot')
+  clickToPlay(() => !card.open && !inside && !choosing && !titling && !settingsOpen, noa.container.element, 'Click to play',
+    'WASD move · Space jump and climb · hold left mouse to dig · E to go in · R your robot', openSettings)
 
   const bombs = new Bombs(noa, world, {
     onFuse: () => sound.play('fuse'),

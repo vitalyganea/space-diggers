@@ -32,15 +32,16 @@ export function chooseRobot(onDone) {
 
 /* The title for a returning player (row 42): the name over the live scene
    of the base, and one big Play button in the middle of the screen. */
-export function showTitle(robot, onPlay, onHelp) {
+export function showTitle(robot, onPlay, onHelp, onSettings) {
   const el = document.createElement('div')
   el.className = 'overlay title-screen'
   el.innerHTML = `<div class="logo">Space <b>Diggers</b></div>
     <button class="btn play">Play</button>
     <div class="with">${face(robot.kind)} <span>${robot.name} is waiting for you</span></div>
-    <button class="btn small alt help">How to play</button>`
+    <div class="row"><button class="btn small alt help">How to play</button><button class="btn small alt gear">⚙ Settings</button></div>`
   el.querySelector('.play').addEventListener('click', () => { el.remove(); onPlay() })
   el.querySelector('.help').addEventListener('click', () => onHelp && onHelp())
+  el.querySelector('.gear').addEventListener('click', () => onSettings && onSettings())
   document.body.appendChild(el)
   return el
 }
