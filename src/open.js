@@ -22,6 +22,7 @@ import { tip } from './tips.js'
 import { Music } from './music.js'
 import { Hand, toolSpeed, hasLaser, LASER_ROCK } from './tools.js'
 import { Meteors } from './meteors.js'
+import { Creatures } from './creatures.js'
 import { direction } from './companion.js'
 import { meteorCraters } from './worldgen.js'
 import { robotPanel } from './ui/robotpanel.js'
@@ -241,7 +242,7 @@ export function start(platform) {
     inside = shopCard('Your robot', panel.render, panel.act, () => { inside = null; lockMouse(noa.container.element) })
     sound.play('place')
   })
-  noa.inputs.down.on('use', () => { const d = doorNear(noa.entities.getPosition(noa.playerEntity)); if (d && !inside) enter(d) })
+  noa.inputs.down.on('use', () => { if (creatures.use(noa.entities.getPosition(noa.playerEntity))) return; const d = doorNear(noa.entities.getPosition(noa.playerEntity)); if (d && !inside) enter(d) })
   let choosing = !robot
   const meet = r => {
     robot = r
@@ -291,7 +292,10 @@ export function start(platform) {
 
   const bombs = new Bombs(noa, world, {
     onFuse: () => sound.play('fuse'),
-    onBlast: e => { e.broken.forEach(b => collect(b.id)); sound.play('boom', 1) },
+    onBlast: e => {
+      e.broken.forEach(b => collect(b.id)); sound.play('boom', 1)
+      const w = creatures.worm; if (w && Math.hypot(w.pos[0] - e.center[0], w.pos[1] - e.center[1], w.pos[2] - e.center[2]) < 9) creatures.scareWorm()
+    },
   })
   noa.inputs.down.on('mid-fire', () => {
     if (digger.bombs <= 0) { hud.toast('No bombs'); sound.play('denied'); return }
@@ -375,6 +379,15 @@ export function start(platform) {
   noa.inputs.down.on('tool1', () => { hand.choose('drill', gear); showTool(true) })
   noa.inputs.down.on('tool2', () => { if (!hasLaser(gear)) { hud.toast('No laser yet: the Workshop sells one'); return } hand.choose('laser', gear); showTool(true) })
   noa.container.element.addEventListener('wheel', e => { if (document.pointerLockElement && hasLaser(gear)) { hand.next(gear); showTool(true) } }, { passive: true })
+  // creatures (row 44), no fighting
+  const creatures = new Creatures(noa, world, {
+    takeCoin: () => { if (digger.coins <= 0) return false; digger.coins--; return true },
+    bump: d => { const L = Math.hypot(d[0], d[2]) || 1; noa.entities.getPhysics(noa.playerEntity).body.applyImpulse([d[0] / L * 6, 4, d[2] / L * 6]) },
+    say: text => say(text),
+    sound: n => sound.play(n),
+    takeShard: () => bag.take('shard'),
+    giveItem: item => { if (bag.add(item)) { sound.play('coin', 5); hud.toast(`The rock pup found ${ITEMS[item].name}!`); say(`It found ${ITEMS[item].name} for you!`) } else hud.toast('Backpack full!') },
+  })
   // meteors from the rings (row 38)
   const meteors = new Meteors(noa, world, {
     skyDir: () => look.sky.planet.home.clone().normalize(),
@@ -421,6 +434,7 @@ export function start(platform) {
     prompt.show(inside ? null : doorNear(noa.entities.getPosition(noa.playerEntity)))
     // the robot: follow, and Sonar's scouting every 2.5 s
     meteors.update(dt)
+    if (!choosing && !titling) creatures.update(dt)
     if (choosing || titling) noa.camera.heading += dt / 1000 * 0.07         // the start screen's slow circle
     music.play(choosing || titling ? 'menu' : depth() > 4 ? 'deep' : 'surface')
     // the tool picks itself when what you aim at changes kind
@@ -452,5 +466,5 @@ export function start(platform) {
       { robot: buddy && !buddy.away ? buddy.pos : null, ping, meteors: meteors.marks })
   })
 
-  if (import.meta.env.DEV) window.__open = { noa, world, meteors, music, digger, save, sound, bombs, persist, bag, battery, rescue, card, gear, look, minimap, inside: () => inside, tickets: () => tickets, robot: () => robot, buddy: () => buddy, talk: () => talk, state: () => playerState(noa), depth }
+  if (import.meta.env.DEV) window.__open = { noa, world, meteors, music, creatures, digger, save, sound, bombs, persist, bag, battery, rescue, card, gear, look, minimap, inside: () => inside, tickets: () => tickets, robot: () => robot, buddy: () => buddy, talk: () => talk, state: () => playerState(noa), depth }
 }
