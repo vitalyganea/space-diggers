@@ -14,6 +14,7 @@ import { Bombs } from './bombs.js'
 import { Sound } from './audio.js'
 import * as meta from './meta.js'
 import { saveWorld, loadWorld } from './persist.js'
+import { ITEMS, Backpack, dropFor } from './items.js'
 import { OpenHud } from './ui/openhud.js'
 import { clickToPlay } from './ui/hud.js'
 import { addCrosshair } from './ui/crosshair.js'
@@ -40,10 +41,19 @@ export function start(platform) {
   platform.onMute(m => { siteMuted = m; applyMute() })
 
   const hud = new OpenHud()
+  const bag = new Backpack(save.backpack ? save.backpack.capacity : undefined, save.backpack ? save.backpack.items : {})
+  let fullWarned = 0
+  // what a block drops goes into the backpack; a full one loses it, and says so
+  const collect = blockId => {
+    const key = dropFor(blockId)
+    if (!key) return
+    if (bag.add(key)) { hud.pickup(`+1 ${ITEMS[key].name}`, ITEMS[key].color); sound.play('coin', ITEMS[key].value) }
+    else if (performance.now() - fullWarned > 2500) { fullWarned = performance.now(); hud.toast('Backpack full! Go and sell'); sound.play('denied') }
+  }
   const digger = new Digger(noa, {
-    world,
+    world, payOre: false,
     onCrack: (stage, b) => sound.play('crack', b.hard),
-    onBreak: e => { sound.play('break', e.block.hard); if (e.coins) sound.play('coin', e.coins) },
+    onBreak: e => { sound.play('break', e.block.hard); collect(e.block.id) },
   })
   digger.coins = save.coins
   const perk = meta.perk(save.chosen)
@@ -55,7 +65,7 @@ export function start(platform) {
 
   const bombs = new Bombs(noa, world, {
     onFuse: () => sound.play('fuse'),
-    onBlast: e => { digger.coins += e.coins; sound.play('boom', 1) },
+    onBlast: e => { e.broken.forEach(b => collect(b.id)); sound.play('boom', 1) },
   })
   noa.inputs.down.on('mid-fire', () => {
     if (digger.bombs <= 0) { hud.toast('No bombs'); sound.play('denied'); return }
@@ -83,6 +93,7 @@ export function start(platform) {
   // keep the game: the world, where you stand, and your coins
   const persist = () => {
     save.coins = digger.coins
+    save.backpack = bag.toJSON()
     meta.store(store, save)
     return saveWorld(store, world, noa.entities.getPosition(noa.playerEntity))
   }
@@ -96,8 +107,8 @@ export function start(platform) {
     if (document.pointerLockElement) platform.gameplayStart(); else platform.gameplayStop()
     sinceSave += dt / 1000
     if (sinceSave >= AUTOSAVE) { sinceSave = 0; persist() }
-    hud.update({ coins: digger.coins, depth: depth() })
+    hud.update({ coins: digger.coins, depth: depth(), bag })
   })
 
-  if (import.meta.env.DEV) window.__open = { noa, world, digger, save, sound, bombs, persist, state: () => playerState(noa), depth }
+  if (import.meta.env.DEV) window.__open = { noa, world, digger, save, sound, bombs, persist, bag, state: () => playerState(noa), depth }
 }

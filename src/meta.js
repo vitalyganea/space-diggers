@@ -19,7 +19,7 @@ export const SHOP = [
 ]
 
 export function defaults() {
-  return { v: 1, coins: 0, owned: ['mole'], chosen: 'mole', rounds: 0, wins: 0, bestDepth: 0 }
+  return { v: 1, coins: 0, owned: ['mole'], chosen: 'mole', rounds: 0, wins: 0, bestDepth: 0, backpack: null }
 }
 
 /* A save from storage, defensively: anything missing or wrong falls back. */
@@ -32,6 +32,7 @@ export function load(storage) {
     if (Array.isArray(o.owned)) d.owned = ['mole', ...o.owned.filter(k => SHOP.some(s => s.kind === k) && k !== 'mole')]
     if (d.owned.includes(o.chosen)) d.chosen = o.chosen
     for (const k of ['rounds', 'wins', 'bestDepth']) d[k] = Math.max(0, Math.floor(+o[k] || 0))
+    if (o.backpack && typeof o.backpack === 'object') d.backpack = o.backpack   // checked by Backpack itself
   } catch (e) { /* a broken save starts fresh */ }
   return d
 }

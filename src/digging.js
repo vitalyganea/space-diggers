@@ -13,7 +13,8 @@ const STAGES = 5
 const UNBREAKABLE = 50          // a `hard` this high cannot be dug
 
 export class Digger {
-  constructor(noa, { onBreak = () => {}, onCrack = () => {}, world = null } = {}) {
+  constructor(noa, { onBreak = () => {}, onCrack = () => {}, world = null, payOre = true } = {}) {
+    this.payOre = payOre         // the race pays ore at once; the open game puts it in the backpack
     this.noa = noa
     this.onCrack = onCrack       // (stage, block) each time the cracks grow
     this.world = world           // a World (src/world.js); without one, noa's blocks are the truth
@@ -96,7 +97,7 @@ export class Digger {
   break(t) {
     if (this.world) this.world.set(t.pos[0], t.pos[1], t.pos[2], 0)
     else this.noa.setBlock(0, t.pos[0], t.pos[1], t.pos[2])
-    this.coins += Math.round(t.block.coins * this.coinMult)
+    if (this.payOre) this.coins += Math.round(t.block.coins * this.coinMult)
     this.broken++
     if (stocks(t.block.id)) this.stock = Math.min(MAX_STOCK, this.stock + 1)
     this.burst(t.pos, t.block)

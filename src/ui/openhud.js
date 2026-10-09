@@ -5,15 +5,33 @@ export class OpenHud {
     this.el = document.createElement('div')
     this.el.className = 'hud'
     this.el.innerHTML = `
-      <div class="me-box panel"><span class="coins"><i class="coin"></i><b>0</b></span><span class="depth">↓ 0 m</span></div>
+      <div class="me-box panel"><span class="coins"><i class="coin"></i><b>0</b></span><span class="depth">↓ 0 m</span>
+        <span class="bag"><i class="bag-ico"></i><b>0/20</b><em><s></s></em></span></div>
+      <div class="pickups"></div>
       <div class="toast"></div>`
     document.body.appendChild(this.el)
     this.$ = sel => this.el.querySelector(sel)
   }
   update(me) {
     this.$('.coins b').textContent = me.coins
+    if (me.bag) {
+      const b = me.bag
+      this.$('.bag b').textContent = `${b.count}/${b.capacity}`
+      this.$('.bag s').style.width = Math.min(100, 100 * b.count / b.capacity) + '%'
+      this.$('.bag').classList.toggle('full', b.full)
+    }
     this.$('.depth').textContent = me.depth > 0 ? `↓ ${me.depth} m` : 'Surface'
   }
+  /* "+1 Gold" rising beside the backpack, in the item's colour */
+  pickup(text, color) {
+    const el = document.createElement('div')
+    el.className = 'pickup'
+    el.textContent = text
+    el.style.color = color
+    this.$('.pickups').appendChild(el)
+    setTimeout(() => el.remove(), 1200)
+  }
+
   toast(text) {
     const t = this.$('.toast')
     t.textContent = text
