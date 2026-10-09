@@ -221,6 +221,16 @@ T.deck = () => {                                    // the base's ground: dark p
   for (const [x, y] of [[2, 2], [10, 2], [2, 10], [10, 10]]) t.set(x, y, '#6b7280')
   return t
 }
+T.meteorite = () => {                               // black rock with glowing cracks
+  const t = new Tex(29).noise(['#16141a', '#1d1a22', '#110f14', '#25212b'], 1.4)
+  for (let k = 0; k < 4; k++) t.vein('#f97316', 6)
+  return t.specks(4, ['#fbbf24'], 1).specks(3, ['#3b3542'], 2)
+}
+T.meteor_ore = () => {                              // and lumps of shining meteoric iron in it
+  const t = T.meteorite()
+  t.ore(4, '#a5b4c8', '#f1f5f9', '#475569')
+  return t.specks(4, ['#c4b5fd', '#99f6e4'], 1)       // a shimmer of colour on the metal
+}
 T.charger = () => {                                 // the charging pad: a dark plate, a glowing ring and a bolt
   const t = new Tex(27).noise(['#1f2937', '#232d3d', '#1b2431'], 1.4)
   for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {

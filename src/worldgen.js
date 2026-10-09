@@ -159,6 +159,9 @@ export function makeWorld(seed = 1, { town = false } = {}) {
      regolith, dust to y -4, moon rock to -35, dark rock to -65, the ice
      caves to -85 (caves walled in ice and frost, helium ore in the walls),
      crystal to -99, and the Core from -100: the bottom, for now.
+   Meteorite craters (row 39): about one big crater in four, where a lens
+   of very hard, black meteorite rock breaks the bowl's floor, an eighth of
+   it meteoric iron (the dearest ore) and some star gems.
    No lava (the race's lava pockets got in the way eight times in eight
    minutes of the first playtest, for no reward).
 
@@ -213,7 +216,20 @@ function craterIn(seed, i, j) {
   const cz = Math.floor((j + 0.2 + hash(seed + 63, i, 2, j) * 0.6) * CRATER_CELL)
   const r = 4 + hash(seed + 64, i, 3, j) * 6
   if (Math.hypot(cx, cz) < MOON.plain + r + 2) return null
-  return { cx, cz, r }
+  // about one big crater in four is where a meteorite struck (row 39)
+  return { cx, cz, r, meteor: r >= 6 && hash(seed + 65, i, 4, j) < 0.3 }
+}
+
+/* The meteorite craters within `range` blocks of (x, z): { cx, cz, r }. */
+export function meteorCraters(seed, x, z, range) {
+  const out = []
+  const i0 = Math.floor((x - range) / CRATER_CELL), i1 = Math.floor((x + range) / CRATER_CELL)
+  const j0 = Math.floor((z - range) / CRATER_CELL), j1 = Math.floor((z + range) / CRATER_CELL)
+  for (let i = i0; i <= i1; i++) for (let j = j0; j <= j1; j++) {
+    const c = craterIn(seed, i, j)
+    if (c && c.meteor) out.push(c)
+  }
+  return out
 }
 
 /* Ground height on the Moon: flat on the plain, gentle rolls past it, and
@@ -251,6 +267,21 @@ export function makeMoon(seed = 1) {
     if (c === undefined) { c = veinCell(seed, i, j, k); if (veinCache.size > 100000) veinCache.clear(); veinCache.set(key, c) }
     return c ? c[((y - j * N) * N + (z - k * N)) * N + (x - i * N)] : 0
   }
+  // meteorite craters: under each, a lens of meteorite rock that breaks the surface of the bowl
+  const meteorCol = new Map()
+  const meteorUnder = (x, z) => {
+    const k = x * 100003 + z
+    if (meteorCol.has(k)) return meteorCol.get(k)
+    let hit = null
+    const i = Math.floor(x / CRATER_CELL), j = Math.floor(z / CRATER_CELL)
+    for (let di = -1; di <= 1 && !hit; di++) for (let dj = -1; dj <= 1 && !hit; dj++) {
+      const c = craterIn(seed, i + di, j + dj)
+      if (c && c.meteor && Math.hypot(x - c.cx, z - c.cz) < c.r * 0.8) hit = { ...c, bottom: ground(c.cx, c.cz) }
+    }
+    if (meteorCol.size > 200000) meteorCol.clear()
+    meteorCol.set(k, hit)
+    return hit
+  }
   const caveAt = (x, y, z) => y < MOON.dust - 3 && y > MOON.crystal + 2 &&
     noise3(seed + 3, x, y, z, y < MOON.dark ? 8 : 7) > (y < MOON.dark && y > MOON.ice ? 0.68 : 0.75)
 
@@ -262,6 +293,16 @@ export function makeMoon(seed = 1) {
     if (y > h) {
       const b = y <= h + 3 ? boulderAt(seed, x, z, onPlain) : 0
       return b && y <= h + b ? ID.moonrock : 0
+    }
+    if (y > h - 12 && y > -16) {
+      const m = meteorUnder(x, z)
+      if (m) {
+        const dxz = Math.hypot(x - m.cx, z - m.cz) / (m.r * 0.8), dy = (y - (m.bottom - 1)) / 5
+        if (dxz * dxz + dy * dy <= 1) {
+          const r = hash(seed + 91, x, y, z)
+          return r < 0.12 ? ID.meteor_ore : r < 0.15 ? ID.stargem_ore : ID.meteorite
+        }
+      }
     }
     if (y === h) return ID.regolith
     const wob = Math.floor(noise3(seed + 1, x, 0, z, 5) * 3) - 1   // -1..1, so the lines do not look ruled

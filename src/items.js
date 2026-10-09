@@ -12,6 +12,7 @@ export const ITEMS = {
   gold: { name: 'Moon gold', value: 12, color: '#f5c518', from: ID.gold_ore, chance: 1 },
   helium: { name: 'Helium-3', value: 15, color: '#4ade80', from: ID.helium_ore, chance: 1 },
   stargem: { name: 'Star gem', value: 30, color: '#f472b6', from: ID.stargem_ore, chance: 1 },
+  meteor: { name: 'Meteor iron', value: 40, color: '#a5b4c8', from: ID.meteor_ore, chance: 1 },
   shard: { name: 'Crystal shard', value: 6, color: '#a78bfa', from: ID.crystal, chance: 0.3 },
 }
 

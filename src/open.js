@@ -19,6 +19,7 @@ import { Battery } from './battery.js'
 import { Rescue, rechargeCost, FREE_CHARGE, SURFACE_DEPTH } from './stranded.js'
 import { chargeRate, onPad } from './charging.js'
 import { tip } from './tips.js'
+import { meteorCraters } from './worldgen.js'
 import { robotPanel } from './ui/robotpanel.js'
 import { StrandedCard } from './ui/stranded.js'
 import { doorNear, SPAWN } from './town.js'
@@ -250,7 +251,7 @@ export function start(platform) {
     say('Space against a wall climbs back up.')
     say('Press R if you need me!')
   })
-  let sonarT = 0, ping = null, deepTip = false
+  let sonarT = 0, ping = null, deepTip = false, meteorT = 0, meteorTip = false
   clickToPlay(() => !card.open && !inside && !choosing, noa.container.element, 'Click to play',
     'WASD move · Space jump and climb · hold left mouse to dig · E to go in · R your robot')
 
@@ -362,6 +363,16 @@ export function start(platform) {
       const found = buddy.scan(world)
       if (found && (!ping || found.at.join() !== ping.join())) say(`I feel ${found.id === ID.stargem_ore ? 'a star gem' : found.id === ID.helium_ore ? 'helium' : 'gold'} ${found.dir}, ${found.dist} blocks away!`)
       ping = found ? found.at : null
+    }
+    // the first meteorite crater you come to (row 39)
+    meteorT += dt / 1000
+    if (!meteorTip && meteorT > 1) {
+      meteorT = 0
+      const q = noa.entities.getPosition(noa.playerEntity)
+      if (meteorCraters(world.seed, q[0], q[2], 14).some(m => Math.hypot(q[0] - m.cx, q[2] - m.cz) < m.r + 4)) {
+        meteorTip = true
+        say('A meteorite crater! Its black rock is very hard, but full of meteor iron.')
+      }
     }
     if (!deepTip && depth() > 6) { deepTip = true; say('Deep enough? Space against a wall takes you back up.') }
     minimap.update(dt / 1000, noa.entities.getPosition(noa.playerEntity), noa.camera.heading,

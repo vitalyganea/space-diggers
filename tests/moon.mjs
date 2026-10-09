@@ -1,5 +1,5 @@
 /* Row 27 check: the Moon, the open game's world, headless.   node tests/moon.mjs */
-import { makeWorld, makeMoon, moonHeight, MOON, CORE_Y } from '../src/worldgen.js'
+import { makeWorld, makeMoon, moonHeight, meteorCraters, MOON, CORE_Y } from '../src/worldgen.js'
 import { ID, byId } from '../src/blocks.js'
 import { BUILDINGS, townVoxel } from '../src/town.js'
 let fails = 0
@@ -71,6 +71,16 @@ for (const seed of [1, 7, 42]) {
       for (const [dx, dz] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) if (ORES.includes(w(sx + dx, y, sz + dz))) walls++
     }
   }
+  // meteorite craters (row 39): a short walk from the base, black rock, meteor iron in it
+  const ms = meteorCraters(seed, 0, 0, 100).sort((a, b) => Math.hypot(a.cx, a.cz) - Math.hypot(b.cx, b.cz))
+  let met = { rock: 0, iron: 0 }
+  if (ms[0]) for (let x = ms[0].cx - 10; x <= ms[0].cx + 10; x++) for (let z = ms[0].cz - 10; z <= ms[0].cz + 10; z++) for (let y = 3; y > -16; y--) {
+    const id = w(x, y, z); if (id === ID.meteorite) met.rock++; if (id === ID.meteor_ore) met.iron++
+  }
+  ok(ms.length >= 2 && Math.hypot(ms[0].cx, ms[0].cz) < 80, `  meteorite craters near the base (${ms.length} within 100, the nearest ${ms[0] ? Math.round(Math.hypot(ms[0].cx, ms[0].cz)) : '-'} blocks away)`)
+  ok(met.rock > 200 && met.iron > 30 && met.iron < met.rock / 4, `  under one: ${met.rock} blocks of meteorite and ${met.iron} of meteor iron`)
+  const top = ms[0] && w(ms[0].cx, moonHeight(seed, ms[0].cx, ms[0].cz), ms[0].cz)
+  ok(top === ID.meteorite || top === ID.meteor_ore || top === ID.stargem_ore, '  and its black rock shows on the crater floor, to be seen from afar')
   ok(dug / shafts >= 3, `  a straight 60 m shaft digs through ore ${(dug / shafts).toFixed(1)} times (the Earth world: about once)`)
   ok(walls / shafts >= 10, `  and shows ${(walls / shafts).toFixed(1)} faces of ore in its walls, worth turning aside for`)
 }
