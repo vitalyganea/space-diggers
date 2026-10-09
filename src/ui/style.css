@@ -130,3 +130,11 @@
 .hud .tickets { display: none; align-items: center; gap: 6px; }
 .hud .ticket-ico { display: inline-block; width: 24px; height: 15px; border-radius: 3px; background: #f5c518;
   box-shadow: inset 6px 0 0 #e0b015, 0 0 0 2px rgba(0,0,0,.35); }
+/* the robot's panel (row 35) */
+.robot-head { display: flex; align-items: center; gap: 14px; justify-content: center; margin-bottom: 8px; }
+.robot-head b { display: block; font-size: 26px; }
+.robot-head small { opacity: 0.8; }
+.building ul.does { text-align: left; margin: 8px auto 12px; max-width: 520px; line-height: 1.5; }
+.building .said { margin-top: 12px; padding: 10px 14px; border-radius: 12px; background: rgba(125, 249, 255, 0.15); font-weight: 800; }
+.building .busy { font-weight: 800; color: #7df9ff; }
+.building .row .btn .dot { margin-right: 6px; }

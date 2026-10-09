@@ -18,6 +18,8 @@ import { ITEMS, Backpack, dropFor } from './items.js'
 import { Battery } from './battery.js'
 import { Rescue, rechargeCost, FREE_CHARGE, SURFACE_DEPTH } from './stranded.js'
 import { chargeRate, onPad } from './charging.js'
+import { tip } from './tips.js'
+import { robotPanel } from './ui/robotpanel.js'
 import { StrandedCard } from './ui/stranded.js'
 import { doorNear, SPAWN } from './town.js'
 import { nameBoards, DoorPrompt, buildingCard, shopCard } from './ui/townui.js'
@@ -26,7 +28,7 @@ import { Minimap } from './ui/minimap.js'
 import { ROBOTS } from './robots.js'
 import { Companion } from './companion.js'
 import { chooseRobot, Talk } from './ui/robotui.js'
-import { loadGear, value, buy as buyGear, BOMB_PRICE, BOMB_CARRY, TICKET_PRICE, TICKET_CARRY } from './gear.js'
+import { loadGear, value, nextCost, buy as buyGear, BOMB_PRICE, BOMB_CARRY, TICKET_PRICE, TICKET_CARRY } from './gear.js'
 import { OpenHud } from './ui/openhud.js'
 import { clickToPlay, lockMouse } from './ui/hud.js'
 import { addCrosshair } from './ui/crosshair.js'
@@ -197,6 +199,36 @@ export function start(platform) {
     inside = s ? shopCard(door.name, s.render, s.act, close) : buildingCard(door.name, soon[door.key] || '<p>Coming soon!</p>', close)
     sound.play('place')
   }
+  // R: the robot's panel (row 35)
+  const panel = robotPanel({
+    robot: () => robot, bag, job: () => rescue.job, left: () => rescue.left(),
+    send(item) {
+      if (rescue.busy || !bag.take(item)) return null
+      rescue.sendRobot(item, ITEMS[item].value, depth(), robot ? ROBOTS[robot.kind].tripSpeed : 1)
+      sound.play('thrown'); if (buddy) buddy.leave()
+      const line = `I'll take the ${ITEMS[item].name} to the Trade Hub. Back soon!`
+      say(line); return line
+    },
+    scan() {
+      const f = buddy && buddy.scan(world, 8)
+      const line = f ? `I feel ${f.id === ID.stargem_ore ? 'a star gem' : f.id === ID.helium_ore ? 'helium' : 'gold'} ${f.dir}, ${f.dist} blocks away!` : 'Nothing shiny close by. Let\'s dig somewhere else!'
+      if (f) ping = f.at
+      say(line); return line
+    },
+    tip() {
+      const costs = Object.keys(gear).map(k => nextCost(gear, k)).filter(c => c !== null)
+      const line = tip({ batt: battery.fraction, depth: depth(), bag: bag.count, cap: bag.capacity, coins: digger.coins,
+        cheapest: costs.length ? Math.min(...costs) : null, onPad: onPad(noa.entities.getPosition(noa.playerEntity)), tickets })
+      say(line); return line
+    },
+  })
+  noa.inputs.bind('robot', 'KeyR')
+  noa.inputs.down.on('robot', () => {
+    if (inside || choosing || card.open || !robot) return
+    if (document.pointerLockElement) document.exitPointerLock()
+    inside = shopCard('Your robot', panel.render, panel.act, () => { inside = null; lockMouse(noa.container.element) })
+    sound.play('place')
+  })
   noa.inputs.down.on('use', () => { const d = doorNear(noa.entities.getPosition(noa.playerEntity)); if (d && !inside) enter(d) })
   let choosing = !robot
   const meet = r => {
@@ -216,10 +248,11 @@ export function start(platform) {
     persist()                                  // chosen on a click, long after persist exists
     say(`Hi, I'm ${r.name}! Hold the left mouse button to dig down.`)
     say('Space against a wall climbs back up.')
+    say('Press R if you need me!')
   })
   let sonarT = 0, ping = null, deepTip = false
   clickToPlay(() => !card.open && !inside && !choosing, noa.container.element, 'Click to play',
-    'WASD move · Space jump and climb · hold left mouse to dig · E to go in')
+    'WASD move · Space jump and climb · hold left mouse to dig · E to go in · R your robot')
 
   const bombs = new Bombs(noa, world, {
     onFuse: () => sound.play('fuse'),
