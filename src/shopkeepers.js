@@ -4,20 +4,22 @@
    and press E to talk, and the shop opens with their face and a line
    about how you are doing. For children the lines also say what to do.
 
-     Rita     a fox, at the Trade Hub: she buys what you dig up
-     Gizmo    a raccoon mechanic, at the Workshop: upgrades and the laser
-     Boomer   a rabbit, at the Bomb Shop: bombs and tickets home
-     Hoot     an owl professor, at the Museum (opens with stage 2)
-     Sprocket an otter, at the Robot Bay (opens with stage 3)
+     Rita     at the Trade Hub: she buys what you dig up
+     Gizmo    the mechanic, at the Workshop: upgrades and the laser
+     Boomer   at the Bomb Shop: bombs and tickets home
+     Professor Hoot, at the Museum (opens with stage 2)
+     Sprocket at the Robot Bay (opens with stage 3)
 
-   The species are looks for src/animals.js's makeAnimal. lineFor() is
+   People in space suits (src/people.js), each with their own face, hair
+   and their module's colour on the suit (the user asked for people, not
+   animals). lineFor() is
    pure, so the lines can be tested. */
 export const KEEPERS = {
-  market: { name: 'Rita', look: { name: 'Fox', body: '#e8762c', belly: '#fff1e0', nose: '#2b1d14', ear: '#c75f1e', claw: '#3b2a1d', eye: '#111111', tail: '#e8762c' } },
-  workshop: { name: 'Gizmo', look: { name: 'Raccoon', body: '#8e8f96', belly: '#d9dadf', nose: '#1f2024', ear: '#5d5e65', claw: '#3b3c41', eye: '#111111', mask: '#2b2c31', tail: '#55565c' } },
-  bombs: { name: 'Boomer', look: { name: 'Rabbit', body: '#f2efe9', belly: '#ffffff', nose: '#f29bb2', ear: '#f2efe9', claw: '#e5ded3', eye: '#d23b3b', longEars: true } },
-  museum: { name: 'Hoot', look: { name: 'Owl', body: '#7a5c3e', belly: '#d8c3a5', nose: '#f5a524', ear: '#5e4630', claw: '#f5a524', eye: '#111111', bigEyes: true } },
-  robots: { name: 'Sprocket', look: { name: 'Otter', body: '#6b4f3a', belly: '#c9a98a', nose: '#2b1d14', ear: '#5a3f2c', claw: '#3b2a1d', eye: '#111111', tail: '#5a3f2c' } },
+  market: { name: 'Rita', look: { skin: '#f1c7a0', hair: '#b4532a', hairStyle: 'long', accent: '#2fbf71', eyes: '#166534' } },
+  workshop: { name: 'Gizmo', look: { skin: '#c68e63', hair: '#1f2937', hairStyle: 'short', accent: '#f5c518', beard: true } },
+  bombs: { name: 'Boomer', look: { skin: '#f6d2b0', hair: '#f59e0b', hairStyle: 'curly', accent: '#e63946', eyes: '#1e3a8a' } },
+  museum: { name: 'Professor Hoot', look: { skin: '#e9b98f', hair: '#d1d5db', hairStyle: 'bald', accent: '#3b82f6', glasses: true, beard: true } },
+  robots: { name: 'Sprocket', look: { skin: '#8d5a3b', hair: '#111827', hairStyle: 'bun', accent: '#8b5cf6' } },
 }
 
 // every keeper lit a little from within, so they read in their module whichever way they face

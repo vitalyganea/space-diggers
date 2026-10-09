@@ -20,7 +20,7 @@ import { Rescue, rechargeCost, FREE_CHARGE, SURFACE_DEPTH } from './stranded.js'
 import { chargeRate, onPad } from './charging.js'
 import { tip } from './tips.js'
 import { KEEPERS, lineFor, keeperSpots } from './shopkeepers.js'
-import { makeAnimal } from './animals.js'
+import { makeAstronaut } from './people.js'
 import { Music } from './music.js'
 import { Hand, toolSpeed, hasLaser, LASER_ROCK } from './tools.js'
 import { Meteors } from './meteors.js'
@@ -209,7 +209,7 @@ export function start(platform) {
   let lastSale = 0
   const keepers = BUILDINGS.map(b => {
     const K = KEEPERS[b.key], spot = keeperSpots(b)
-    const a = makeAnimal(noa.rendering.getScene(), b.key, null, m => noa.rendering.addMeshToScene(m), K.look)
+    const a = makeAstronaut(noa.rendering.getScene(), K.look, m => noa.rendering.addMeshToScene(m))
     noa.rendering.addMeshToScene(a.root, false, spot.keeper)
     a.root.rotation.y = Math.atan2(b.face[0], b.face[1])                    // facing the door
     return { key: b.key, b, K, a, spot, waved: false }
@@ -222,7 +222,7 @@ export function start(platform) {
   }
   const keeperHead = key => {
     const K = KEEPERS[key]
-    return `<div class="keeper"><span class="keeper-face" style="background:${K.look.body};border-color:${K.look.ear}"><i></i><i></i><b style="background:${K.look.nose}"></b></span>
+    return `<div class="keeper"><span class="keeper-face" style="background:${K.look.skin};border-color:${K.look.accent};box-shadow:inset 0 9px 0 ${K.look.hairStyle === 'bald' ? K.look.skin : K.look.hair}"><i></i><i></i><b></b></span>
       <div><b>${K.name}</b><span>${lineFor(key, keeperState(), Math.random())}</span></div></div>`
   }
   const enter = door => {
