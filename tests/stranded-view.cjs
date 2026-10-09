@@ -40,7 +40,7 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   await click('[data-act="pick"]'); await sleep(300)
   ok(await click('[data-act="robot"][data-arg="gold"]'), 'the robot is sent with the gold')
   await sleep(400)
-  ok(/selling Gold/.test(await p.eval(`document.querySelector('.stranded .wait').textContent`)) && !(await p.eval(`${O}.bag.items.gold`)), 'the card counts down its trip; the gold has left the backpack')
+  ok(/selling Moon gold/.test(await p.eval(`document.querySelector('.stranded .wait').textContent`)) && !(await p.eval(`${O}.bag.items.gold`)), 'the card counts down its trip; the gold has left the backpack')
   await p.shot(OUT + '/st2-robot.png')
   await p.eval(`${O}.rescue.t += 60`); await sleep(500)
   ok((await p.eval(`${O}.digger.coins`)) === 12, 'back with 12 coins')

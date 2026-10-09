@@ -63,7 +63,7 @@ no punishment, clear hints, the robot explaining.
 
 | #  | System | Status | Test notes |
 |----|--------|--------|------------|
-| 30 | Bug: closing a shop asks for another click ("back to game"); Close should go straight back in | pending | |
+| 30 | Bug: closing a shop asks for another click ("back to game"); Close should go straight back in | done | Close (a click) takes the mouse back at once; so do the stranded card's Close, Pay and Ticket. town-view taps the real Close button and checks the mouse is locked and "Click to play" hidden. shops, stranded (item now "Moon gold") and ticket checks pass. |
 | 31 | Bug: the minimap turns the wrong way with the mouse | pending | |
 | 32 | Bug: building signs turn with you and sink into walls; fixed panels over the doors | pending | |
 | 33 | Charging: a fast charging station at the base; everywhere else a very slow trickle (the surface too) | pending | |

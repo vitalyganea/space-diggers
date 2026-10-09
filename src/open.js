@@ -114,11 +114,11 @@ export function start(platform) {
       tickets,
     }),
     async (kind, arg) => {
-      if (kind === 'close') { card.hide(); return }
+      if (kind === 'close') { card.hide(); lockMouse(noa.container.element); return }
       if (kind === 'pay') {
         const cost = rechargeCost(depth())
         if (digger.coins < cost) return
-        digger.coins -= cost; battery.recharge(); sound.play('buy'); card.hide(); hud.toast('Recharged!')
+        digger.coins -= cost; battery.recharge(); sound.play('buy'); card.hide(); lockMouse(noa.container.element); hud.toast('Recharged!')
       }
       if (kind === 'robot' && bag.take(arg)) {
         rescue.sendRobot(arg, ITEMS[arg].value, depth(), robot ? ROBOTS[robot.kind].tripSpeed : 1)
@@ -127,7 +127,7 @@ export function start(platform) {
         say(`I'll take the ${ITEMS[arg].name} up to the Trade Hub. Back soon!`)
       }
       if (kind === 'free') rescue.callFree()
-      if (kind === 'ticket') { card.hide(); goHome() }
+      if (kind === 'ticket') { card.hide(); lockMouse(noa.container.element); goHome() }
       if (kind === 'ad') {
         sound.setMuted(true)
         const watched = await platform.rewardedAd()
@@ -189,7 +189,8 @@ export function start(platform) {
   const SHOPS = { market: market(shop), workshop: workshop(shop), bombs: bombShop(shop) }
   const enter = door => {
     if (document.pointerLockElement) document.exitPointerLock()
-    const close = () => { inside = null }
+    // Close is a click, so the mouse can be taken straight back: no second "Click to play"
+    const close = () => { inside = null; lockMouse(noa.container.element) }
     const s = SHOPS[door.key]
     const soon = { pad: '<p>Coming soon: the rocket flies you to new planets.</p><p>An ice planet, a red one, one of lava and one of crystal, each with its own treasure.</p>' }
     inside = s ? shopCard(door.name, s.render, s.act, close) : buildingCard(door.name, soon[door.key] || '<p>Coming soon!</p>', close)
