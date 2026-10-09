@@ -94,10 +94,10 @@ no punishment, clear hints, the robot explaining.
 | #  | System | Status | Test notes |
 |----|--------|--------|------------|
 | 50 | Daily reward on a seven-day streak (day 7: a rare find); three daily quests with rewards | testing | src/daily.js (pure, by date string): a missed day restarts the streak; three seeded quests a day from eight (dig, finds, sell, depth, copper, museum, bomb, charge), each paying 20–70 coins the moment it is done. The card comes on starting to play (Play / the comic), its Claim the click into the game; the list sits top left. `save.daily`. Browser tests and the bot claim it. Tests whose coin sums assumed 0 at the start may need +20. |
-| 51 | The Robot Bay opens: Sprocket upgrades your robot (and lets you swap it) | pending | |
-| 52 | The race through the Race portal, its winnings to your coins, back to the Moon after | pending | |
+| 51 | The Robot Bay opens: Sprocket upgrades your robot (and lets you swap it) | testing | src/robotgear.js: speed (trips ×1 → ×3), light (6 → 15 blocks), talent (Bzz quicker still, Bolt +5 slots, Sonar +2 range a level); swap to another robot for 50, keeping its name. `save.robotGear`. |
+| 52 | The race through the Race portal, its winnings to your coins, back to the Moon after | testing | E at the portal: a card and Race! (persist, then ?mode=race&from=moon). The race's results add to the same save's coins; with from=moon they offer Back to the Moon and Race again. |
 | 53 | Settings: music, sound, mouse sensitivity; Esc pauses with them | pending | |
-| 54 | CrazyGames: SDK calls for the open game (gameplay, happytime, ads), the build, covers and videos | pending | |
+| 54 | CrazyGames: SDK calls for the open game (gameplay, happytime, ads), the build, covers and videos | building | In: gameplayStart/Stop with the mouse lock, loading, rewarded ads (stranded recharge, double sale), happytime at a set complete, a legendary or mythic find and the laser. build-crazygames.sh builds (1000K zip, 62 files). Still to do: covers and preview videos. |
 
 Later, with the rocket (stage 4): the rings as a level of floating
 asteroids; the ringed planet's moons as new planets. Kept for later as

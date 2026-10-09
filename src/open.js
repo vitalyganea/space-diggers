@@ -114,6 +114,7 @@ export function start(platform) {
     reveal.show(key, isNew)
     quest('finds')
     sound.play('find', RARITIES_N[f.rarity])
+    if (f.rarity === 'legendary' || f.rarity === 'mythic') platform.happytime()     // CrazyGames: a moment of joy
     const line = { legendary: `A ${f.name}! That is legendary!`, mythic: `The ${f.name}!! I can't believe it!`, epic: `Wow, a ${f.name}! Professor Hoot will love that.` }[f.rarity]
     if (line) say(line)
     else if (save.found.length === 1) say('A find! Sell it to Rita, or give it to the Museum for a set.')
@@ -243,7 +244,7 @@ export function start(platform) {
       if (!buyGear(gear, k, digger)) { sound.play('denied'); return }
       applyGear()
       if (k === 'battery') battery.recharge()
-      if (k === 'laser') { showTool(false); if (gear.laser === 1) say('A laser! Aim at black meteorite rock or crystal and it comes to hand by itself.') }
+      if (k === 'laser') { platform.happytime(); showTool(false); if (gear.laser === 1) say('A laser! Aim at black meteorite rock or crystal and it comes to hand by itself.') }
       sound.play('buy'); hud.toast('Upgraded!'); persist()
     },
     tickets: () => tickets,
@@ -267,7 +268,7 @@ export function start(platform) {
     sound.play('find', 2)
     if (r.done) {
       digger.coins += r.reward; museumNews.setDone = SETS[r.set].name
-      sound.play('win'); hud.toast(`${SETS[r.set].name} complete! +${r.reward} coins`)
+      sound.play('win'); platform.happytime(); hud.toast(`${SETS[r.set].name} complete! +${r.reward} coins`)
       say(`We completed the ${SETS[r.set].name}! +${r.reward} coins!`)
     }
     displays.refresh()
