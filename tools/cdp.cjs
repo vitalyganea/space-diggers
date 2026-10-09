@@ -48,6 +48,22 @@ async function launch(opts) {
     '--no-first-run', '--no-default-browser-check',
     '--remote-debugging-port=' + port, '--user-data-dir=' + profile, 'about:blank'
   ], { stdio: 'ignore' });
+  // Chrome goes when this script does, however it ends (an error, a timeout's
+  // SIGTERM, Ctrl-C): left running, eighty of them once slowed every test here
+  // to a crawl and made fixed waits look flaky.
+  var gone = false;
+  function cleanup() {
+    if (gone) return; gone = true;
+    try { chrome.kill('SIGKILL'); } catch (e) {}
+    try { fs.rmSync(profile, { recursive: true, force: true }); } catch (e) {}
+  }
+  process.on('exit', cleanup);
+  if (!launch.signals) {
+    launch.signals = true;
+    ['SIGINT', 'SIGTERM', 'SIGHUP'].forEach(function (sig) { process.on(sig, function () { process.exit(130); }); });
+    process.on('uncaughtException', function (e) { console.error(e); process.exit(1); });
+    process.on('unhandledRejection', function (e) { console.error(e); process.exit(1); });
+  }
   var wsUrl;
   for (var i = 0; i < 80 && !wsUrl; i++) {
     try { wsUrl = (await getJSON('http://127.0.0.1:' + port + '/json/version')).webSocketDebuggerUrl; }
@@ -158,7 +174,7 @@ async function launch(opts) {
   page.close = async function () {
     cdp.close();
     await new Promise(function (r) { chrome.on('exit', r); chrome.kill(); });
-    try { fs.rmSync(profile, { recursive: true, force: true }); } catch (e) {}
+    cleanup();
   };
   return page;
 }
