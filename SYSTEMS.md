@@ -40,13 +40,30 @@ the race becomes a portal mode in stage 6.
 | 23 | Ticket home: a cheap item that takes you to town | done | 15 coins at the Bomb shop, five carried, kept in the save, shown on the HUD when you have any. T takes you to the middle of town from anywhere (your robot comes too); stranded, the card offers it as a way out, since the sun charges you in town. `tests/ticket-view.cjs` in Chrome 11/11 (two for 30, a third out of reach; the HUD shows 2; T from 20 down lands you at the spawn; stranded, the card's ticket takes you home and closes; with none, T says where to buy one; saved). |
 | 24 | Stage 1 playtest: a long session on real inputs; the loop holds up | pending | |
 
+Row 24 (the stage 1 playtest) was overtaken by the move to space: its bot
+works (`tools/playtest-open.cjs`) and its findings shape stage S1 below:
+one item in 68 blocks of straight digging, and the race's lava pockets in
+the way eight times in eight minutes.
+
+## Stage S1: Space Diggers (the open game, re-themed and rebalanced)
+
+| #  | System | Status | Test notes |
+|----|--------|--------|------------|
+| 25 | Name and title: Space Diggers everywhere (page, saves, texts) | pending | |
+| 26 | Space textures and the sky: regolith, moon rock, basalt, ice, crystal, new ores, base materials; black sky with stars, nebula and a ringed planet; no clouds or trees | pending | |
+| 27 | The Moon: surface with craters and boulders, layers to the crystal depths, ore in veins that show in walls, no race lava | pending | |
+| 28 | The space base: domes and metal buildings with the same doors and shops, a landing pad with a rocket | pending | |
+| 29 | Items and prices for the Moon's ores; pacing measured by the playtest bot | pending | |
+| 30 | Low gravity, the suit, solar charging at the base; space helmets on the animals | pending | |
+| 31 | Playtest of the space loop (the stage 1 bot, re-run) | pending | |
+
 ## Later stages (rows to be split when each starts)
 
 | Stage | What | Status |
 |-------|------|--------|
 | 2 | Finds with rarity (common to mythic) and their reveal; the Museum with sets and displays | pending |
 | 3 | Capsules and mini-robots: hatching, bonuses, merging three | pending |
-| 4 | Worlds by depth (ice, mushrooms, lava, crystal, alien Core), outposts, the lift, vaults with bomb puzzles, hazards | pending |
+| 4 | Planets by rocket (ice, red, lava, crystal), outposts, the lift, vaults with bomb puzzles, hazards, meteor showers | pending |
 | 5 | Daily reward and streak, free spin, daily quests, events | pending |
 | 6 | The race as a portal mode; rewarded ads (stranded, double sale, capsule, spin); polish | pending |
 | 7 | Real multiplayer: Colyseus server, shared world, trading, leaderboards | pending |

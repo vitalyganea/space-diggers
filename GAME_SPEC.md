@@ -1,4 +1,12 @@
-# Game Spec: Boom Diggers
+# Game Spec: Space Diggers
+
+> 2026-10-09, later the same day: the user moved the whole game to space
+> ("much more atmospheric") and renamed it Space Diggers. Everything below
+> still holds, re-themed: the town is a space base, the ground is a moon,
+> the "worlds by depth" of stage 4 become planets you fly to by rocket, and
+> ore comes in veins rich enough that a trip pays (the first playtest of
+> the open loop found 1 item in 68 blocks of straight digging). What the
+> theme changes, item by item, is in "Space" at the end.
 
 > Redesigned with the user on 2026-10-09. The first version was a timed
 > race to the Core (rows 1–14 of SYSTEMS.md, all built). The user found it
@@ -129,3 +137,28 @@ Full small game, built in stages. Each stage ends playable:
 - No forced ads; no purchases with real money in this pass.
 - No assets, names or look copied from Bloxd.io, Minecraft, Crazy Miners or
   the Roblox games researched.
+
+## Space (the theme, decided 2026-10-09)
+
+- **Name:** Space Diggers.
+- **Where:** you start on a small grey moon. The sky is black with stars, a
+  nebula, a big ringed planet hanging over the horizon. No grass, no
+  trees: moon dust (regolith), craters, boulders.
+- **The town is a space base:** glass domes and metal walls, a landing
+  pad with a rocket. Buildings: Trade Hub (sell), Workshop, Explosives,
+  Robot Bay (capsules), Museum, Launch Pad (other planets, stage 4; the
+  race later).
+- **The ground, top to bottom on the Moon:** regolith, moon rock, dark
+  basalt, ice caves, glowing crystal; deeper planets differ.
+- **Ore in veins** of 3–8 blocks that show in tunnel walls, so there is
+  always something worth turning aside for: titanium, copper, moon gold,
+  helium-3 crystals (they glow), star gems. Rich enough that a backpack
+  fills in a few minutes of digging.
+- **Planets as progress (stage 4):** upgrade the rocket to reach new ones,
+  each with its own ground, ore, finds, hazards, gravity and music: the
+  grey Moon, an ice planet, a red planet, a lava planet, a crystal planet.
+  New planets are also the natural update ("a new planet is out!").
+- **Gravity:** lower than Earth's, so jumps float; each planet its own.
+- **Feel:** the animals wear round glass space helmets; the battery is the
+  suit's; at the base, solar panels charge it (was "the sun").
+- **Events:** meteor showers that drop rare ore on the surface.
