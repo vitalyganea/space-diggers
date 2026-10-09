@@ -11,6 +11,8 @@
    from the front wall (0) back into the module. */
 import { ID } from './blocks.js'
 
+/* Where a new player starts and a ticket home lands: the charging pad. */
+export const SPAWN = [0.5, 1, 0.5]
 export const TOWN_R = 18          // the base's deck reaches about this far
 export const SQUARE_R = 16
 
@@ -105,6 +107,7 @@ export function townVoxel(x, y, z) {
   if (p !== -1) return p
   const sol = solarVoxel(x, y, z)
   if (sol !== -1) return sol
+  if (y === 0 && Math.abs(x) <= 1 && Math.abs(z) <= 1) return ID.charger      // the charging pad, where tickets land
   if (y === 0 && Math.abs(x) <= SQUARE_R && Math.abs(z) <= SQUARE_R) return ID.deck
   return -1
 }

@@ -11,7 +11,7 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   const O = '__open'
   const promptText = () => p.eval(`getComputedStyle(document.querySelector('.door-prompt')).display === 'none' ? '' : document.querySelector('.door-prompt b').textContent`)
   ok((await promptText()) === '', 'in the middle of the square: no prompt')
-  ok(await p.eval(`${O}.world.get(0, 0, 0) === 20 && ${O}.noa.getBlock(0, 7, 12) === 19`), 'the base\'s deck, and the Trade Hub\'s glass dome, drawn')
+  ok(await p.eval(`${O}.world.get(0, 0, 0) === 28 && ${O}.noa.getBlock(0, 7, 12) === 19`), 'the charging pad, and the Trade Hub\'s glass dome, drawn')
   await p.eval(`${O}.noa.entities.setPosition(${O}.noa.playerEntity, [0.5, 1, 7.4]); ${O}.noa.camera.heading = 0`); await sleep(500)
   ok((await promptText()) === 'Trade Hub', 'at the Trade Hub door: "[E] Trade Hub"')
   await p.hold('KeyE', 80); await sleep(400)

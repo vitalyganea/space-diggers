@@ -6,7 +6,7 @@ import { blast } from '../src/blast.js'
 let fails = 0
 const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fails++ }
 const w = new World(5, { town: true }), plain = new World(5)
-ok(w.get(0, 0, 0) === ID.deck && w.get(0, 1, 0) === 0, 'the spawn stands on the deck in open air')
+ok(w.get(0, 0, 0) === ID.charger && w.get(0, 1, 0) === 0, 'the spawn stands on the charging pad in open air')
 ok(plain.get(0, 0, 0) === ID.regolith, 'the race world has no town')
 for (const b of BUILDINGS) {
   const [x, z] = b.at, [fx, fz] = b.face

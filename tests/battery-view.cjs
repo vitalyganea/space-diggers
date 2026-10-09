@@ -13,7 +13,7 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   // out of town (its square cannot be dug), onto the flat grass east of it
   await p.eval(`${O}.noa.entities.setPosition(${O}.noa.playerEntity, [26.5, 1, 0.5])`); await sleep(1500)
   ok((await p.eval(`${O}.battery.charge`)) === 100 && /100%/.test(await p.eval(`document.querySelector('.hud .batt').textContent`)), 'a new player starts with a full battery on the HUD')
-  // below the sun's reach (at the surface it would top the battery straight back up)
+  // a few blocks down, off the charging pad
   await p.eval(`(() => { for (let y = 0; y > -6; y--) ${O}.world.set(26, y, 0, 0); ${O}.noa.entities.setPosition(${O}.noa.playerEntity, [26.5, -5, 0.5]); ${O}.noa.camera.pitch = 1.55 })()`)
   await sleep(1000)
   await p.holdUntil(`${O}.digger.broken >= 3`); await sleep(300)
@@ -39,7 +39,14 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   await p.keyDown('Space'); for (let i = 0; i < 60 && (await p.eval(`${O}.state().y`)) < -2.5; i++) await sleep(150); await p.keyUp('Space'); await sleep(300)
   const top = (await p.eval(`${O}.state()`)).y
   ok(bottom <= -10.9 && top > bottom + 8, `Space against the shaft wall climbs it (y ${bottom} -> ${top})`)
-  // back down the shaft, out of the sun (at the surface it would charge), then save and reload
+  // the charging pad in the middle of the base fills it in seconds; elsewhere it only trickles
+  await p.eval(`${O}.noa.entities.setPosition(${O}.noa.playerEntity, [30.5, 1, 0.5]); ${O}.battery.charge = 10; 1`); await sleep(3000)
+  const trickled = await p.eval(`${O}.battery.charge`)
+  ok(trickled > 10 && trickled < 14, `on the plain it trickles back, slowly (10 -> ${trickled.toFixed(1)} in 3 s)`)
+  await p.eval(`${O}.noa.entities.setPosition(${O}.noa.playerEntity, [0.5, 1, 0.5]); ${O}.battery.charge = 10; 1`)
+  const full = await p.waitFor(`${O}.battery.fraction >= 1`, 15000)
+  ok(full && /Charging|full/.test(await p.eval(`document.querySelector('.hud .toast').textContent`)), 'on the charging pad it fills in seconds, and says so')
+  // back down the shaft (flat and deep, nothing charges it: the stranded card is the way out), then save and reload
   await p.eval(`(() => { const s = ${O}.state(); ${O}.noa.entities.setPosition(${O}.noa.playerEntity, [s.x, -11, s.z]); ${O}.battery.charge = 0 })()`)
   await sleep(1000)
   await p.eval(`${O}.persist()`); await p.reload(); await sleep(6500)

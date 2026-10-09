@@ -34,6 +34,8 @@ export const BLOCKS = [
   { id: 26, name: 'portal', tex: 'portal', hard: 99, coins: 0 },
   // ore that glows in the dark (row 27 places it)
   { id: 27, name: 'helium_ore', tex: 'helium_ore', hard: 1.4, coins: 0 },
+  // the charging pad in the middle of the base (row 33)
+  { id: 28, name: 'charger', tex: 'charger', hard: 99, coins: 0 },
 ]
 export const ID = Object.fromEntries(BLOCKS.map(b => [b.name, b.id]))
 

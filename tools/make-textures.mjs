@@ -221,6 +221,16 @@ T.deck = () => {                                    // the base's ground: dark p
   for (const [x, y] of [[2, 2], [10, 2], [2, 10], [10, 10]]) t.set(x, y, '#6b7280')
   return t
 }
+T.charger = () => {                                 // the charging pad: a dark plate, a glowing ring and a bolt
+  const t = new Tex(27).noise(['#1f2937', '#232d3d', '#1b2431'], 1.4)
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    const d = Math.hypot(x - 7.5, y - 7.5)
+    if (d > 5.6 && d < 7.2) t.set(x, y, d < 6.4 ? '#22d3ee' : '#a5f3fc')
+  }
+  for (const [x, y] of [[8, 3], [7, 4], [8, 4], [6, 5], [7, 5], [5, 6], [6, 6], [7, 7], [8, 7], [9, 7], [10, 7], [8, 8], [9, 8], [7, 9], [8, 9], [6, 10], [7, 10], [6, 11], [5, 12]])
+    t.set(x, y, '#fde047')
+  return t
+}
 for (const [name, col, glow] of [['green', '#2fbf71', '#a7f3d0'], ['red', '#e63946', '#fecaca'], ['blue', '#3b82f6', '#bfdbfe'],
   ['yellow', '#f5c518', '#fef9c3'], ['purple', '#8b5cf6', '#ddd6fe']]) {
   T['light_' + name] = () => {                      // a lit sign band over a door

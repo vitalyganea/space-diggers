@@ -21,7 +21,7 @@ const COLORS = {
   [ID.regolith]: '#b4b3ae', [ID.dust]: '#8b8780', [ID.moonrock]: '#76777e', [ID.darkrock]: '#454c62', [ID.basalt]: '#2e2d35',
   [ID.lava]: '#f97316', [ID.crystal]: '#7c5ce6', [ID.copper_ore]: '#d9773a', [ID.titanium_ore]: '#e2e8f0', [ID.gold_ore]: '#f5c518',
   [ID.stargem_ore]: '#f472b6', [ID.helium_ore]: '#4ade80', [ID.core]: '#fbbf24', [ID.ice]: '#9fd3f0', [ID.frost]: '#e3f0f9',
-  [ID.rubble]: '#7a7a80', [ID.deck]: '#454c58', [ID.floor]: '#6b7280', [ID.hull]: '#dde3ea',
+  [ID.rubble]: '#7a7a80', [ID.charger]: '#22d3ee', [ID.deck]: '#454c58', [ID.floor]: '#6b7280', [ID.hull]: '#dde3ea',
 }
 const SHOP_COLORS = { market: '#2fbf71', workshop: '#f5c518', bombs: '#e63946', museum: '#3b82f6', robots: '#8b5cf6', portal: '#a78bfa', pad: '#e5e7eb' }
 const BAND = [['Dust', 0, MOON.dust, '#8b8780'], ['Moon rock', MOON.dust, MOON.rock, '#76777e'], ['Dark rock', MOON.rock, MOON.dark, '#454c62'],

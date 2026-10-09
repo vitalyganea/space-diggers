@@ -17,8 +17,9 @@ import { saveWorld, loadWorld } from './persist.js'
 import { ITEMS, Backpack, dropFor } from './items.js'
 import { Battery } from './battery.js'
 import { Rescue, rechargeCost, FREE_CHARGE, SURFACE_DEPTH } from './stranded.js'
+import { chargeRate, onPad } from './charging.js'
 import { StrandedCard } from './ui/stranded.js'
-import { doorNear } from './town.js'
+import { doorNear, SPAWN } from './town.js'
 import { nameBoards, DoorPrompt, buildingCard, shopCard } from './ui/townui.js'
 import { market, workshop, bombShop } from './ui/shops.js'
 import { Minimap } from './ui/minimap.js'
@@ -30,7 +31,7 @@ import { OpenHud } from './ui/openhud.js'
 import { clickToPlay, lockMouse } from './ui/hud.js'
 import { addCrosshair } from './ui/crosshair.js'
 
-export const SPAWN = [0.5, 1, 0.5]
+export { SPAWN }
 const AUTOSAVE = 10
 
 export function start(platform) {
@@ -79,7 +80,7 @@ export function start(platform) {
       if (battery.flat) {
         sound.play('flat')
         if (strandedNow()) { openCard(); say('Out of power! I can fly up and sell something for us.') }
-        else hud.toast('Battery flat! Stand in the sun to charge')
+        else hud.toast('Battery flat! The charging pad in the base fills it')
       }
     },
   })
@@ -280,7 +281,7 @@ export function start(platform) {
     noa.entities.getPhysics(noa.playerEntity).body.velocity = [0, 0, 0]
     if (buddy && !buddy.away) buddy.pos = [SPAWN[0], SPAWN[1] + 3, SPAWN[2]]
     sound.play('go'); hud.toast('Home!')
-    say('Home sweet home. The sun will charge us up.')
+    say('Home sweet home! Standing on the charging pad fills the battery.')
     persist()
   }
   noa.inputs.bind('ticket', 'KeyT')
@@ -289,11 +290,20 @@ export function start(platform) {
   // trying to dig on a flat battery down there brings the card back
   noa.inputs.down.on('fire', () => { if (strandedNow() && !card.open) openCard() })
 
+  let charging = false, saidCharging = false
   noa.on('tick', dt => {
     if (!loaded) { loaded = true; platform.loadingStop() }
     digger.enabled = !battery.flat
-    // the sun charges the drill at the surface, slowly
-    if (depth() < SURFACE_DEPTH && battery.fraction < 1) battery.recharge(battery.capacity * 0.04 * dt / 1000)
+    // the charging pad fills the battery fast; anywhere else it trickles back (src/charging.js)
+    const here = noa.entities.getPosition(noa.playerEntity)
+    if (battery.fraction < 1) {
+      battery.recharge(battery.capacity * chargeRate(here, depth(), battery.flat) * dt / 1000)
+      if (onPad(here) && !charging) { charging = true; sound.play('buy'); hud.toast('Charging...'); if (!saidCharging) { saidCharging = true; say('Charging! Stand here a moment.') } }
+    }
+    if (charging && (!onPad(here) || battery.fraction >= 1)) {
+      if (battery.fraction >= 1) hud.toast('Battery full!')
+      charging = false
+    }
     const done = rescue.tick(dt / 1000)
     if (done && done.kind === 'trip') {
       digger.coins += done.value; sound.play('coin', done.value)
