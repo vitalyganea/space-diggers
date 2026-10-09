@@ -20,7 +20,8 @@ import { Rescue, rechargeCost, FREE_CHARGE, SURFACE_DEPTH } from './stranded.js'
 import { chargeRate, onPad } from './charging.js'
 import { tip } from './tips.js'
 import { PLANETS } from './planets.js'
-import { planetsCard, launchShow, arriveBanner } from './ui/rocket.js'
+import { planetsCard, arriveBanner } from './ui/rocket.js'
+import { liftOff, landing } from './flight.js'
 import { loadSettings, settingsCard } from './ui/settings.js'
 import { openDay, claim, progress, dayString, questReward, questText } from './daily.js'
 import { dailyCard, QuestList } from './ui/daily.js'
@@ -353,8 +354,9 @@ export function start(platform) {
           inside.remove(); inside = null; titling = true
           persist()                                                  // this planet's world, kept
           save.planet = arg; save.arriving = true; meta.store(store, save)
-          music.stop(); sound.play('whoosh')
-          launchShow(Q, () => location.reload())                       // lift-off, the trip, then the new world
+          music.stop()
+          document.body.classList.add('showcase')                       // no HUD while it flies
+          liftOff(noa, world, sound, Q, () => location.reload(), look)        // lift-off in the world, then Loading… and the new one
         }
       }, close)
       sound.play('place'); return
@@ -423,9 +425,14 @@ export function start(platform) {
   const arrived = !!save.arriving
   if (save.arriving) {                                          // just landed (row 56): no title, straight onto the planet
     save.arriving = false
-    showcase(false); titling = false
-    arriveBanner(P)
-    setTimeout(() => say(planetKey === 'moon' ? 'Home sweet Moon!' : `Welcome to ${P.name}! Everything is new here. Let's dig!`), 1500)
+    showcase(false); titling = true
+    document.body.classList.add('showcase')
+    // the rocket comes down on the pad; then you are back in your eyes
+    setTimeout(() => landing(noa, world, sound, () => {
+      document.body.classList.remove('showcase'); titling = false
+      arriveBanner(P)
+      say(planetKey === 'moon' ? 'Home sweet Moon!' : `Welcome to ${P.name}! Everything is new here. Let's dig!`)
+    }, look), 600)
   }
   /* Into the game from the start screen, on a click: the daily reward first
      if there is one today (its Claim is then the click that takes the mouse),

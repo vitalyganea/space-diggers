@@ -78,7 +78,7 @@ function buildingVoxel(b, x, y, z) {
 /* The rocket on its pad: a round white body five blocks across, red bands,
    a nose that narrows to a point, four red fins at the foot, a window
    looking east at the base. Built round the block at the pad's middle. */
-function rocketVoxel(x, y, z) {
+export function rocketVoxel(x, y, z) {
   const dx = x - PAD.at[0], dz = z - PAD.at[1], d = Math.hypot(dx, dz)
   if (d > PAD.r + 0.5 || y < 0 || y > 18) return -1
   if (y === 0) return d > PAD.r - 0.5 ? ID.light_yellow : ID.deck           // a yellow ring round the pad

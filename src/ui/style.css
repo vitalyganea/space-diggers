@@ -248,3 +248,12 @@ body.showcase .hud { display: none !important; }
   background: rgba(10, 14, 30, 0.85); border: 3px solid #7dd3fc; box-shadow: 0 0 24px #38bdf8; transition: opacity 1s; }
 .arrive span { font-size: 48px; } .arrive small { display: block; opacity: 0.8; font-weight: 800; } .arrive b { font-size: 30px; font-weight: 900; color: #fff; }
 .arrive.off { opacity: 0; }
+/* the loading screen between planets (row 56) */
+.loading-planet { z-index: 60; background: #020309; opacity: 0; transition: opacity 0.8s; }
+.loading-planet.on { opacity: 1; }
+.loading-planet > div { text-align: center; color: #e0f2fe; font-weight: 900; }
+.loading-planet small { display: block; font-size: 18px; opacity: 0.8; }
+.loading-planet b { display: block; font-size: 44px; margin: 6px 0 22px; text-shadow: 0 0 20px #38bdf8; }
+.loading-planet .bar { width: 340px; height: 14px; border-radius: 7px; background: #1e293b; overflow: hidden; margin: 0 auto 10px; }
+.loading-planet .bar i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #38bdf8, #a78bfa); animation: fill 1.6s ease-in-out forwards; }
+@keyframes fill { to { width: 100%; } }
