@@ -1,8 +1,8 @@
-/* The base on screen: a lit name panel over every door (always turned to
-   you), the "[E] Trade Hub" prompt when you stand at one, and the card a
+/* The base on screen: a lit name panel fixed to the wall over every door
+   (facing out; they used to turn after you and swing into the walls), the "[E] Trade Hub" prompt when you stand at one, and the card a
    building opens. Shops fill their cards in row 20; the rest say what is
    coming. */
-import { MeshBuilder, StandardMaterial, DynamicTexture, Texture, Color3, Mesh } from '@babylonjs/core'
+import { MeshBuilder, StandardMaterial, DynamicTexture, Texture, Color3 } from '@babylonjs/core'
 import { BUILDINGS, PORTAL, PAD } from '../town.js'
 
 export function nameBoards(noa) {
@@ -22,10 +22,13 @@ export function nameBoards(noa) {
     m.backFaceCulling = false
     const plane = MeshBuilder.CreatePlane('board_' + b.key, { width: 3.2, height: 0.8 }, scene)
     plane.material = m
-    plane.billboardMode = Mesh.BILLBOARDMODE_Y
     plane.isPickable = false
-    const at = b.key === 'pad' ? [b.door[0] + 1, 3.4, b.door[2]]
-      : [b.at[0] + b.face[0] * 0.7 + 0.5, b.key === 'portal' ? 7.6 : 4.5, b.at[1] + b.face[1] * 0.7 + 0.5]
+    // a plane shows its face towards -z: turn that to face out of the building
+    const [fx, fz] = b.face || [1, 0]
+    plane.rotation.y = Math.atan2(-fx, -fz)
+    // just off the outside of the front wall (the wall block's face is half a block out from its middle)
+    const at = b.key === 'pad' ? [b.door[0] - 0.4, 3.4, b.door[2]]
+      : [b.at[0] + 0.5 + fx * 0.54, b.key === 'portal' ? 7.6 : 4.5, b.at[1] + 0.5 + fz * 0.54]
     noa.rendering.addMeshToScene(plane, false, at)
   }
 }

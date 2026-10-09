@@ -65,7 +65,7 @@ no punishment, clear hints, the robot explaining.
 |----|--------|--------|------------|
 | 30 | Bug: closing a shop asks for another click ("back to game"); Close should go straight back in | done | Close (a click) takes the mouse back at once; so do the stranded card's Close, Pay and Ticket. town-view taps the real Close button and checks the mouse is locked and "Click to play" hidden. shops, stranded (item now "Moon gold") and ticket checks pass. |
 | 31 | Bug: the minimap turns the wrong way with the mouse | done | The map was a mirror image: noa (Babylon) is left-handed, so seen from above +z is up, and it was drawn down. Now +x right, +z up, the arrow turned by +heading; what is ahead of you is above the arrow. minimap-view checks the Trade Hub (+z) is above you and the arrow points up at heading 0 and right at π/2. |
-| 32 | Bug: building signs turn with you and sink into walls; fixed panels over the doors | pending | |
+| 32 | Bug: building signs turn with you and sink into walls; fixed panels over the doors | done | No more billboards: each panel is turned to face out of its building (a plane shows its face to -z; rotation.y = atan2(-fx, -fz)) and set 0.04 off the front wall over the door; the pad's faces the base. Screenshots from four places: readable from the front, in perspective from the side, never inside a wall. |
 | 33 | Charging: a fast charging station at the base; everywhere else a very slow trickle (the surface too) | pending | |
 | 34 | Robots: Bolt becomes a ground robot on tracks (Wall-E-like); the drone flies by your shoulder, not in front, coming forward only to speak | pending | |
 | 35 | The robot made clear: R opens its panel (send to sell, Sonar's search, its light), and it says what it is doing | pending | |
