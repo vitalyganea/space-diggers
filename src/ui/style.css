@@ -66,3 +66,10 @@
 .hud .pickups { position: absolute; left: 24px; bottom: 70px; display: flex; flex-direction: column-reverse; gap: 2px; }
 .hud .pickup { font-size: 20px; font-weight: 900; animation: rise 1.2s ease-out forwards; }
 @keyframes rise { from { transform: translateY(0); opacity: 1 } to { transform: translateY(-34px); opacity: 0 } }
+.hud .batt { display: inline-flex; align-items: center; gap: 6px; }
+.hud .batt-ico { position: relative; display: inline-block; width: 30px; height: 15px; border: 2px solid #fff; border-radius: 3px; }
+.hud .batt-ico::after { content: ''; position: absolute; right: -5px; top: 3px; width: 3px; height: 5px; background: #fff; border-radius: 1px; }
+.hud .batt-ico s { position: absolute; left: 1px; top: 1px; bottom: 1px; max-width: calc(100% - 2px); background: #6ee7b7; border-radius: 1px; }
+.hud .batt.amber .batt-ico s { background: #f5c518; } .hud .batt.amber b { color: #f5c518; }
+.hud .batt.red .batt-ico s { background: #ff6b6b; } .hud .batt.red b { color: #ff6b6b; }
+.hud .batt small { font-size: 13px; opacity: .8; }

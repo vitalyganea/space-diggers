@@ -15,6 +15,7 @@ import { Sound } from './audio.js'
 import * as meta from './meta.js'
 import { saveWorld, loadWorld } from './persist.js'
 import { ITEMS, Backpack, dropFor } from './items.js'
+import { Battery } from './battery.js'
 import { OpenHud } from './ui/openhud.js'
 import { clickToPlay } from './ui/hud.js'
 import { addCrosshair } from './ui/crosshair.js'
@@ -42,6 +43,8 @@ export function start(platform) {
 
   const hud = new OpenHud()
   const bag = new Backpack(save.backpack ? save.backpack.capacity : undefined, save.backpack ? save.backpack.items : {})
+  const battery = new Battery(save.battery ? save.battery.capacity : undefined, save.battery ? save.battery.charge : null)
+  let lastHard = 0.8                     // the last block dug, for "blocks left"
   let fullWarned = 0
   // what a block drops goes into the backpack; a full one loses it, and says so
   const collect = blockId => {
@@ -53,7 +56,13 @@ export function start(platform) {
   const digger = new Digger(noa, {
     world, payOre: false,
     onCrack: (stage, b) => sound.play('crack', b.hard),
-    onBreak: e => { sound.play('break', e.block.hard); collect(e.block.id) },
+    onBreak: e => {
+      sound.play('break', e.block.hard); collect(e.block.id)
+      battery.use(e.block.hard); lastHard = e.block.hard
+      const w = battery.warn()
+      if (w) { hud.toast(`Battery ${Math.round(w * 100)}%!`); sound.play('low') }
+      if (battery.flat) { hud.toast('Battery flat! The drill has stopped'); sound.play('flat') }
+    },
   })
   digger.coins = save.coins
   const perk = meta.perk(save.chosen)
@@ -94,6 +103,7 @@ export function start(platform) {
   const persist = () => {
     save.coins = digger.coins
     save.backpack = bag.toJSON()
+    save.battery = battery.toJSON()
     meta.store(store, save)
     return saveWorld(store, world, noa.entities.getPosition(noa.playerEntity))
   }
@@ -102,13 +112,24 @@ export function start(platform) {
   window.addEventListener('beforeunload', persist)
 
   const depth = () => Math.max(0, -Math.floor(noa.entities.getPosition(noa.playerEntity)[1] + 1e-6))
+  // climbing: Space against a wall takes you up it, like a mole up its burrow
+  const body = noa.entities.getPhysics(noa.playerEntity).body
+  const againstWall = () => {
+    const p = noa.entities.getPosition(noa.playerEntity)
+    for (const [dx, dz] of [[0.65, 0], [-0.65, 0], [0, 0.65], [0, -0.65]])   // past the body (0.3) to the next cell
+      for (const dy of [0.3, 1.2]) if (world.get(Math.floor(p[0] + dx), Math.floor(p[1] + dy), Math.floor(p[2] + dz)) !== 0) return true
+    return false
+  }
+
   noa.on('tick', dt => {
-    if (!loaded) { loaded = true; platform.loadingStop(); digger.enabled = true }
+    if (!loaded) { loaded = true; platform.loadingStop() }
+    digger.enabled = !battery.flat
+    if (noa.inputs.state.jump && againstWall()) body.velocity[1] = Math.max(body.velocity[1], 4.2)
     if (document.pointerLockElement) platform.gameplayStart(); else platform.gameplayStop()
     sinceSave += dt / 1000
     if (sinceSave >= AUTOSAVE) { sinceSave = 0; persist() }
-    hud.update({ coins: digger.coins, depth: depth(), bag })
+    hud.update({ coins: digger.coins, depth: depth(), bag, battery, blocksLeft: battery.blocksLeft(lastHard) })
   })
 
-  if (import.meta.env.DEV) window.__open = { noa, world, digger, save, sound, bombs, persist, bag, state: () => playerState(noa), depth }
+  if (import.meta.env.DEV) window.__open = { noa, world, digger, save, sound, bombs, persist, bag, battery, state: () => playerState(noa), depth }
 }
