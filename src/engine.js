@@ -1,6 +1,6 @@
 import { Engine } from 'noa-engine'
 
-/* One noa engine with Boom Diggers' settings. First person (zoom 0), the
+/* One noa engine with Space Diggers' settings. First person (zoom 0), the
    mouse locked to the canvas on the first click, and a reach of six blocks
    for digging and placing. */
 export function createEngine(opts = {}) {

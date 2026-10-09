@@ -1,4 +1,4 @@
-/* The game: one round of Boom Diggers. You in lane 0, five bots in the
+/* The game: one round of Space Diggers. You in lane 0, five bots in the
    others, a countdown, the race to the Core, the results, Play again.
 
    For tests: ?seed= fixes the world, ?speed= runs the bots that many

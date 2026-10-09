@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Builds the CrazyGames copy: crazygames/game/ and crazygames/boom-diggers-crazygames.zip.
+# Builds the CrazyGames copy: crazygames/game/ and crazygames/space-diggers-crazygames.zip.
 # The one difference from the plain web build: the CrazyGames SDK v3 <script>
 # goes into index.html ahead of the game, which src/platform.js then finds.
 set -eu
 cd "$(dirname "$0")"
 SDK='https://sdk.crazygames.com/crazygames-sdk-v3.js'
 OUT=crazygames/game
-ZIP=crazygames/boom-diggers-crazygames.zip
+ZIP=crazygames/space-diggers-crazygames.zip
 npx vite build --logLevel warn
 rm -rf "$OUT"; mkdir -p crazygames; cp -r dist "$OUT"
 sed -i "s#<head>#<head><script src=\"$SDK\"></script>#" "$OUT/index.html"

@@ -6,7 +6,7 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   const p = await launch({ w: 1280, h: 720, port: 9413 })
   await p.navigate('http://localhost:5181/'); await sleep(6500)
   const O = '__open'
-  await p.eval(`document.querySelector('.choose-robot .go').click()`); await sleep(300)
+  await p.eval(`document.querySelector('.choose-robot .go').click()`); await sleep(900)
   await p.tap(640, 360); await sleep(300)
   const click = sel => p.eval(`(() => { const b = document.querySelector('${sel}'); if (!b || b.disabled) return false; b.click(); return true })()`)
   // buy two at the Bomb shop
@@ -32,7 +32,7 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   // stranded with a ticket: the card offers it
   await deep()
   await p.eval(`${O}.battery.charge = 0.1; ${O}.noa.camera.pitch = 1.55`)
-  await p.tap(640, 360); await sleep(200); await p.mouseHold(640, 360, 900); await sleep(500)
+  await p.tap(640, 360); await sleep(200); await p.holdUntil(`${O}.card.open`); await sleep(300)
   ok(await click('[data-act="ticket"]'), 'stranded, the card offers the ticket')
   await sleep(800)
   s = await p.eval(`${O}.state()`)
@@ -41,7 +41,7 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   await p.hold('KeyT', 80); await sleep(300)
   ok(/No tickets/.test(await p.eval(`document.querySelector('.hud .toast').textContent`)), 'with none, T says where to buy one')
   await p.eval(`${O}.persist()`)
-  ok(JSON.parse(await p.eval(`localStorage.getItem('boomdiggers-save-v1')`)).tickets === 0, 'kept in the save')
+  ok(JSON.parse(await p.eval(`localStorage.getItem('spacediggers-save-v1')`)).tickets === 0, 'kept in the save')
   ok(p.errors.length === 0, 'console clean ' + JSON.stringify(p.errors.slice(0, 3)))
   await p.close()
   console.log(fails ? `${fails} failed` : 'all ok'); process.exit(fails ? 1 : 0)

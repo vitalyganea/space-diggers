@@ -22,13 +22,13 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   ok(await p.eval(`getComputedStyle(document.querySelector('.click-to-play')).display`) === 'flex', 'and "Click to dig" is back')
   await sleep(6000)                                       // the 8 s round times out
   ok(await p.eval(`!!document.querySelector('.results')`), 'the round ends in results')
-  const saved = await p.eval(`localStorage.getItem('boomdiggers-save-v1')`)
+  const saved = await p.eval(`localStorage.getItem('spacediggers-save-v1')`)
   ok(saved && JSON.parse(saved).rounds === 1, 'the save is written (mirrored to localStorage)')
-  ok(said(/DATA.*[Ss]et|setItem/) || p.prints.some(t => /boomdiggers-save-v1/.test(t)), 'and through the SDK data module')
+  ok(said(/DATA.*[Ss]et|setItem/) || p.prints.some(t => /spacediggers-save-v1/.test(t)), 'and through the SDK data module')
   const before = await p.eval('location.search')
   await p.eval(`document.querySelector('.results .again').click()`); await sleep(7000)   // the SDK's local test ad runs ~3 s
-  ok(said(/\[Boom Diggers\] midgame ad: requested/), 'Play again asks for a midgame ad')
-  ok(said(/\[Boom Diggers\] midgame ad: (finished|refused|could not)/), 'and goes on when it is over or refused')
+  ok(said(/\[Space Diggers\] midgame ad: requested/), 'Play again asks for a midgame ad')
+  ok(said(/\[Space Diggers\] midgame ad: (finished|refused|could not)/), 'and goes on when it is over or refused')
   ok((await p.eval('location.search')) !== before, 'then a new round starts')
   ok(p.errors.length === 0, 'console clean ' + JSON.stringify(p.errors.slice(0, 3)))
   console.log('    SDK lines:', p.prints.filter(t => /gameplay|loading|midgame|requestAd|DATA/i.test(t)).map(t => t.replace(/%c|background-color[^;]*;|border-radius[^;]*;|padding[^;]*;|color: [^ ;]*;?/g, '').replace(/\s+/g, ' ').slice(0, 70)).join(' | '))

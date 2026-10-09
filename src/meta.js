@@ -10,7 +10,7 @@
 import { ID } from './blocks.js'
 import { ROBOTS } from './robots.js'
 
-export const KEY = 'boomdiggers-save-v1'
+export const KEY = 'spacediggers-save-v1'
 export const PLACE_BONUS = [50, 30, 20, 10, 10, 10]
 
 export const SHOP = [

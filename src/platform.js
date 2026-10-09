@@ -51,7 +51,7 @@ export async function initPlatform() {
 }
 
 function crazy(sdk) {
-  const say = m => { try { console.info('[Boom Diggers] ' + m) } catch (e) { /* no console */ } }
+  const say = m => { try { console.info('[Space Diggers] ' + m) } catch (e) { /* no console */ } }
   const safe = f => { try { return f() } catch (e) { say('SDK call failed: ' + e) } }
   let playing = false
   return {

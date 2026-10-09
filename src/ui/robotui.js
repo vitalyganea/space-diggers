@@ -11,7 +11,7 @@ export function chooseRobot(onDone) {
   const el = document.createElement('div')
   el.className = 'overlay choose-robot'
   const draw = () => {
-    el.innerHTML = `<div class="card panel"><h1>Choose your robot friend</h1>
+    el.innerHTML = `<div class="card panel"><div class="logo">Space <b>Diggers</b></div><h1>Choose your robot friend</h1>
       <h2>It digs with you, keeps you company, and goes for help when your battery runs out.</h2>
       <div class="cards">${Object.entries(ROBOTS).map(([k, r]) => `
         <button class="robot-card${k === pick ? ' picked' : ''}" data-k="${k}">${face(k)}<b>${r.name}</b><small>${r.talent}</small></button>`).join('')}</div>

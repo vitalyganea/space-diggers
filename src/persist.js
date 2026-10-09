@@ -6,7 +6,7 @@
    and not eighty entries. That keeps a long-played world well inside a
    few hundred KB (localStorage and the CrazyGames data module both have
    limits; tests/persist.mjs measures it). */
-export const WORLD_KEY = 'boomdiggers-world-v1'
+export const WORLD_KEY = 'spacediggers-world-v1'
 
 export function encodeEdits(edits) {
   const cols = new Map()

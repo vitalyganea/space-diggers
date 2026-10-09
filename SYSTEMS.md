@@ -49,7 +49,7 @@ the way eight times in eight minutes.
 
 | #  | System | Status | Test notes |
 |----|--------|--------|------------|
-| 25 | Name and title: Space Diggers everywhere (page, saves, texts) | pending | |
+| 25 | Name and title: Space Diggers everywhere (page, saves, texts) | done | Page title, console tag, save keys `spacediggers-*` (a new world: old Earth saves are not loaded), CrazyGames zip `space-diggers-crazygames.zip`, a SPACE DIGGERS logo on the start screen. meta-view, crazygames, ticket-view, robot-view pass. |
 | 26 | Space textures and the sky: regolith, moon rock, basalt, ice, crystal, new ores, base materials; black sky with stars, nebula and a ringed planet; no clouds or trees | pending | |
 | 27 | The Moon: surface with craters and boulders, layers to the crystal depths, ore in veins that show in walls, no race lava | pending | |
 | 28 | The space base: domes and metal buildings with the same doors and shops, a landing pad with a rocket | pending | |
