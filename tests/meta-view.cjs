@@ -7,7 +7,7 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
 const click = (p, sel) => p.eval(`document.querySelector('${sel}').click()`)
 ;(async () => {
   const p = await launch({ w: 1280, h: 720, port: 9394 })
-  await p.navigate('http://localhost:5181/?seed=42'); await sleep(5000)
+  await p.navigate('http://localhost:5181/?mode=race&seed=42'); await sleep(5000)
   ok((await p.eval('__game.save.chosen')) === 'mole' && (await p.eval('__game.digger.bombs')) === 0, 'a new player digs as the mole')
   await p.eval('__game.digger.coins = 7; __game.toCore()'); await sleep(1500)
   const pay = await p.eval(`document.querySelector('.results .pay').textContent.replace(/\\s+/g, ' ').trim()`)

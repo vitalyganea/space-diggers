@@ -9,7 +9,7 @@ const text = (p, sel) => p.eval(`(document.querySelector('${sel}') || {}).textCo
 ;(async () => {
   // 1: a round the player wins
   let p = await launch({ w: 1280, h: 720, port: 9385 })
-  await p.navigate('http://localhost:5181/?seed=42&speed=2'); await sleep(2200)
+  await p.navigate('http://localhost:5181/?mode=race&seed=42&speed=2'); await sleep(2200)
   const c = await text(p, '.hud .count')
   ok(['1', '2', '3'].includes(c.trim()), `the round opens with a countdown (${c})`)
   ok(!(await p.eval('__game.digger.enabled')), 'nobody can dig during it')
@@ -38,7 +38,7 @@ const text = (p, sel) => p.eval(`(document.querySelector('${sel}') || {}).textCo
 
   // 2: the clock runs out
   p = await launch({ w: 1280, h: 720, port: 9386 })
-  await p.navigate('http://localhost:5181/?seed=7&speed=3&limit=12'); await sleep(17500)
+  await p.navigate('http://localhost:5181/?mode=race&seed=7&speed=3&limit=12'); await sleep(17500)
   const h1 = await text(p, '.results h1'), h2 = await text(p, '.results h2')
   ok(/place/.test(h1) && /Time up/.test(h2), `time up: results by depth (${h1} / ${h2})`)
   const order = await p.eval(`__game.round.standings().map(s => s.depth)`)

@@ -6,7 +6,7 @@ let fails = 0
 const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fails++ }
 ;(async () => {
   const p = await launch({ w: 1280, h: 720, port: 9395 })
-  await p.navigate('http://localhost:5181/?seed=42'); await sleep(800)
+  await p.navigate('http://localhost:5181/?mode=race&seed=42'); await sleep(800)
   await p.tap(640, 360); await sleep(4500)          // the click starts the sound and locks the mouse
   const log = () => p.eval('__game.sound.log.slice()')
   const ctx = await p.eval('__game.sound.ctx && __game.sound.ctx.state')

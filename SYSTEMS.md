@@ -29,7 +29,7 @@ the race becomes a portal mode in stage 6.
 
 | #  | System | Status | Test notes |
 |----|--------|--------|------------|
-| 15 | Open play: no round or clock; the World saved and restored between sessions (its edits, compactly) | pending | |
+| 15 | Open play: no round or clock; the World saved and restored between sessions (its edits, compactly) | done | `src/open.js` is the game now (the race is `?mode=race`, for the portal in stage 6; its tests moved there): no countdown, clock or board, dig at once, bombs and rubble as before. `src/persist.js` keeps the world under `boomdiggers-world-v1`: seed, the player's place, and the edits by column and run (`x,z:y0~y1=id`), so a shaft is one entry: a long-played world of 5,878 changed blocks (30 shafts of 100 and 60 craters) is 14 KB. Saved every 10 s and on leaving the page, with the coins. `tests/persist.mjs` 8/8 (round trip, a shaft is one run, size, seed and place back, no save or a broken one gives a new world, garbage skipped); `tests/open-view.cjs` in Chrome 8/8 (no clock; dug 6 blocks; after a reload the hole, the place and 123 coins are back, drawn by noa). Full run: all pass; `audio-view` failed once under the load of the whole run and passes alone (timing). |
 | 16 | Backpack and finds: what you dig goes into a backpack with limited room; ore and later finds are items, not instant coins | pending | |
 | 17 | Battery: each block drains it by hardness; warnings at 25% and 10%; the HUD says whether it gets you home | pending | |
 | 18 | Stranded: battery flat underground opens the choices: pay to recharge, the robot sells an item (a timed trip), rewarded ad, free slow rescue | pending | |

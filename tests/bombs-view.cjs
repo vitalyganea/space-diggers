@@ -6,7 +6,7 @@ let fails = 0
 const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fails++ }
 ;(async () => {
   const p = await launch({ w: 1280, h: 720, port: 9392 })
-  await p.navigate('http://localhost:5181/?seed=42'); await sleep(5500)
+  await p.navigate('http://localhost:5181/?mode=race&seed=42'); await sleep(5500)
   await p.tap(640, 360); await sleep(400)
   const G = '__game'
   // count the World's changed blocks to see a crater appear

@@ -11,7 +11,7 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
   await sleep(800)
   const p = await launch({ w: 1280, h: 720, port: 9396 })
   const said = re => p.prints.some(t => re.test(t))
-  await p.navigate('http://localhost:8071/?seed=42&limit=8'); await sleep(6000)
+  await p.navigate('http://localhost:8071/?mode=race&seed=42&limit=8'); await sleep(6000)
   ok(said(/CrazyGames HTML SDK initialized/), 'the CrazyGames SDK starts (local mode)')
   ok(said(/loading ?start/i) && said(/loading ?stop/i), 'loading is reported started and stopped')
   ok(!said(/gameplay start/i), 'no gameplay before the player is in')

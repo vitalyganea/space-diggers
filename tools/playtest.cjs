@@ -18,7 +18,7 @@ const ok = (c, m) => { console.log((c ? '  ok   ' : '  FAIL ') + m); if (!c) fai
 
 ;(async () => {
   const p = await launch({ w: 1280, h: 720, port: 9398 })
-  await p.navigate(`http://localhost:5181/?seed=${seed}`); await sleep(5000)
+  await p.navigate(`http://localhost:5181/?mode=race&seed=${seed}`); await sleep(5000)
   await p.tap(640, 360); await sleep(4000)                     // into the game; the countdown runs out
   const G = '__game'
   const look = (heading, pitch) => p.eval(`${G}.noa.camera.heading = ${heading}; ${G}.noa.camera.pitch = ${pitch}`)

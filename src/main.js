@@ -6,7 +6,9 @@ const sandboxes = import.meta.glob('./dev/*.js')
 if (dev === null) {
   import('./platform.js').then(async P => {
     const platform = await P.initPlatform()
-    const m = await import('./game.js')
+    // the open game, or the race (its portal mode) with ?mode=race
+    const race = new URLSearchParams(location.search).get('mode') === 'race'
+    const m = race ? await import('./game.js') : await import('./open.js')
     m.start(platform)
   })
 } else if (sandboxes[`./dev/${dev}.js`]) {
