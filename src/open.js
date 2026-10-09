@@ -312,6 +312,13 @@ export function start(platform) {
     const s = SHOPS[door.key]
     lastSale = 0; museumNews = {}; robotNews = ''
     const soon = { pad: '<p>Coming soon: the rocket flies you to new planets.</p><p>An ice planet, a red one, one of lava and one of crystal, each with its own treasure.</p>' }
+    if (door.key === 'portal') {
+      // the race (row 52): five bots, the Core, coins for your place; back here after
+      inside = buildingCard(door.name, `<p>Race five diggers down to the Core! The faster you get there, the more coins you win.</p>
+        <p>Your coins come with you, and back.</p><div class="row"><button class="btn race">Race!</button></div>`, close)
+      inside.querySelector('.race').addEventListener('click', () => { persist(); location.href = `${location.pathname}?mode=race&from=moon` })
+      sound.play('place'); return
+    }
     if (s) inside = shopCard(door.name, () => keeperHead(door.key) + s.render(), s.act, close)
     else if (KEEPERS[door.key]) inside = buildingCard(door.name, keeperHead(door.key), close)
     else inside = buildingCard(door.name, soon[door.key] || '<p>Coming soon!</p>', close)

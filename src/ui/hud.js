@@ -64,7 +64,7 @@ export class Hud {
 
 /* The results card: the standings, what the round paid, Play again and
    Animals. `pay` is meta.payout()'s result, `bank` the coins saved. */
-export function showResults(round, onAgain, pay = null, bank = 0, onAnimals = null) {
+export function showResults(round, onAgain, pay = null, bank = 0, onAnimals = null, onMoon = null) {
   const s = round.standings()
   const me = s.find(x => x.isPlayer)
   const won = me && me.place === 1 && me.finishedAt !== null
@@ -77,9 +77,10 @@ export function showResults(round, onAgain, pay = null, bank = 0, onAnimals = nu
       <td>${x.finishedAt !== null ? 'Core in ' + fmt(x.finishedAt) : x.depth + ' m'}</td></tr>`).join('')}</table>
     ${pay ? `<div class="pay"><i class="coin"></i><b>+${pay.total}</b> <span>(${pay.purse} kept, ${pay.bonus} for your place, ${pay.depth} for depth)</span>
       <div class="bank">You have <i class="coin"></i><b>${bank}</b></div></div>` : ''}
-    <div class="buttons"><button class="btn again">Play again</button>${onAnimals ? '<button class="btn alt animals">Animals</button>' : ''}</div></div>`
+    <div class="buttons">${onMoon ? '<button class="btn moon">Back to the Moon</button>' : ''}<button class="btn ${onMoon ? 'alt ' : ''}again">${onMoon ? 'Race again' : 'Play again'}</button>${onAnimals ? '<button class="btn alt animals">Animals</button>' : ''}</div></div>`
   document.body.appendChild(el)
   el.querySelector('.again').addEventListener('click', () => onAgain())
+  if (onMoon) el.querySelector('.moon').addEventListener('click', () => onMoon())
   if (onAnimals) el.querySelector('.animals').addEventListener('click', () => onAnimals())
   return el
 }

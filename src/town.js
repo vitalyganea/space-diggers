@@ -24,7 +24,7 @@ export const BUILDINGS = [
   { key: 'robots', name: 'Robot Bay', at: [-9, 12], face: [1, 0], band: ID.light_purple, ready: true },
 ]
 /* The race portal: a metal frame round a purple gateway, not a building. */
-export const PORTAL = { key: 'portal', name: 'Race portal', at: [9, -12], face: [-1, 0], ready: false }
+export const PORTAL = { key: 'portal', name: 'Race portal', at: [9, -12], face: [-1, 0], ready: true }
 /* The launch pad, west on the plain: a round pad with the rocket on it.
    Other planets, by rocket, are stage 4; its door is round its east side. */
 export const PAD = { key: 'pad', name: 'Launch Pad', at: [-26, 0], r: 5, door: [-19.5, 1, 0.5], ready: false }

@@ -125,6 +125,8 @@ export function start(platform = null) {
       // the results card, and the animal shop from it; back from the shop
       // redraws the card with the coins left after buying
       const openResults = () => {
+        // come through the Moon's race portal (row 52): a way back, the winnings already in your coins
+        const moon = q.get('from') === 'moon' ? () => { location.href = location.pathname } : null
         const results = showResults(round, again, pay, save.coins, () => {
           results.remove()
           showAnimals(save, meta.SHOP, {
@@ -133,7 +135,7 @@ export function start(platform = null) {
             onChoose: k => { meta.choose(save, k); meta.store(platform.storage, save) },
             onClose: openResults,
           })
-        })
+        }, moon)
       }
       openResults()
 
