@@ -16,6 +16,8 @@ import * as meta from './meta.js'
 import { saveWorld, loadWorld } from './persist.js'
 import { ITEMS, Backpack, dropFor } from './items.js'
 import { Battery } from './battery.js'
+import { Rescue, rechargeCost, FREE_CHARGE, SURFACE_DEPTH } from './stranded.js'
+import { StrandedCard } from './ui/stranded.js'
 import { OpenHud } from './ui/openhud.js'
 import { clickToPlay } from './ui/hud.js'
 import { addCrosshair } from './ui/crosshair.js'
@@ -61,7 +63,11 @@ export function start(platform) {
       battery.use(e.block.hard); lastHard = e.block.hard
       const w = battery.warn()
       if (w) { hud.toast(`Battery ${Math.round(w * 100)}%!`); sound.play('low') }
-      if (battery.flat) { hud.toast('Battery flat! The drill has stopped'); sound.play('flat') }
+      if (battery.flat) {
+        sound.play('flat')
+        if (strandedNow()) openCard()
+        else hud.toast('Battery flat! Stand in the sun to charge')
+      }
     },
   })
   digger.coins = save.coins
@@ -70,7 +76,34 @@ export function start(platform) {
   digger.coinMult = perk.coinMult
   applyLook(noa)
   addCrosshair()
-  clickToPlay(() => true, noa.container.element)
+  // stranded: the card with the ways out (src/stranded.js)
+  const rescue = new Rescue()
+  const strandedNow = () => battery.flat && depth() >= SURFACE_DEPTH
+  const card = new StrandedCard(
+    () => ({
+      depth: depth(), coins: digger.coins, cost: rechargeCost(depth()), hasAds: platform.hasAds,
+      items: Object.entries(bag.items).map(([key, n]) => ({ key, n, name: ITEMS[key].name, value: ITEMS[key].value })),
+      job: rescue.job && { ...rescue.job, itemName: rescue.job.item && ITEMS[rescue.job.item].name }, left: rescue.left(),
+    }),
+    async (kind, arg) => {
+      if (kind === 'close') { card.hide(); return }
+      if (kind === 'pay') {
+        const cost = rechargeCost(depth())
+        if (digger.coins < cost) return
+        digger.coins -= cost; battery.recharge(); sound.play('buy'); card.hide(); hud.toast('Recharged!')
+      }
+      if (kind === 'robot' && bag.take(arg)) { rescue.sendRobot(arg, ITEMS[arg].value, depth()); sound.play('thrown') }
+      if (kind === 'free') rescue.callFree()
+      if (kind === 'ad') {
+        sound.setMuted(true)
+        const watched = await platform.rewardedAd()
+        applyMute()
+        if (watched) { battery.recharge(); card.hide(); hud.toast('Recharged! Thanks for watching'); sound.play('buy') }
+        else hud.toast('No ad right now: try another way')
+      }
+    })
+  const openCard = () => { if (document.pointerLockElement) document.exitPointerLock(); card.show() }
+  clickToPlay(() => !card.open, noa.container.element)
 
   const bombs = new Bombs(noa, world, {
     onFuse: () => sound.play('fuse'),
@@ -121,9 +154,23 @@ export function start(platform) {
     return false
   }
 
+  // trying to dig on a flat battery down there brings the card back
+  noa.inputs.down.on('fire', () => { if (strandedNow() && !card.open) openCard() })
+
   noa.on('tick', dt => {
     if (!loaded) { loaded = true; platform.loadingStop() }
     digger.enabled = !battery.flat
+    // the sun charges the drill at the surface, slowly
+    if (depth() < SURFACE_DEPTH && battery.fraction < 1) battery.recharge(battery.capacity * 0.04 * dt / 1000)
+    const done = rescue.tick(dt / 1000)
+    if (done && done.kind === 'trip') {
+      digger.coins += done.value; sound.play('coin', done.value)
+      hud.toast(`Your robot sold ${ITEMS[done.item].name}: +${done.value} coins`)
+    }
+    if (done && done.kind === 'free') {
+      battery.recharge(battery.capacity * FREE_CHARGE); card.hide(); sound.play('buy')
+      hud.toast('The rescue drone gave you some charge')
+    }
     if (noa.inputs.state.jump && againstWall()) body.velocity[1] = Math.max(body.velocity[1], 4.2)
     if (document.pointerLockElement) platform.gameplayStart(); else platform.gameplayStop()
     sinceSave += dt / 1000
@@ -131,5 +178,5 @@ export function start(platform) {
     hud.update({ coins: digger.coins, depth: depth(), bag, battery, blocksLeft: battery.blocksLeft(lastHard) })
   })
 
-  if (import.meta.env.DEV) window.__open = { noa, world, digger, save, sound, bombs, persist, bag, battery, state: () => playerState(noa), depth }
+  if (import.meta.env.DEV) window.__open = { noa, world, digger, save, sound, bombs, persist, bag, battery, rescue, card, state: () => playerState(noa), depth }
 }

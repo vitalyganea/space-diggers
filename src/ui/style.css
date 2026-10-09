@@ -73,3 +73,12 @@
 .hud .batt.amber .batt-ico s { background: #f5c518; } .hud .batt.amber b { color: #f5c518; }
 .hud .batt.red .batt-ico s { background: #ff6b6b; } .hud .batt.red b { color: #ff6b6b; }
 .hud .batt small { font-size: 13px; opacity: .8; }
+.stranded .card { max-width: 560px; }
+.stranded .purse { margin: -2px 0 10px; font-size: 18px; font-weight: 800; }
+.stranded .ways { display: flex; flex-direction: column; gap: 10px; margin: 6px 0 16px; }
+.stranded .ways .btn { font-size: 19px; }
+.stranded .wait { padding: 12px; border-radius: 12px; background: rgba(255,255,255,.08); font-size: 17px; font-weight: 700; }
+.stranded .wait em { display: block; height: 8px; margin-top: 8px; border-radius: 4px; background: rgba(255,255,255,.2); overflow: hidden; }
+.stranded .wait em s { display: block; height: 100%; background: #6ee7b7; }
+.stranded .pick { display: flex; flex-direction: column; gap: 8px; margin: 8px 0 14px; }
+.fake-ad { z-index: 60; background: #000; }
