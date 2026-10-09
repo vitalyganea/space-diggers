@@ -38,7 +38,8 @@ export function start(platform) {
   const store = platform.storage
   const save = meta.load(store)
   const kept = loadWorld(store)
-  const seed = kept ? kept.seed : Math.floor(Math.random() * 1e6) + 1
+  // a new world's seed: random, or ?seed= (tests and playtests want the same world)
+  const seed = kept ? kept.seed : (+new URLSearchParams(location.search).get('seed') || Math.floor(Math.random() * 1e6) + 1)
 
   const noa = createEngine({ playerStart: kept && kept.pos ? kept.pos : SPAWN })
   registerBlocks(noa)
